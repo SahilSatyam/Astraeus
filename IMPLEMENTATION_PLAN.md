@@ -1,6 +1,6 @@
 # Astraeus — Phase-Wise Implementation Plan
 
-A structured plan for building the institutional-grade AI trading & research platform described in `description.md`. Each phase ships something usable and de-risks the next.
+A structured plan for building the institutional-grade AI trading & research platform described in [`docs/description.md`](docs/description.md). Each phase ships something usable and de-risks the next.
 
 **Realistic timeline (1–3 engineers):** 8–10 months to a credible end-to-end demo, 14–18 months to institutional-grade. Solo: roughly double.
 
