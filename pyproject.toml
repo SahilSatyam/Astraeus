@@ -26,6 +26,7 @@ astraeus-contracts = { workspace = true }
 astraeus-config = { workspace = true }
 astraeus-db = { workspace = true }
 astraeus-observability = { workspace = true }
+astraeus-marketdata = { workspace = true }
 astraeus-api = { workspace = true }
 astraeus-workers = { workspace = true }
 
