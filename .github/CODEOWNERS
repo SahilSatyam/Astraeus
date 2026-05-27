@@ -1,0 +1,9 @@
+# Trunk-based: every directory is owned by Sahil for now. Update when the
+# project gets contributors or external reviewers.
+*       @Sahil-25
+
+# Cross-cutting: any change to libs/, infra/, or workflows is reviewed.
+/libs/                      @Sahil-25
+/infra/                     @Sahil-25
+/.github/                   @Sahil-25
+/docs/adr/                  @Sahil-25

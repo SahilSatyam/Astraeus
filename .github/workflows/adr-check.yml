@@ -1,0 +1,24 @@
+name: ADR check
+
+on:
+  pull_request:
+    paths:
+      - "docs/adr/**"
+
+jobs:
+  validate:
+    name: Validate ADR titles + status
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Each ADR has a status line
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in docs/adr/[0-9]*.md; do
+              if ! grep -E '^\*\*Status\*\*:\s+(proposed|accepted|superseded by [0-9]+|rejected)' "$f" >/dev/null; then
+                  echo "::error file=$f::ADR is missing a valid '**Status**:' line"
+                  fail=1
+              fi
+          done
+          exit "$fail"
