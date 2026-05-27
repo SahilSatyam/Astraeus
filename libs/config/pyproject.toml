@@ -1,0 +1,16 @@
+[project]
+name = "astraeus-config"
+version = "0.1.0"
+description = "Shared pydantic-settings models for every Astraeus service."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["astraeus_config"]
