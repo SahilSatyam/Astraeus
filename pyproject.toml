@@ -1,0 +1,89 @@
+[project]
+name = "astraeus"
+version = "0.1.0"
+description = "Institutional-grade AI trading and research platform."
+requires-python = ">=3.12,<3.13"
+readme = "README.md"
+license = { text = "MIT" }
+
+[dependency-groups]
+dev = [
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "pyyaml>=6.0",
+    "types-pyyaml>=6.0",
+]
+
+[tool.uv.workspace]
+members = ["apps/api", "apps/workers", "libs/*"]
+
+[tool.uv.sources]
+astraeus-domain = { workspace = true }
+astraeus-contracts = { workspace = true }
+astraeus-config = { workspace = true }
+astraeus-db = { workspace = true }
+astraeus-observability = { workspace = true }
+astraeus-api = { workspace = true }
+astraeus-workers = { workspace = true }
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["apps", "libs"]
+extend-exclude = ["**/migrations/versions"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W", "I", "B", "UP", "S", "C4", "SIM", "RET",
+    "TCH", "ARG", "PTH", "ERA", "PL", "RUF", "ASYNC", "PERF",
+]
+ignore = [
+    "S101",    # asserts ok in tests
+    "PLR0913", # don't nit on argument count
+    "PLR2004", # magic numbers occasionally fine
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S", "PLR2004", "ARG", "PLR0915"]
+"libs/db/**/migrations/**" = ["E501", "I001", "ERA001"]
+"scripts/**" = ["S603", "S607"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+plugins = ["pydantic.mypy"]
+exclude = [
+    "libs/db/.*/migrations/versions/.*",
+    "build/",
+    "dist/",
+]
+
+[[tool.mypy.overrides]]
+module = ["alembic.*", "testcontainers.*", "prometheus_fastapi_instrumentator.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "-ra -q --strict-markers --strict-config"
+asyncio_mode = "auto"
+testpaths = ["apps", "libs"]
+markers = [
+    "unit: fast in-process tests",
+    "integration: tests requiring containers",
+    "e2e: full-stack smoke tests",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["apps", "libs"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

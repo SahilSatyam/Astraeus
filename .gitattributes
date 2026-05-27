@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+*.py text diff=python
+*.md text
+*.yaml text
+*.yml text
+*.toml text
+*.json text
+*.sh text eol=lf
+
+*.lock linguist-generated=true
+uv.lock linguist-generated=true
+
+*.png binary
+*.jpg binary
+*.ico binary
