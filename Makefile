@@ -15,6 +15,7 @@ bootstrap:  ## First-time setup: copy .env, sync uv deps, install pre-commit.
 dev:  ## Build app images and bring the full stack up; wait on health.
 	$(COMPOSE) build
 	$(COMPOSE) up -d --wait
+	$(COMPOSE) --profile init run --rm minio-init
 	./scripts/verify-stack.sh
 
 stop:  ## Stop containers but keep volumes.

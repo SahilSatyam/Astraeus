@@ -76,12 +76,12 @@ jobs:
           --health-timeout 3s
           --health-retries 10
     env:
-      ASTRAEUS_DB__HOST: localhost
-      ASTRAEUS_DB__PORT: "5432"
-      ASTRAEUS_DB__USER: astraeus
-      ASTRAEUS_DB__PASSWORD: astraeus
-      ASTRAEUS_DB__NAME: astraeus
-      ASTRAEUS_REDIS__HOST: localhost
+      ASTRAEUS_DB_HOST: localhost
+      ASTRAEUS_DB_PORT: "5432"
+      ASTRAEUS_DB_USER: astraeus
+      ASTRAEUS_DB_PASSWORD: astraeus
+      ASTRAEUS_DB_NAME: astraeus
+      ASTRAEUS_REDIS_HOST: localhost
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3

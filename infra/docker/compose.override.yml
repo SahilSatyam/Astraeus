@@ -6,20 +6,24 @@ services:
       context: ../..
       dockerfile: apps/api/Dockerfile
     image: astraeus/api:dev
+    command:
+      - /bin/sh
+      - -c
+      - cd /app/libs/db && alembic upgrade head && cd /app && uvicorn astraeus_api.main:app --host 0.0.0.0 --port 8000
     environment:
       ASTRAEUS_ENV: local
-      ASTRAEUS_APP__NAME: api
-      ASTRAEUS_APP__VERSION: 0.1.0-dev
-      ASTRAEUS_DB__HOST: postgres
-      ASTRAEUS_DB__PORT: "5432"
-      ASTRAEUS_DB__USER: astraeus
-      ASTRAEUS_DB__PASSWORD: astraeus
-      ASTRAEUS_DB__NAME: astraeus
-      ASTRAEUS_REDIS__HOST: redis
-      ASTRAEUS_KAFKA__BOOTSTRAP_SERVERS: redpanda:9092
-      ASTRAEUS_OBS__OTLP_ENDPOINT: http://jaeger:4317
-      ASTRAEUS_OBS__OTLP_INSECURE: "true"
-      ASTRAEUS_OBS__LOG_FORMAT: json
+      ASTRAEUS_APP_NAME: api
+      ASTRAEUS_APP_VERSION: 0.1.0-dev
+      ASTRAEUS_DB_HOST: postgres
+      ASTRAEUS_DB_PORT: "5432"
+      ASTRAEUS_DB_USER: astraeus
+      ASTRAEUS_DB_PASSWORD: astraeus
+      ASTRAEUS_DB_NAME: astraeus
+      ASTRAEUS_REDIS_HOST: redis
+      ASTRAEUS_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      ASTRAEUS_OBS_OTLP_ENDPOINT: http://jaeger:4317
+      ASTRAEUS_OBS_OTLP_INSECURE: "true"
+      ASTRAEUS_OBS_LOG_FORMAT: json
     depends_on:
       postgres:
         condition: service_healthy
@@ -35,17 +39,17 @@ services:
     image: astraeus/workers:dev
     environment:
       ASTRAEUS_ENV: local
-      ASTRAEUS_APP__NAME: workers
-      ASTRAEUS_APP__VERSION: 0.1.0-dev
-      ASTRAEUS_DB__HOST: postgres
-      ASTRAEUS_DB__USER: astraeus
-      ASTRAEUS_DB__PASSWORD: astraeus
-      ASTRAEUS_DB__NAME: astraeus
-      ASTRAEUS_REDIS__HOST: redis
-      ASTRAEUS_KAFKA__BOOTSTRAP_SERVERS: redpanda:9092
-      ASTRAEUS_OBS__OTLP_ENDPOINT: http://jaeger:4317
-      ASTRAEUS_OBS__OTLP_INSECURE: "true"
-      ASTRAEUS_OBS__LOG_FORMAT: json
+      ASTRAEUS_APP_NAME: workers
+      ASTRAEUS_APP_VERSION: 0.1.0-dev
+      ASTRAEUS_DB_HOST: postgres
+      ASTRAEUS_DB_USER: astraeus
+      ASTRAEUS_DB_PASSWORD: astraeus
+      ASTRAEUS_DB_NAME: astraeus
+      ASTRAEUS_REDIS_HOST: redis
+      ASTRAEUS_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      ASTRAEUS_OBS_OTLP_ENDPOINT: http://jaeger:4317
+      ASTRAEUS_OBS_OTLP_INSECURE: "true"
+      ASTRAEUS_OBS_LOG_FORMAT: json
     depends_on:
       postgres:
         condition: service_healthy

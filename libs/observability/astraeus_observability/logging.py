@@ -50,7 +50,7 @@ def configure_logging(settings: ObservabilitySettings, *, service: str) -> None:
     structlog.configure(
         processors=[*shared_processors, renderer],
         wrapper_class=structlog.make_filtering_bound_logger(_level_to_int(settings.log_level)),
-        logger_factory=structlog.PrintLoggerFactory(),
+        logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )
 
