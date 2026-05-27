@@ -69,5 +69,17 @@ smoke:  ## Run the post-up smoke verification.
 env-lint:  ## Confirm .env.example is a superset of every Settings variable.
 	uv run python scripts/env-lint.py
 
+backfill:  ## Run market data backfill: make backfill SYMBOLS=SPY,AAPL START=2024-01-01 END=2024-12-31
+	@if [ -z "$(SYMBOLS)" ] || [ -z "$(START)" ] || [ -z "$(END)" ]; then \
+	  echo "Usage: make backfill SYMBOLS=SPY,AAPL START=2024-01-01 END=2024-12-31"; exit 1; fi
+	uv run python scripts/md-backfill.py --source $(or $(SOURCE),yahoo) \
+	  --symbols $(SYMBOLS) --start $(START) --end $(END)
+
+backfill-universe:  ## Backfill the full universe from data/universe.txt.
+	@if [ -z "$(START)" ] || [ -z "$(END)" ]; then \
+	  echo "Usage: make backfill-universe START=2020-01-01 END=2024-12-31"; exit 1; fi
+	uv run python scripts/md-backfill.py --source $(or $(SOURCE),yahoo) \
+	  --symbols-file data/universe.txt --start $(START) --end $(END)
+
 precommit-install:  ## Install git hooks via pre-commit.
 	uv run pre-commit install
