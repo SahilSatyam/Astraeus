@@ -11,6 +11,7 @@ members = [
     "astraeus-db",
     "astraeus-domain",
     "astraeus-observability",
+    "astraeus-workers",
 ]
 
 [[package]]
@@ -236,6 +237,21 @@ requires-dist = [
     { name = "opentelemetry-semantic-conventions", specifier = ">=0.46b0" },
     { name = "prometheus-client", specifier = ">=0.20" },
     { name = "structlog", specifier = ">=24.1" },
+]
+
+[[package]]
+name = "astraeus-workers"
+version = "0.1.0"
+source = { editable = "apps/workers" }
+dependencies = [
+    { name = "astraeus-config" },
+    { name = "astraeus-observability" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "astraeus-config", editable = "libs/config" },
+    { name = "astraeus-observability", editable = "libs/observability" },
 ]
 
 [[package]]
