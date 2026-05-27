@@ -17,6 +17,7 @@ dependencies = [
     "astraeus-contracts",
     "astraeus-db",
     "astraeus-domain",
+    "astraeus-marketdata",
     "astraeus-observability",
 ]
 
