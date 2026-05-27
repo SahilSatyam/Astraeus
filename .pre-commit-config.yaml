@@ -1,0 +1,44 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: detect-private-key
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+        exclude: '^infra/docker/grafana/.*\.json$'  # grafana dashboards have trailing-comma quirks
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy (strict)
+        entry: uv run mypy apps libs
+        language: system
+        pass_filenames: false
+        files: '^(apps|libs)/.*\.py$'
+      - id: env-lint
+        name: .env.example parity
+        entry: uv run python scripts/env-lint.py
+        language: system
+        pass_filenames: false
+        files: '(\.env\.example|libs/config/.*\.py)$'
