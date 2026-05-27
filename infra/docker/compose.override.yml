@@ -1,0 +1,86 @@
+name: astraeus
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    image: astraeus/api:dev
+    environment:
+      ASTRAEUS_ENV: local
+      ASTRAEUS_APP__NAME: api
+      ASTRAEUS_APP__VERSION: 0.1.0-dev
+      ASTRAEUS_DB__HOST: postgres
+      ASTRAEUS_DB__PORT: "5432"
+      ASTRAEUS_DB__USER: astraeus
+      ASTRAEUS_DB__PASSWORD: astraeus
+      ASTRAEUS_DB__NAME: astraeus
+      ASTRAEUS_REDIS__HOST: redis
+      ASTRAEUS_KAFKA__BOOTSTRAP_SERVERS: redpanda:9092
+      ASTRAEUS_OBS__OTLP_ENDPOINT: http://jaeger:4317
+      ASTRAEUS_OBS__OTLP_INSECURE: "true"
+      ASTRAEUS_OBS__LOG_FORMAT: json
+    depends_on:
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  workers:
+    build:
+      context: ../..
+      dockerfile: apps/workers/Dockerfile
+    image: astraeus/workers:dev
+    environment:
+      ASTRAEUS_ENV: local
+      ASTRAEUS_APP__NAME: workers
+      ASTRAEUS_APP__VERSION: 0.1.0-dev
+      ASTRAEUS_DB__HOST: postgres
+      ASTRAEUS_DB__USER: astraeus
+      ASTRAEUS_DB__PASSWORD: astraeus
+      ASTRAEUS_DB__NAME: astraeus
+      ASTRAEUS_REDIS__HOST: redis
+      ASTRAEUS_KAFKA__BOOTSTRAP_SERVERS: redpanda:9092
+      ASTRAEUS_OBS__OTLP_ENDPOINT: http://jaeger:4317
+      ASTRAEUS_OBS__OTLP_INSECURE: "true"
+      ASTRAEUS_OBS__LOG_FORMAT: json
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+
+  # Dev port mappings for the data plane (only enabled in this override file).
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  redpanda:
+    ports:
+      - "19092:19092"
+      - "8082:8082"
+
+  minio:
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  jaeger:
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+
+  prometheus:
+    ports:
+      - "9090:9090"
+
+  grafana:
+    ports:
+      - "3000:3000"
