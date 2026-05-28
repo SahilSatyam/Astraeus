@@ -98,7 +98,7 @@ class CorporateAction(Base):
     ratio: Mapped[Decimal | None] = mapped_column(Numeric(20, 10), nullable=True)
     cash_amount: Mapped[Decimal | None] = mapped_column(Numeric(20, 8), nullable=True)
     source: Mapped[str] = mapped_column(String(32), nullable=False)
-    raw_payload: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    raw_payload: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
 
 
 class DataLineage(Base):
@@ -109,7 +109,7 @@ class DataLineage(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     target_table: Mapped[str] = mapped_column(String(64), nullable=False)
-    target_pk: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    target_pk: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
     source: Mapped[str] = mapped_column(String(32), nullable=False)
     source_endpoint: Mapped[str | None] = mapped_column(Text, nullable=True)
     source_response_hash: Mapped[bytes] = mapped_column(LargeBinary(32), nullable=False)
@@ -137,7 +137,7 @@ class Outbox(Base):
     topic: Mapped[str] = mapped_column(String(128), nullable=False)
     key: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     payload: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
-    headers: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    headers: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

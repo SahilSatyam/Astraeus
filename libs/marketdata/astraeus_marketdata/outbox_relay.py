@@ -47,7 +47,7 @@ async def relay_loop(
 
     while not stop_event.is_set():
         try:
-            published = await _drain_batch(session_factory, producer)  # type: ignore[arg-type]
+            published = await _drain_batch(session_factory, producer)
             if published == 0:
                 # No work — back off
                 try:
@@ -67,7 +67,7 @@ async def _drain_batch(
 ) -> int:
     """Fetch and publish one batch of outbox rows. Returns count published."""
 
-    sm = session_factory  # type: ignore[assignment]
+    sm = session_factory
     async with sm() as session:  # type: ignore[operator]
         # Fetch unpublished rows
         result = await session.execute(

@@ -56,7 +56,7 @@ class IngestionRun:
             return "completed"
         return "running"
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, object]:
         return {
             "run_id": str(self.run_id),
             "source": self.source,

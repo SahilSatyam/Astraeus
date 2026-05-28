@@ -126,10 +126,12 @@ async def adjust_symbol(
             if bar_date < div.ex_date:
                 # Adjust dividend amount for any splits that happened between
                 # the bar date and the dividend ex_date
-                div_adjustment = div.cash_amount  # type: ignore[assignment]
+                assert div.cash_amount is not None  # guaranteed by filter
+                div_adjustment: Decimal = div.cash_amount
                 for split in splits:
                     if bar_date < split.ex_date <= div.ex_date:
-                        div_adjustment = div_adjustment / split.ratio  # type: ignore[operator]
+                        assert split.ratio is not None  # guaranteed by filter
+                        div_adjustment = div_adjustment / split.ratio
                 cumulative_dividend += div_adjustment
 
         # Apply split adjustment first, then dividend

@@ -101,7 +101,7 @@ class YahooAdapter(BaseAdapter):
 
         bars: list[BarRecord] = []
         for idx, row in df.iterrows():
-            ts = idx.to_pydatetime()  # type: ignore[union-attr]
+            ts = idx.to_pydatetime()
             if ts.tzinfo is None:
                 ts = ts.replace(tzinfo=UTC)
             bars.append(

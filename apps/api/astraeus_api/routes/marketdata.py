@@ -31,6 +31,7 @@ from astraeus_api.deps import get_db_session, get_settings
 
 if TYPE_CHECKING:
     from astraeus_config import Settings
+    from astraeus_marketdata.adapters.base import BaseAdapter
     from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/md", tags=["market-data"])
@@ -61,7 +62,7 @@ class BackfillResponse(BaseModel):
 
 class LineageEntry(BaseModel):
     target_table: str
-    target_pk: dict
+    target_pk: dict[str, str]
     source: str
     source_endpoint: str | None
     source_response_hash: str
@@ -106,6 +107,7 @@ async def backfill(
 ) -> BackfillResponse:
     """Start a market data backfill for the given symbols and date range."""
     # Select adapter based on source
+    adapter: BaseAdapter
     if request.source == "yahoo":
         adapter = YahooAdapter()
     elif request.source == "alpaca":

@@ -47,7 +47,7 @@ async def _run(settings: Settings) -> None:
     session_factory = get_sessionmaker(settings.db)
 
     # Launch background tasks
-    tasks: list[asyncio.Task] = [
+    tasks: list[asyncio.Task[None]] = [
         asyncio.create_task(
             _outbox_relay_task(session_factory, stop_event),
             name="outbox-relay",
@@ -119,7 +119,7 @@ async def _run_nightly_jobs(session_factory: object) -> None:
     """Execute the nightly maintenance jobs."""
     logger.info("nightly_jobs_start")
 
-    sm = session_factory  # type: ignore[assignment]
+    sm = session_factory
 
     async with sm() as session:  # type: ignore[operator]
         # 1. Gap detection for active instruments

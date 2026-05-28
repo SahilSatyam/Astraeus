@@ -60,7 +60,8 @@ def get_trading_days(
 def is_trading_day(exchange: str, check_date: date) -> bool:
     """Check if a specific date is a trading day."""
     cal = _get_calendar(exchange)
-    return cal.is_session(check_date.isoformat())
+    result: bool = cal.is_session(check_date.isoformat())
+    return result
 
 
 def get_next_trading_day(exchange: str, after: date) -> date:
@@ -68,7 +69,8 @@ def get_next_trading_day(exchange: str, after: date) -> date:
     cal = _get_calendar(exchange)
     # Find next session
     ts = cal.next_session(after.isoformat())
-    return ts.date()
+    result: date = ts.date()
+    return result
 
 
 def get_market_open_close(

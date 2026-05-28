@@ -68,7 +68,15 @@ exclude = [
 ]
 
 [[tool.mypy.overrides]]
-module = ["alembic.*", "testcontainers.*", "prometheus_fastapi_instrumentator.*"]
+module = [
+    "alembic.*",
+    "testcontainers.*",
+    "prometheus_fastapi_instrumentator.*",
+    "yfinance.*",
+    "exchange_calendars.*",
+    "minio.*",
+    "websockets.*",
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
