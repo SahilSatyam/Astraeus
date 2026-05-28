@@ -16,7 +16,7 @@ from typing import Annotated
 from astraeus_config import Settings
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select, text
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from astraeus_api.deps import get_db_session, get_settings
@@ -99,6 +99,25 @@ async def backfill(
     # Select adapter based on source
     if request.source == "yahoo":
         adapter = YahooAdapter()
+    elif request.source == "alpaca":
+        from astraeus_marketdata.adapters.alpaca import AlpacaAdapter
+
+        adapter = AlpacaAdapter(
+            api_key=settings.alpaca_api_key,
+            api_secret=settings.alpaca_api_secret,
+        )
+    elif request.source == "polygon":
+        from astraeus_marketdata.adapters.polygon import PolygonAdapter
+
+        adapter = PolygonAdapter(api_key=settings.polygon_api_key)
+    elif request.source == "alphavantage":
+        from astraeus_marketdata.adapters.alphavantage import AlphaVantageAdapter
+
+        adapter = AlphaVantageAdapter(api_key=settings.alphavantage_api_key)
+    elif request.source == "fred":
+        from astraeus_marketdata.adapters.fred import FredAdapter
+
+        adapter = FredAdapter(api_key=settings.fred_api_key)
     else:
         from astraeus_domain import AstraeusError
 
@@ -241,7 +260,8 @@ async def get_bars(
         )
     if end:
         query = query.where(
-            MarketBarRaw.ts <= datetime(end.year, end.month, end.day, 23, 59, 59, tzinfo=timezone.utc)
+            MarketBarRaw.ts
+            <= datetime(end.year, end.month, end.day, 23, 59, 59, tzinfo=timezone.utc)
         )
     if source:
         query = query.where(MarketBarRaw.source == source)
@@ -264,4 +284,54 @@ async def get_bars(
             source=row.source,
         )
         for row in rows
+    ]
+
+
+# --- DLQ Endpoints ---
+
+
+class DLQEntryResponse(BaseModel):
+    dlq_id: str | None
+    original_topic: str | None
+    original_key: str | None
+    error_type: str | None = None
+    error_message: str | None = None
+    source: str | None
+    run_id: str | None
+    attempt_count: int | None = None
+    failed_at: str | None
+    published_at: str | None = None
+
+
+@router.get("/dlq", response_model=list[DLQEntryResponse], summary="List DLQ entries")
+async def get_dlq(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    source: str | None = Query(default=None, description="Filter by source"),
+    limit: int = Query(default=50, le=500),
+) -> list[DLQEntryResponse]:
+    """List dead letter queue entries for failed ingestion records."""
+    from astraeus_marketdata.dlq import get_dlq_entries
+
+    entries = await get_dlq_entries(session, limit=limit, source=source)
+
+    return [
+        DLQEntryResponse(
+            dlq_id=entry.get("dlq_id"),
+            original_topic=entry.get("original_topic"),
+            original_key=entry.get("original_key"),
+            error_type=(
+                entry.get("error", {}).get("type") if isinstance(entry.get("error"), dict) else None
+            ),
+            error_message=(
+                entry.get("error", {}).get("message")
+                if isinstance(entry.get("error"), dict)
+                else None
+            ),
+            source=entry.get("source"),
+            run_id=entry.get("run_id"),
+            attempt_count=entry.get("attempt_count"),
+            failed_at=entry.get("failed_at"),
+            published_at=entry.get("published_at"),
+        )
+        for entry in entries
     ]

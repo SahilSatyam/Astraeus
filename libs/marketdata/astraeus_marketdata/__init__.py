@@ -1,6 +1,8 @@
 """Astraeus market data library — adapters, ingestion, and lineage."""
 
 from astraeus_marketdata.adapters.base import BaseAdapter, AdapterResult
+from astraeus_marketdata.archival import MinIOArchiver
+from astraeus_marketdata.dlq import DLQEntry, send_to_dlq
 from astraeus_marketdata.models import (
     CorporateAction,
     DataGap,
@@ -17,12 +19,15 @@ __all__ = [
     "AdapterResult",
     "BaseAdapter",
     "CorporateAction",
+    "DLQEntry",
     "DataGap",
     "DataLineage",
     "Instrument",
     "MarketBarAdjusted",
     "MarketBarRaw",
+    "MinIOArchiver",
     "Outbox",
     "RateLimiter",
     "retry_with_backoff",
+    "send_to_dlq",
 ]

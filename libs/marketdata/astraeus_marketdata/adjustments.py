@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import structlog
@@ -52,6 +52,18 @@ def _apply_split(price: Decimal, ratio: Decimal) -> Decimal:
     return (price / ratio).quantize(Decimal("0.00000001"))
 
 
+def _apply_dividend(price: Decimal, cumulative_dividend: Decimal) -> Decimal:
+    """Apply cumulative dividend adjustment to a price.
+
+    Uses the proportional method: adjusted = price - cumulative_dividend
+    This is the standard approach for back-adjusting historical prices.
+    """
+    adjusted = price - cumulative_dividend
+    if adjusted <= 0:
+        return price  # Safety: never produce negative prices
+    return adjusted.quantize(Decimal("0.00000001"))
+
+
 async def adjust_symbol(
     session: AsyncSession,
     symbol: str,
@@ -77,11 +89,7 @@ async def adjust_symbol(
     adjustment_hash = _compute_adjustment_hash(actions)
 
     # Fetch raw bars
-    raw_query = (
-        select(MarketBarRaw)
-        .where(MarketBarRaw.symbol == symbol)
-        .order_by(MarketBarRaw.ts)
-    )
+    raw_query = select(MarketBarRaw).where(MarketBarRaw.symbol == symbol).order_by(MarketBarRaw.ts)
     raw_result = await session.execute(raw_query)
     raw_bars = list(raw_result.scalars().all())
 
@@ -89,34 +97,52 @@ async def adjust_symbol(
         return 0
 
     # Delete existing adjusted bars for this symbol
-    await session.execute(
-        delete(MarketBarAdjusted).where(MarketBarAdjusted.symbol == symbol)
-    )
+    await session.execute(delete(MarketBarAdjusted).where(MarketBarAdjusted.symbol == symbol))
 
     # Build split schedule: for each date, cumulative split factor
     # Splits apply to all bars BEFORE the ex_date
     splits = [a for a in actions if a.action_type == "split" and a.ratio]
+    dividends = [a for a in actions if a.action_type == "dividend" and a.cash_amount]
 
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     written = 0
 
     for raw_bar in raw_bars:
         # Calculate cumulative split factor for this bar's date
         cumulative_ratio = Decimal("1")
+        cumulative_dividend = Decimal("0")
         bar_date = raw_bar.ts.date() if isinstance(raw_bar.ts, datetime) else raw_bar.ts
 
         for split in splits:
             if bar_date < split.ex_date:
                 cumulative_ratio *= split.ratio  # type: ignore[operator]
 
-        # Apply adjustment
+        # Calculate cumulative dividend adjustment
+        # Dividends reduce historical prices for bars BEFORE the ex_date
+        for div in dividends:
+            if bar_date < div.ex_date:
+                # Adjust dividend amount for any splits that happened between
+                # the bar date and the dividend ex_date
+                div_adjustment = div.cash_amount  # type: ignore[assignment]
+                for split in splits:
+                    if bar_date < split.ex_date <= div.ex_date:
+                        div_adjustment = div_adjustment / split.ratio  # type: ignore[operator]
+                cumulative_dividend += div_adjustment
+
+        # Apply split adjustment first, then dividend
         adj_open = _apply_split(raw_bar.open, cumulative_ratio)
         adj_high = _apply_split(raw_bar.high, cumulative_ratio)
         adj_low = _apply_split(raw_bar.low, cumulative_ratio)
         adj_close = _apply_split(raw_bar.close, cumulative_ratio)
-        adj_volume = (
-            int(raw_bar.volume * cumulative_ratio) if raw_bar.volume else None
-        )
+
+        # Apply dividend adjustment
+        if cumulative_dividend > 0:
+            adj_open = _apply_dividend(adj_open, cumulative_dividend)
+            adj_high = _apply_dividend(adj_high, cumulative_dividend)
+            adj_low = _apply_dividend(adj_low, cumulative_dividend)
+            adj_close = _apply_dividend(adj_close, cumulative_dividend)
+
+        adj_volume = int(raw_bar.volume * cumulative_ratio) if raw_bar.volume else None
 
         adj_bar = MarketBarAdjusted(
             symbol=raw_bar.symbol,
