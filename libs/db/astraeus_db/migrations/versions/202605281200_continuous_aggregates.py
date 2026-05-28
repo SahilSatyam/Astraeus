@@ -119,11 +119,12 @@ def upgrade() -> None:
         """)
     )
 
-    # Refresh policy: refresh weekly data that's between 2 weeks and 1 week old
+    # Refresh policy: refresh weekly data that's between 4 weeks and 1 week old
+    # Window must cover at least 2 buckets (2 x 7 days = 14 days minimum)
     op.execute(
         sa.text("""
             SELECT add_continuous_aggregate_policy('market_bars_weekly',
-                start_offset => INTERVAL '14 days',
+                start_offset => INTERVAL '28 days',
                 end_offset => INTERVAL '7 days',
                 schedule_interval => INTERVAL '1 day'
             )
