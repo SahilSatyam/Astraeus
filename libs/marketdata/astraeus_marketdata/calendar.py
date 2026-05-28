@@ -9,7 +9,7 @@ Supported exchanges: NYSE, NASDAQ, CME, LSE.
 from __future__ import annotations
 
 import asyncio
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from functools import lru_cache
 
 import exchange_calendars as xcals
@@ -87,8 +87,8 @@ def get_market_open_close(
     close_time = cal.session_close(trading_date.isoformat())
 
     return (
-        open_time.to_pydatetime().replace(tzinfo=timezone.utc),
-        close_time.to_pydatetime().replace(tzinfo=timezone.utc),
+        open_time.to_pydatetime().replace(tzinfo=UTC),
+        close_time.to_pydatetime().replace(tzinfo=UTC),
     )
 
 

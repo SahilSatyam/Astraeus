@@ -15,15 +15,19 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import UTC, date, datetime
+from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from astraeus_marketdata.adapters.base import AdapterResult, BaseAdapter, compute_payload_hash
-from astraeus_marketdata.archival import MinIOArchiver
 from astraeus_marketdata.dlq import DLQEntry, send_to_dlq
 from astraeus_marketdata.models import DataLineage, MarketBarRaw, Outbox
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from astraeus_marketdata.archival import MinIOArchiver
 
 logger = structlog.get_logger("astraeus.marketdata.ingestion")
 

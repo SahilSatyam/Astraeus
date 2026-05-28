@@ -13,10 +13,13 @@ from __future__ import annotations
 
 import gzip
 import io
-import uuid
 from datetime import UTC, date, datetime
+from typing import TYPE_CHECKING
 
 import structlog
+
+if TYPE_CHECKING:
+    import uuid
 
 logger = structlog.get_logger("astraeus.marketdata.archival")
 
@@ -47,7 +50,7 @@ class MinIOArchiver:
         """Lazy-initialize the MinIO client."""
         if self._client is None:
             try:
-                from minio import Minio
+                from minio import Minio  # noqa: PLC0415
 
                 self._client = Minio(
                     self._endpoint,

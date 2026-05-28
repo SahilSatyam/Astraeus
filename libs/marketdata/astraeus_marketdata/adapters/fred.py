@@ -8,7 +8,7 @@ Requires FRED_API_KEY environment variable.
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal, InvalidOperation
 
 import httpx
@@ -43,7 +43,7 @@ class FredAdapter(BaseAdapter):
         symbols: list[str],
         start: date,
         end: date,
-        resolution: str = "1d",
+        resolution: str = "1d",  # noqa: ARG002
     ) -> list[AdapterResult]:
         """Fetch FRED series. Each 'symbol' is a FRED series ID (e.g., GDP, CPIAUCSL)."""
         results: list[AdapterResult] = []
@@ -95,7 +95,7 @@ class FredAdapter(BaseAdapter):
                 continue
 
             obs_date = date.fromisoformat(obs["date"])
-            ts = datetime(obs_date.year, obs_date.month, obs_date.day, tzinfo=timezone.utc)
+            ts = datetime(obs_date.year, obs_date.month, obs_date.day, tzinfo=UTC)
 
             # FRED series are stored as bars with value in all OHLC fields
             # (they're point-in-time observations, not candles)
@@ -122,7 +122,7 @@ class FredAdapter(BaseAdapter):
             source=self.source_name,
             endpoint=f"/fred/series/observations?series_id={series_id}",
             symbols_requested=[series_id],
-            request_time=datetime.now(tz=timezone.utc),
+            request_time=datetime.now(tz=UTC),
         )
 
     async def close(self) -> None:

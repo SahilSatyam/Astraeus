@@ -14,12 +14,15 @@ import hashlib
 import json
 from datetime import UTC, datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import delete, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from astraeus_marketdata.models import CorporateAction, MarketBarAdjusted, MarketBarRaw
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger("astraeus.marketdata.adjustments")
 

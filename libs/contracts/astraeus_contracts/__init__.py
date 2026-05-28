@@ -8,6 +8,7 @@ from astraeus_contracts.health import (
     VersionResponse,
 )
 from astraeus_contracts.marketdata import (
+    SCHEMA_REGISTRY,
     AssetClass,
     BarEvent,
     CorporateActionEvent,
@@ -17,13 +18,13 @@ from astraeus_contracts.marketdata import (
     FundamentalEvent,
     MacroEvent,
     Resolution,
-    SCHEMA_REGISTRY,
     get_schema_for_topic,
     validate_event,
 )
 from astraeus_contracts.problem import ProblemDetails
 
 __all__ = [
+    "SCHEMA_REGISTRY",
     "AssetClass",
     "BarEvent",
     "CorporateActionEvent",
@@ -38,7 +39,6 @@ __all__ = [
     "ReadinessCheck",
     "ReadinessResponse",
     "Resolution",
-    "SCHEMA_REGISTRY",
     "VersionResponse",
     "get_schema_for_topic",
     "validate_event",

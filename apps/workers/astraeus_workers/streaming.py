@@ -9,12 +9,18 @@ Runs as a long-lived async task within the workers service.
 from __future__ import annotations
 
 import asyncio
+import json
+import uuid
+from typing import TYPE_CHECKING
 
 import structlog
 from astraeus_marketdata.adapters.alpaca_ws import AlpacaStreamClient, StreamFeed
 from astraeus_marketdata.adapters.base import BarRecord, compute_payload_hash
 from astraeus_marketdata.models import MarketBarRaw, Outbox
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy import select
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 logger = structlog.get_logger("astraeus.workers.streaming")
 
@@ -110,9 +116,6 @@ class StreamingWorker:
 
     async def _flush_batch(self, bars: list[BarRecord]) -> None:
         """Persist a batch of bars to the database."""
-        import json
-        import uuid
-
         run_id = uuid.uuid4()
 
         async with self._session_factory() as session:
@@ -120,8 +123,6 @@ class StreamingWorker:
                 payload_hash = compute_payload_hash(bar, "alpaca")
 
                 # Idempotency check
-                from sqlalchemy import select
-
                 existing = await session.execute(
                     select(MarketBarRaw.symbol).where(
                         MarketBarRaw.symbol == bar.symbol,

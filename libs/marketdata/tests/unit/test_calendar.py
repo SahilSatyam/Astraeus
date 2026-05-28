@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import date
 
 import pytest
-
 from astraeus_marketdata.calendar import get_trading_days, is_trading_day
 
 

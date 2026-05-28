@@ -1,6 +1,6 @@
 """Astraeus market data library — adapters, ingestion, and lineage."""
 
-from astraeus_marketdata.adapters.base import BaseAdapter, AdapterResult
+from astraeus_marketdata.adapters.base import AdapterResult, BaseAdapter
 from astraeus_marketdata.archival import MinIOArchiver
 from astraeus_marketdata.dlq import DLQEntry, send_to_dlq
 from astraeus_marketdata.models import (

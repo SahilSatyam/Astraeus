@@ -13,7 +13,7 @@ import asyncio
 import json
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Protocol
 
 import structlog
@@ -26,7 +26,7 @@ _WS_URL_IEX = "wss://stream.data.alpaca.markets/v2/iex"
 _WS_URL_SIP = "wss://stream.data.alpaca.markets/v2/sip"
 
 
-class StreamFeed(str, Enum):
+class StreamFeed(StrEnum):
     """Alpaca data feed selection."""
 
     IEX = "iex"
@@ -114,7 +114,7 @@ class AlpacaStreamClient:
     async def _connect_and_stream(self) -> None:
         """Establish connection, authenticate, subscribe, and process messages."""
         try:
-            import websockets
+            import websockets  # noqa: PLC0415
         except ImportError as exc:
             raise ImportError(
                 "websockets package required for streaming. Install with: pip install websockets"

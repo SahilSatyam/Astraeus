@@ -13,13 +13,18 @@ from __future__ import annotations
 
 import asyncio
 import signal
-from datetime import date
+from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
 import structlog
 from astraeus_config import Settings
 from astraeus_db.session import get_sessionmaker
+from astraeus_marketdata.adjustments import adjust_symbol
+from astraeus_marketdata.gaps import detect_gaps
+from astraeus_marketdata.models import CorporateAction, Instrument
+from astraeus_marketdata.outbox_relay import relay_loop
 from astraeus_observability import configure_logging, configure_tracing
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -48,7 +53,7 @@ async def _run(settings: Settings) -> None:
             name="outbox-relay",
         ),
         asyncio.create_task(
-            _nightly_scheduler(session_factory, stop_event, settings),
+            _nightly_scheduler(session_factory, stop_event),
             name="nightly-scheduler",
         ),
     ]
@@ -70,8 +75,6 @@ async def _outbox_relay_task(
     stop_event: asyncio.Event,
 ) -> None:
     """Run the outbox relay loop."""
-    from astraeus_marketdata.outbox_relay import relay_loop
-
     try:
         await relay_loop(
             session_factory=session_factory,
@@ -85,7 +88,6 @@ async def _outbox_relay_task(
 async def _nightly_scheduler(
     session_factory: object,
     stop_event: asyncio.Event,
-    settings: Settings,  # noqa: ARG001
 ) -> None:
     """Run nightly tasks: gap detection + adjustment rebuild.
 
@@ -115,19 +117,12 @@ async def _nightly_scheduler(
 
 async def _run_nightly_jobs(session_factory: object) -> None:
     """Execute the nightly maintenance jobs."""
-
-    from astraeus_marketdata.adjustments import adjust_symbol
-    from astraeus_marketdata.gaps import detect_gaps
-    from astraeus_marketdata.models import Instrument
+    logger.info("nightly_jobs_start")
 
     sm = session_factory  # type: ignore[assignment]
 
-    logger.info("nightly_jobs_start")
-
     async with sm() as session:  # type: ignore[operator]
         # 1. Gap detection for active instruments
-        from sqlalchemy import select
-
         result = await session.execute(
             select(Instrument.symbol).where(Instrument.is_active.is_(True))
         )
@@ -136,8 +131,6 @@ async def _run_nightly_jobs(session_factory: object) -> None:
         if active_symbols:
             today = date.today()
             # Check last 7 days for gaps
-            from datetime import timedelta
-
             start = today - timedelta(days=7)
 
             gaps = await detect_gaps(
@@ -151,8 +144,6 @@ async def _run_nightly_jobs(session_factory: object) -> None:
             logger.info("nightly_gap_detection_complete", new_gaps=len(gaps))
 
             # 2. Rebuild adjustments for symbols with corporate actions
-            from astraeus_marketdata.models import CorporateAction
-
             ca_result = await session.execute(select(CorporateAction.symbol).distinct())
             symbols_with_actions = [row[0] for row in ca_result.all()]
 

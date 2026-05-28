@@ -10,19 +10,28 @@ Endpoints:
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
-from typing import Annotated
+from datetime import UTC, date, datetime
+from typing import TYPE_CHECKING, Annotated
 
-from astraeus_config import Settings
+from astraeus_domain import AstraeusError
+from astraeus_domain.exceptions import NotFoundError
+from astraeus_marketdata.adapters.alpaca import AlpacaAdapter
+from astraeus_marketdata.adapters.alphavantage import AlphaVantageAdapter
+from astraeus_marketdata.adapters.fred import FredAdapter
+from astraeus_marketdata.adapters.polygon import PolygonAdapter
+from astraeus_marketdata.adapters.yahoo import YahooAdapter
+from astraeus_marketdata.dlq import get_dlq_entries
+from astraeus_marketdata.ingestion import IngestionRun, run_ingestion
+from astraeus_marketdata.models import DataGap, DataLineage, MarketBarRaw
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from astraeus_api.deps import get_db_session, get_settings
-from astraeus_marketdata.adapters.yahoo import YahooAdapter
-from astraeus_marketdata.ingestion import IngestionRun, run_ingestion
-from astraeus_marketdata.models import DataGap, DataLineage, MarketBarRaw
+
+if TYPE_CHECKING:
+    from astraeus_config import Settings
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/md", tags=["market-data"])
 
@@ -100,27 +109,17 @@ async def backfill(
     if request.source == "yahoo":
         adapter = YahooAdapter()
     elif request.source == "alpaca":
-        from astraeus_marketdata.adapters.alpaca import AlpacaAdapter
-
         adapter = AlpacaAdapter(
             api_key=settings.alpaca_api_key,
             api_secret=settings.alpaca_api_secret,
         )
     elif request.source == "polygon":
-        from astraeus_marketdata.adapters.polygon import PolygonAdapter
-
         adapter = PolygonAdapter(api_key=settings.polygon_api_key)
     elif request.source == "alphavantage":
-        from astraeus_marketdata.adapters.alphavantage import AlphaVantageAdapter
-
         adapter = AlphaVantageAdapter(api_key=settings.alphavantage_api_key)
     elif request.source == "fred":
-        from astraeus_marketdata.adapters.fred import FredAdapter
-
         adapter = FredAdapter(api_key=settings.fred_api_key)
     else:
-        from astraeus_domain import AstraeusError
-
         raise AstraeusError(
             f"Unsupported source: {request.source}",
             code="astraeus.md.unsupported_source",
@@ -158,8 +157,6 @@ async def get_run(run_id: str) -> BackfillResponse:
     """Get the status of a previous ingestion run."""
     run = _runs.get(run_id)
     if not run:
-        from astraeus_domain import NotFoundError
-
         raise NotFoundError(f"Run {run_id} not found", code="astraeus.md.run_not_found")
 
     return BackfillResponse(
@@ -256,12 +253,11 @@ async def get_bars(
 
     if start:
         query = query.where(
-            MarketBarRaw.ts >= datetime(start.year, start.month, start.day, tzinfo=timezone.utc)
+            MarketBarRaw.ts >= datetime(start.year, start.month, start.day, tzinfo=UTC)
         )
     if end:
         query = query.where(
-            MarketBarRaw.ts
-            <= datetime(end.year, end.month, end.day, 23, 59, 59, tzinfo=timezone.utc)
+            MarketBarRaw.ts <= datetime(end.year, end.month, end.day, 23, 59, 59, tzinfo=UTC)
         )
     if source:
         query = query.where(MarketBarRaw.source == source)
@@ -310,8 +306,6 @@ async def get_dlq(
     limit: int = Query(default=50, le=500),
 ) -> list[DLQEntryResponse]:
     """List dead letter queue entries for failed ingestion records."""
-    from astraeus_marketdata.dlq import get_dlq_entries
-
     entries = await get_dlq_entries(session, limit=limit, source=source)
 
     return [

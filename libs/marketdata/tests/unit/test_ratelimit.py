@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import asyncio
 import time
 
 import pytest
-
 from astraeus_marketdata.ratelimit import RateLimiter
 
 

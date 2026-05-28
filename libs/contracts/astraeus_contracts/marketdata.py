@@ -18,17 +18,19 @@ Topic naming convention:
 
 from __future__ import annotations
 
-from datetime import datetime
-from decimal import Decimal
-from enum import Enum
-from typing import Any
+from enum import StrEnum
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    from decimal import Decimal
 
 # --- Enums ---
 
 
-class AssetClass(str, Enum):
+class AssetClass(StrEnum):
     """Supported asset classes."""
 
     EQUITY = "equity"
@@ -38,7 +40,7 @@ class AssetClass(str, Enum):
     CRYPTO = "crypto"
 
 
-class Resolution(str, Enum):
+class Resolution(StrEnum):
     """Supported bar resolutions."""
 
     MINUTE_1 = "1m"
@@ -49,7 +51,7 @@ class Resolution(str, Enum):
     WEEK_1 = "1wk"
 
 
-class DataSource(str, Enum):
+class DataSource(StrEnum):
     """Known data sources."""
 
     YAHOO = "yahoo"
@@ -136,7 +138,7 @@ class MacroEvent(BaseModel):
 CORPORATE_ACTION_SCHEMA_VERSION = 1
 
 
-class CorporateActionType(str, Enum):
+class CorporateActionType(StrEnum):
     """Types of corporate actions."""
 
     SPLIT = "split"
