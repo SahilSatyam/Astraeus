@@ -16,6 +16,7 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal
 
+from astraeus_db.base import Base
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -35,16 +36,12 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from astraeus_db.base import Base
-
 
 class MarketBarRaw(Base):
     """Immutable, unadjusted OHLCV bars. TimescaleDB hypertable on `ts`."""
 
     __tablename__ = "market_bars_raw"
-    __table_args__ = (
-        {"comment": "Raw unadjusted market bars — immutable after initial write."},
-    )
+    __table_args__ = ({"comment": "Raw unadjusted market bars — immutable after initial write."},)
 
     symbol: Mapped[str] = mapped_column(String(32), primary_key=True)
     ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
@@ -66,9 +63,7 @@ class MarketBarAdjusted(Base):
     """Split/dividend-adjusted bars. Rebuilt by the adjustment worker."""
 
     __tablename__ = "market_bars_adjusted"
-    __table_args__ = (
-        {"comment": "Adjusted market bars — rebuilt from raw + corporate actions."},
-    )
+    __table_args__ = ({"comment": "Adjusted market bars — rebuilt from raw + corporate actions."},)
 
     symbol: Mapped[str] = mapped_column(String(32), primary_key=True)
     ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
@@ -96,29 +91,25 @@ class CorporateAction(Base):
         UniqueConstraint("symbol", "action_type", "ex_date", "source", name="uq_corp_action"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     symbol: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
     action_type: Mapped[str] = mapped_column(String(16), nullable=False)
     ex_date: Mapped[date] = mapped_column(Date, nullable=False)
     ratio: Mapped[Decimal | None] = mapped_column(Numeric(20, 10), nullable=True)
     cash_amount: Mapped[Decimal | None] = mapped_column(Numeric(20, 8), nullable=True)
     source: Mapped[str] = mapped_column(String(32), nullable=False)
-    raw_payload: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    raw_payload: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
 
 
 class DataLineage(Base):
     """Per-row provenance: traces any row back to its source response."""
 
     __tablename__ = "data_lineage"
-    __table_args__ = (
-        Index("ix_lineage_lookup", "target_table", "target_pk", "written_at"),
-    )
+    __table_args__ = (Index("ix_lineage_lookup", "target_table", "target_pk", "written_at"),)
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     target_table: Mapped[str] = mapped_column(String(64), nullable=False)
-    target_pk: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    target_pk: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
     source: Mapped[str] = mapped_column(String(32), nullable=False)
     source_endpoint: Mapped[str | None] = mapped_column(Text, nullable=True)
     source_response_hash: Mapped[bytes] = mapped_column(LargeBinary(32), nullable=False)
@@ -135,14 +126,18 @@ class Outbox(Base):
 
     __tablename__ = "outbox"
     __table_args__ = (
-        Index("ix_outbox_unpublished", "published_at", postgresql_where=text("published_at IS NULL")),
+        Index(
+            "ix_outbox_unpublished",
+            "published_at",
+            postgresql_where=text("published_at IS NULL"),
+        ),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     topic: Mapped[str] = mapped_column(String(128), nullable=False)
     key: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     payload: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
-    headers: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    headers: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -173,9 +168,7 @@ class DataGap(Base):
     """Detected missing data points vs market calendar expectations."""
 
     __tablename__ = "data_gaps"
-    __table_args__ = (
-        UniqueConstraint("symbol", "resolution", "expected_ts", name="uq_data_gap"),
-    )
+    __table_args__ = (UniqueConstraint("symbol", "resolution", "expected_ts", name="uq_data_gap"),)
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     symbol: Mapped[str] = mapped_column(String(32), nullable=False, index=True)

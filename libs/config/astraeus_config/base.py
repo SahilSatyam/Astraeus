@@ -106,6 +106,27 @@ class ObservabilitySettings(BaseSettings):
     sample_rate: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
+class MinIOSettings(BaseSettings):
+    model_config = _config("ASTRAEUS_MINIO_")
+
+    endpoint: str = "localhost:9000"
+    access_key: str = "astraeus"
+    secret_key: SecretStr = SecretStr("astraeus123")
+    secure: bool = False
+
+
+class MarketDataSettings(BaseSettings):
+    """API keys and config for market data adapters."""
+
+    model_config = _config("ASTRAEUS_MD_")
+
+    alpaca_api_key: SecretStr = SecretStr("")
+    alpaca_api_secret: SecretStr = SecretStr("")
+    polygon_api_key: SecretStr = SecretStr("")
+    alphavantage_api_key: SecretStr = SecretStr("")
+    fred_api_key: SecretStr = SecretStr("")
+
+
 class Settings(BaseSettings):
     """Top-level settings; compose into per-service settings via inheritance."""
 
@@ -122,3 +143,26 @@ class Settings(BaseSettings):
     redis: RedisSettings = Field(default_factory=RedisSettings)
     kafka: KafkaSettings = Field(default_factory=KafkaSettings)
     observability: ObservabilitySettings = Field(default_factory=ObservabilitySettings)
+    minio: MinIOSettings = Field(default_factory=MinIOSettings)
+    marketdata: MarketDataSettings = Field(default_factory=MarketDataSettings)
+
+    # Convenience properties for adapter construction
+    @property
+    def alpaca_api_key(self) -> str:
+        return self.marketdata.alpaca_api_key.get_secret_value()
+
+    @property
+    def alpaca_api_secret(self) -> str:
+        return self.marketdata.alpaca_api_secret.get_secret_value()
+
+    @property
+    def polygon_api_key(self) -> str:
+        return self.marketdata.polygon_api_key.get_secret_value()
+
+    @property
+    def alphavantage_api_key(self) -> str:
+        return self.marketdata.alphavantage_api_key.get_secret_value()
+
+    @property
+    def fred_api_key(self) -> str:
+        return self.marketdata.fred_api_key.get_secret_value()

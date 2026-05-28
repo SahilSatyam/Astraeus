@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -55,9 +55,7 @@ class YahooAdapter(BaseAdapter):
     ) -> AdapterResult:
         """Fetch bars for a single symbol in a thread executor."""
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None, self._fetch_sync, symbol, start, end, resolution
-        )
+        return await loop.run_in_executor(None, self._fetch_sync, symbol, start, end, resolution)
 
     def _fetch_sync(
         self,
@@ -103,9 +101,9 @@ class YahooAdapter(BaseAdapter):
 
         bars: list[BarRecord] = []
         for idx, row in df.iterrows():
-            ts = idx.to_pydatetime()  # type: ignore[union-attr]
+            ts = idx.to_pydatetime()
             if ts.tzinfo is None:
-                ts = ts.replace(tzinfo=timezone.utc)
+                ts = ts.replace(tzinfo=UTC)
             bars.append(
                 BarRecord(
                     symbol=symbol,
@@ -128,7 +126,7 @@ class YahooAdapter(BaseAdapter):
             source=self.source_name,
             endpoint=f"yfinance.Ticker({symbol}).history",
             symbols_requested=[symbol],
-            request_time=datetime.now(tz=timezone.utc),
+            request_time=datetime.now(tz=UTC),
         )
 
     async def close(self) -> None:

@@ -13,11 +13,10 @@ it re-publishes on restart; downstream consumers deduplicate on payload_hash.
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import structlog
-from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from astraeus_marketdata.models import Outbox
 
@@ -48,7 +47,7 @@ async def relay_loop(
 
     while not stop_event.is_set():
         try:
-            published = await _drain_batch(session_factory, producer)  # type: ignore[arg-type]
+            published = await _drain_batch(session_factory, producer)
             if published == 0:
                 # No work — back off
                 try:
@@ -67,9 +66,8 @@ async def _drain_batch(
     producer: object | None,
 ) -> int:
     """Fetch and publish one batch of outbox rows. Returns count published."""
-    from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession as AS
 
-    sm = session_factory  # type: ignore[assignment]
+    sm = session_factory
     async with sm() as session:  # type: ignore[operator]
         # Fetch unpublished rows
         result = await session.execute(
@@ -84,13 +82,12 @@ async def _drain_batch(
         if not rows:
             return 0
 
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
 
         for row in rows:
             # Publish to Kafka/Redpanda (or log in dev mode)
             if producer is not None:
-                # Real producer path (Phase 1 week 5+)
-                # await producer.send(row.topic, key=row.key, value=row.payload, headers=row.headers)
+                # TODO(phase1): wire real Redpanda producer
                 pass
             else:
                 logger.debug(

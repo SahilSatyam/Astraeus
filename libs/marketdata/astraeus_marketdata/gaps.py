@@ -6,14 +6,17 @@ materialised in the data_gaps table so they're queryable and trackable.
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
+from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, select
 
 from astraeus_marketdata.calendar import get_trading_days
 from astraeus_marketdata.models import DataGap, MarketBarRaw
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger("astraeus.marketdata.gaps")
 
@@ -44,8 +47,8 @@ async def detect_gaps(
             .where(
                 MarketBarRaw.symbol == symbol,
                 MarketBarRaw.resolution == resolution,
-                MarketBarRaw.ts >= datetime(start.year, start.month, start.day, tzinfo=timezone.utc),
-                MarketBarRaw.ts <= datetime(end.year, end.month, end.day, 23, 59, 59, tzinfo=timezone.utc),
+                MarketBarRaw.ts >= datetime(start.year, start.month, start.day, tzinfo=UTC),
+                MarketBarRaw.ts <= datetime(end.year, end.month, end.day, 23, 59, 59, tzinfo=UTC),
             )
             .distinct()
         )
@@ -60,9 +63,12 @@ async def detect_gaps(
                 select(DataGap.id).where(
                     DataGap.symbol == symbol,
                     DataGap.resolution == resolution,
-                    DataGap.expected_ts == datetime(
-                        missing_date.year, missing_date.month, missing_date.day,
-                        tzinfo=timezone.utc,
+                    DataGap.expected_ts
+                    == datetime(
+                        missing_date.year,
+                        missing_date.month,
+                        missing_date.day,
+                        tzinfo=UTC,
                     ),
                 )
             )
@@ -73,8 +79,10 @@ async def detect_gaps(
                 symbol=symbol,
                 resolution=resolution,
                 expected_ts=datetime(
-                    missing_date.year, missing_date.month, missing_date.day,
-                    tzinfo=timezone.utc,
+                    missing_date.year,
+                    missing_date.month,
+                    missing_date.day,
+                    tzinfo=UTC,
                 ),
             )
             session.add(gap)
@@ -111,5 +119,5 @@ async def resolve_gap(
     )
     gap = result.scalar_one_or_none()
     if gap:
-        gap.resolved_at = datetime.now(tz=timezone.utc)
+        gap.resolved_at = datetime.now(tz=UTC)
         await session.flush()

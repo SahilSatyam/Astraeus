@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import sys
 from datetime import date
 from pathlib import Path
@@ -23,6 +24,8 @@ from pathlib import Path
 import structlog
 from astraeus_config import Settings
 from astraeus_db import get_session
+from astraeus_marketdata.adapters.alpaca import AlpacaAdapter
+from astraeus_marketdata.adapters.fred import FredAdapter
 from astraeus_marketdata.adapters.yahoo import YahooAdapter
 from astraeus_marketdata.ingestion import run_ingestion
 from astraeus_observability import configure_logging
@@ -88,19 +91,11 @@ async def main() -> None:
     if args.source == "yahoo":
         adapter = YahooAdapter()
     elif args.source == "alpaca":
-        import os
-
-        from astraeus_marketdata.adapters.alpaca import AlpacaAdapter
-
         adapter = AlpacaAdapter(
             api_key=os.environ["ALPACA_API_KEY"],
             api_secret=os.environ["ALPACA_API_SECRET"],
         )
     elif args.source == "fred":
-        import os
-
-        from astraeus_marketdata.adapters.fred import FredAdapter
-
         adapter = FredAdapter(api_key=os.environ["FRED_API_KEY"])
     else:
         print(f"Unknown source: {args.source}", file=sys.stderr)
@@ -144,7 +139,7 @@ async def main() -> None:
         total_skipped=total_skipped,
     )
 
-    print(f"\nBackfill complete:")
+    print("\nBackfill complete:")
     print(f"  Source:  {args.source}")
     print(f"  Symbols: {len(symbols)}")
     print(f"  Range:   {args.start} → {args.end}")

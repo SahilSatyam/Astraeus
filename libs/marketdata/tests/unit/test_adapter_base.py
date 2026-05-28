@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
-
 from astraeus_marketdata.adapters.base import BarRecord, compute_payload_hash
 
 
@@ -15,7 +14,7 @@ def test_payload_hash_deterministic() -> None:
     """Same bar + source should always produce the same hash."""
     bar = BarRecord(
         symbol="SPY",
-        ts=datetime(2024, 1, 2, tzinfo=timezone.utc),
+        ts=datetime(2024, 1, 2, tzinfo=UTC),
         resolution="1d",
         open=Decimal("470.50"),
         high=Decimal("472.00"),
@@ -34,7 +33,7 @@ def test_payload_hash_differs_by_source() -> None:
     """Different source should produce different hash (lineage isolation)."""
     bar = BarRecord(
         symbol="SPY",
-        ts=datetime(2024, 1, 2, tzinfo=timezone.utc),
+        ts=datetime(2024, 1, 2, tzinfo=UTC),
         resolution="1d",
         open=Decimal("470.50"),
         high=Decimal("472.00"),
@@ -51,7 +50,7 @@ def test_payload_hash_differs_by_data() -> None:
     """Different price should produce different hash."""
     bar1 = BarRecord(
         symbol="SPY",
-        ts=datetime(2024, 1, 2, tzinfo=timezone.utc),
+        ts=datetime(2024, 1, 2, tzinfo=UTC),
         resolution="1d",
         open=Decimal("470.50"),
         high=Decimal("472.00"),
@@ -60,7 +59,7 @@ def test_payload_hash_differs_by_data() -> None:
     )
     bar2 = BarRecord(
         symbol="SPY",
-        ts=datetime(2024, 1, 2, tzinfo=timezone.utc),
+        ts=datetime(2024, 1, 2, tzinfo=UTC),
         resolution="1d",
         open=Decimal("470.51"),  # different
         high=Decimal("472.00"),

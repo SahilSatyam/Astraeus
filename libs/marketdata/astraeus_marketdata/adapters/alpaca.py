@@ -8,7 +8,7 @@ Requires ALPACA_API_KEY and ALPACA_API_SECRET environment variables.
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import httpx
@@ -148,7 +148,7 @@ class AlpacaAdapter(BaseAdapter):
             source=self.source_name,
             endpoint="/v2/stocks/bars",
             symbols_requested=symbols,
-            request_time=datetime.now(tz=timezone.utc),
+            request_time=datetime.now(tz=UTC),
         )
 
     async def close(self) -> None:

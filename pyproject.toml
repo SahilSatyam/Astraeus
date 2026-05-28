@@ -45,12 +45,15 @@ ignore = [
     "S101",    # asserts ok in tests
     "PLR0913", # don't nit on argument count
     "PLR2004", # magic numbers occasionally fine
+    "B008",    # FastAPI Query/Depends in defaults is standard pattern
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S", "PLR2004", "ARG", "PLR0915"]
 "libs/db/**/migrations/**" = ["E501", "I001", "ERA001"]
 "scripts/**" = ["S603", "S607"]
+"libs/marketdata/astraeus_marketdata/models.py" = ["TC003"]
+"libs/marketdata/astraeus_marketdata/adapters/base.py" = ["TC003"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -65,7 +68,15 @@ exclude = [
 ]
 
 [[tool.mypy.overrides]]
-module = ["alembic.*", "testcontainers.*", "prometheus_fastapi_instrumentator.*"]
+module = [
+    "alembic.*",
+    "testcontainers.*",
+    "prometheus_fastapi_instrumentator.*",
+    "yfinance.*",
+    "exchange_calendars.*",
+    "minio.*",
+    "websockets.*",
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

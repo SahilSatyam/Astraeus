@@ -9,7 +9,7 @@ Supported exchanges: NYSE, NASDAQ, CME, LSE.
 from __future__ import annotations
 
 import asyncio
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from functools import lru_cache
 
 import exchange_calendars as xcals
@@ -60,7 +60,8 @@ def get_trading_days(
 def is_trading_day(exchange: str, check_date: date) -> bool:
     """Check if a specific date is a trading day."""
     cal = _get_calendar(exchange)
-    return cal.is_session(check_date.isoformat())
+    result: bool = cal.is_session(check_date.isoformat())
+    return result
 
 
 def get_next_trading_day(exchange: str, after: date) -> date:
@@ -68,7 +69,8 @@ def get_next_trading_day(exchange: str, after: date) -> date:
     cal = _get_calendar(exchange)
     # Find next session
     ts = cal.next_session(after.isoformat())
-    return ts.date()
+    result: date = ts.date()
+    return result
 
 
 def get_market_open_close(
@@ -87,8 +89,8 @@ def get_market_open_close(
     close_time = cal.session_close(trading_date.isoformat())
 
     return (
-        open_time.to_pydatetime().replace(tzinfo=timezone.utc),
-        close_time.to_pydatetime().replace(tzinfo=timezone.utc),
+        open_time.to_pydatetime().replace(tzinfo=UTC),
+        close_time.to_pydatetime().replace(tzinfo=UTC),
     )
 
 
