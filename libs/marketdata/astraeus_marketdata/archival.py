@@ -14,7 +14,7 @@ from __future__ import annotations
 import gzip
 import io
 from datetime import UTC, date, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import structlog
 
@@ -44,9 +44,9 @@ class MinIOArchiver:
         self._access_key = access_key
         self._secret_key = secret_key
         self._secure = secure
-        self._client: object | None = None
+        self._client: Any | None = None
 
-    async def _get_client(self) -> object:
+    async def _get_client(self) -> Any:
         """Lazy-initialize the MinIO client."""
         if self._client is None:
             try:
@@ -59,8 +59,8 @@ class MinIOArchiver:
                     secure=self._secure,
                 )
                 # Ensure bucket exists
-                if not self._client.bucket_exists(_BUCKET_NAME):  # type: ignore[union-attr]
-                    self._client.make_bucket(_BUCKET_NAME)  # type: ignore[union-attr]
+                if not self._client.bucket_exists(_BUCKET_NAME):
+                    self._client.make_bucket(_BUCKET_NAME)
                     logger.info("minio_bucket_created", bucket=_BUCKET_NAME)
             except ImportError:
                 logger.warning("minio_not_installed", msg="pip install minio")
@@ -124,7 +124,7 @@ class MinIOArchiver:
 
         # Upload
         data = io.BytesIO(compressed)
-        client.put_object(  # type: ignore[attr-defined]
+        client.put_object(
             _BUCKET_NAME,
             object_key,
             data,
@@ -160,7 +160,7 @@ class MinIOArchiver:
         bucket = parts[0]
         key = parts[1]
 
-        response = client.get_object(bucket, key)  # type: ignore[attr-defined]
+        response = client.get_object(bucket, key)
         try:
             compressed = response.read()
         finally:
