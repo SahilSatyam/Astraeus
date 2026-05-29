@@ -81,5 +81,11 @@ backfill-universe:  ## Backfill the full universe from data/universe.txt.
 	uv run python scripts/md-backfill.py --source $(or $(SOURCE),yahoo) \
 	  --symbols-file data/universe.txt --start $(START) --end $(END)
 
+replay:  ## Replay market data: make replay SOURCE=yahoo START=2024-01-01 END=2024-01-31
+	@if [ -z "$(SOURCE)" ] || [ -z "$(START)" ] || [ -z "$(END)" ]; then \
+	  echo "Usage: make replay SOURCE=yahoo START=2024-01-01 END=2024-01-31 [SYMBOL=AAPL] [DRY_RUN=1]"; exit 1; fi
+	uv run python scripts/md-replay.py --source $(SOURCE) --from $(START) --to $(END) \
+	  $(if $(SYMBOL),--symbol $(SYMBOL)) $(if $(DRY_RUN),--dry-run) $(if $(VERIFY),--verify)
+
 precommit-install:  ## Install git hooks via pre-commit.
 	uv run pre-commit install

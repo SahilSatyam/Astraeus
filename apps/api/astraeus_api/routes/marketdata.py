@@ -22,7 +22,7 @@ from astraeus_marketdata.adapters.polygon import PolygonAdapter
 from astraeus_marketdata.adapters.yahoo import YahooAdapter
 from astraeus_marketdata.dlq import get_dlq_entries
 from astraeus_marketdata.ingestion import IngestionRun, run_ingestion
-from astraeus_marketdata.models import DataGap, DataLineage, MarketBarRaw
+from astraeus_marketdata.models import DataGap, DataLineage, IngestionRunRecord, MarketBarRaw
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -66,6 +66,7 @@ class LineageEntry(BaseModel):
     source: str
     source_endpoint: str | None
     source_response_hash: str
+    source_response_uri: str | None
     schema_version: int
     ingest_run_id: str
     written_at: str
@@ -92,7 +93,7 @@ class BarEntry(BaseModel):
     source: str
 
 
-# --- In-memory run tracking (simple for now; Phase 2 moves to DB) ---
+# --- In-memory run cache (hot path; DB is source of truth) ---
 _runs: dict[str, IngestionRun] = {}
 
 
@@ -138,6 +139,24 @@ async def backfill(
             resolution=request.resolution,
         )
         _runs[str(run.run_id)] = run
+
+        # Persist run record to DB
+        run_record = IngestionRunRecord(
+            run_id=run.run_id,
+            source=run.source,
+            symbols={"symbols": run.symbols},
+            start_date=run.start,
+            end_date=run.end,
+            resolution=request.resolution,
+            status=run.status,
+            rows_fetched=run.rows_fetched,
+            rows_written=run.rows_written,
+            rows_skipped=run.rows_skipped,
+            errors={"errors": run.errors} if run.errors else None,
+            started_at=run.started_at,
+            completed_at=run.completed_at,
+        )
+        session.add(run_record)
     finally:
         await adapter.close()
 
@@ -155,22 +174,45 @@ async def backfill(
 
 
 @router.get("/runs/{run_id}", response_model=BackfillResponse, summary="Get run status")
-async def get_run(run_id: str) -> BackfillResponse:
+async def get_run(
+    run_id: str,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> BackfillResponse:
     """Get the status of a previous ingestion run."""
+    # Check in-memory cache first (for active runs)
     run = _runs.get(run_id)
-    if not run:
+    if run:
+        return BackfillResponse(
+            run_id=str(run.run_id),
+            source=run.source,
+            status=run.status,
+            symbols_count=len(run.symbols),
+            rows_fetched=run.rows_fetched,
+            rows_written=run.rows_written,
+            rows_skipped=run.rows_skipped,
+            started_at=run.started_at.isoformat(),
+            completed_at=run.completed_at.isoformat() if run.completed_at else None,
+        )
+
+    # Fall back to DB
+    result = await session.execute(
+        select(IngestionRunRecord).where(IngestionRunRecord.run_id == run_id)
+    )
+    record = result.scalar_one_or_none()
+    if not record:
         raise NotFoundError(f"Run {run_id} not found", code="astraeus.md.run_not_found")
 
+    symbols_list = record.symbols.get("symbols", []) if record.symbols else []
     return BackfillResponse(
-        run_id=str(run.run_id),
-        source=run.source,
-        status=run.status,
-        symbols_count=len(run.symbols),
-        rows_fetched=run.rows_fetched,
-        rows_written=run.rows_written,
-        rows_skipped=run.rows_skipped,
-        started_at=run.started_at.isoformat(),
-        completed_at=run.completed_at.isoformat() if run.completed_at else None,
+        run_id=str(record.run_id),
+        source=record.source,
+        status=record.status,
+        symbols_count=len(symbols_list),
+        rows_fetched=record.rows_fetched,
+        rows_written=record.rows_written,
+        rows_skipped=record.rows_skipped,
+        started_at=record.started_at.isoformat(),
+        completed_at=record.completed_at.isoformat() if record.completed_at else None,
     )
 
 
@@ -198,6 +240,7 @@ async def get_lineage(
             source=row.source,
             source_endpoint=row.source_endpoint,
             source_response_hash=row.source_response_hash.hex(),
+            source_response_uri=row.source_response_uri,
             schema_version=row.schema_version,
             ingest_run_id=str(row.ingest_run_id),
             written_at=row.written_at.isoformat(),
@@ -330,4 +373,155 @@ async def get_dlq(
             published_at=entry.get("published_at"),
         )
         for entry in entries
+    ]
+
+
+# --- Replay Endpoint ---
+
+
+class ReplayRequest(BaseModel):
+    source: str = Field(..., description="Data source to replay")
+    symbol: str | None = Field(default=None, description="Filter to a single symbol")
+    start: date = Field(..., description="Start date (inclusive)")
+    end: date = Field(..., description="End date (inclusive)")
+    resolution: str = Field(default="1d", description="Bar resolution")
+    dry_run: bool = Field(default=False, description="If true, count only without replaying")
+
+
+class ReplayResponse(BaseModel):
+    rows_found: int
+    rows_replayed: int
+    topic: str
+    dry_run: bool
+
+
+@router.post("/replay", response_model=ReplayResponse, summary="Replay data from outbox")
+async def replay(
+    request: ReplayRequest,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> ReplayResponse:
+    """Re-emit raw rows into the outbox for a given source and date window.
+
+    This is the API equivalent of `scripts/md-replay.py`. Rows are re-inserted
+    into the outbox table; the relay will publish them to Redpanda.
+    """
+    import json as _json
+
+    from sqlalchemy import func as _func
+
+    # Determine topic
+    if request.resolution in ("1m", "5m", "15m"):
+        topic = "md.equity.minute.v1"
+    else:
+        topic = "md.equity.daily.v1"
+
+    # Build base query
+    base_where = [
+        MarketBarRaw.source == request.source,
+        MarketBarRaw.resolution == request.resolution,
+        MarketBarRaw.ts >= datetime(request.start.year, request.start.month, request.start.day, tzinfo=UTC),
+        MarketBarRaw.ts <= datetime(request.end.year, request.end.month, request.end.day, 23, 59, 59, tzinfo=UTC),
+    ]
+    if request.symbol:
+        base_where.append(MarketBarRaw.symbol == request.symbol)
+
+    # Count
+    count_result = await session.execute(
+        select(_func.count()).select_from(MarketBarRaw).where(*base_where)
+    )
+    rows_found = count_result.scalar_one()
+
+    if request.dry_run or rows_found == 0:
+        return ReplayResponse(
+            rows_found=rows_found,
+            rows_replayed=0,
+            topic=topic,
+            dry_run=request.dry_run,
+        )
+
+    # Fetch and re-insert into outbox
+    from astraeus_marketdata.models import Outbox as _Outbox
+
+    result = await session.execute(
+        select(MarketBarRaw).where(*base_where).order_by(MarketBarRaw.ts, MarketBarRaw.symbol)
+    )
+    rows = result.scalars().all()
+
+    rows_replayed = 0
+    for row in rows:
+        outbox_payload = _json.dumps(
+            {
+                "symbol": row.symbol,
+                "ts": row.ts.isoformat(),
+                "resolution": row.resolution,
+                "open": str(row.open),
+                "high": str(row.high),
+                "low": str(row.low),
+                "close": str(row.close),
+                "volume": row.volume,
+                "source": row.source,
+                "run_id": str(row.ingest_run_id),
+                "replay": True,
+            }
+        ).encode()
+
+        session.add(
+            _Outbox(
+                topic=topic,
+                key=row.symbol.encode(),
+                payload=outbox_payload,
+                headers={
+                    "source": row.source,
+                    "run_id": str(row.ingest_run_id),
+                    "replay": "true",
+                },
+            )
+        )
+        rows_replayed += 1
+
+    await session.flush()
+
+    return ReplayResponse(
+        rows_found=rows_found,
+        rows_replayed=rows_replayed,
+        topic=topic,
+        dry_run=False,
+    )
+
+
+# --- Runs List Endpoint ---
+
+
+@router.get("/runs", response_model=list[BackfillResponse], summary="List recent runs")
+async def list_runs(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    source: str | None = Query(default=None, description="Filter by source"),
+    status: str | None = Query(default=None, description="Filter by status"),
+    limit: int = Query(default=20, le=100),
+) -> list[BackfillResponse]:
+    """List recent ingestion runs, newest first."""
+    query = select(IngestionRunRecord)
+
+    if source:
+        query = query.where(IngestionRunRecord.source == source)
+    if status:
+        query = query.where(IngestionRunRecord.status == status)
+
+    query = query.order_by(IngestionRunRecord.started_at.desc()).limit(limit)
+    result = await session.execute(query)
+    records = result.scalars().all()
+
+    return [
+        BackfillResponse(
+            run_id=str(r.run_id),
+            source=r.source,
+            status=r.status,
+            symbols_count=len(r.symbols.get("symbols", [])) if r.symbols else 0,
+            rows_fetched=r.rows_fetched,
+            rows_written=r.rows_written,
+            rows_skipped=r.rows_skipped,
+            started_at=r.started_at.isoformat(),
+            completed_at=r.completed_at.isoformat() if r.completed_at else None,
+        )
+        for r in records
     ]

@@ -1,0 +1,23 @@
+[project]
+name = "astraeus-strategy"
+version = "0.1.0"
+description = "Strategy research engine: protocol, backtesting engines, cost model, metrics, and registry."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "astraeus-config",
+    "astraeus-db",
+    "astraeus-domain",
+    "astraeus-features",
+    "astraeus-universe",
+    "astraeus-observability",
+    "polars>=1.0",
+    "numpy>=1.26",
+    "structlog>=24.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["astraeus_strategy"]

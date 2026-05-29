@@ -22,9 +22,11 @@ from astraeus_db.session import get_sessionmaker
 from astraeus_marketdata.adjustments import adjust_symbol
 from astraeus_marketdata.gaps import detect_gaps
 from astraeus_marketdata.models import CorporateAction, Instrument
-from astraeus_marketdata.outbox_relay import relay_loop
+from astraeus_marketdata.outbox_relay import create_kafka_producer, relay_loop
 from astraeus_observability import configure_logging, configure_tracing
 from sqlalchemy import select
+
+from astraeus_workers.streaming import StreamingWorker
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -46,10 +48,16 @@ async def _run(settings: Settings) -> None:
 
     session_factory = get_sessionmaker(settings.db)
 
+    # Create Kafka/Redpanda producer (falls back to log-only if unavailable)
+    producer = await create_kafka_producer(
+        bootstrap_servers=settings.kafka.bootstrap_servers,
+        client_id=f"{settings.app.name}-outbox-relay",
+    )
+
     # Launch background tasks
     tasks: list[asyncio.Task[None]] = [
         asyncio.create_task(
-            _outbox_relay_task(session_factory, stop_event),
+            _outbox_relay_task(session_factory, producer, stop_event),
             name="outbox-relay",
         ),
         asyncio.create_task(
@@ -57,6 +65,22 @@ async def _run(settings: Settings) -> None:
             name="nightly-scheduler",
         ),
     ]
+
+    # Launch streaming worker if Alpaca credentials are configured
+    if settings.alpaca_api_key:
+        streaming_worker = StreamingWorker(
+            session_factory=session_factory,
+            api_key=settings.alpaca_api_key,
+            api_secret=settings.alpaca_api_secret,
+        )
+        tasks.append(
+            asyncio.create_task(
+                _streaming_task(streaming_worker, stop_event),
+                name="streaming-alpaca",
+            )
+        )
+    else:
+        logger.info("streaming_disabled", reason="No Alpaca API credentials configured")
 
     # Wait for stop signal
     await stop_event.wait()
@@ -67,22 +91,81 @@ async def _run(settings: Settings) -> None:
         task.cancel()
 
     await asyncio.gather(*tasks, return_exceptions=True)
+
+    # Cleanup producer
+    if producer is not None:
+        try:
+            await producer.stop()
+        except Exception:
+            logger.exception("kafka_producer_stop_error")
+
     logger.info("worker_stopped")
 
 
 async def _outbox_relay_task(
     session_factory: object,
+    producer: object | None,
     stop_event: asyncio.Event,
 ) -> None:
     """Run the outbox relay loop."""
     try:
         await relay_loop(
             session_factory=session_factory,
-            producer=None,  # Log-only mode until Redpanda producer is wired
+            producer=producer,
             stop_event=stop_event,
         )
     except asyncio.CancelledError:
         logger.info("outbox_relay_cancelled")
+
+
+async def _streaming_task(
+    worker: StreamingWorker,
+    stop_event: asyncio.Event,
+) -> None:
+    """Run the Alpaca streaming worker with auto-restart on failure."""
+    while not stop_event.is_set():
+        try:
+            logger.info("streaming_task_starting")
+            # Run until stop or failure
+            stream_task = asyncio.create_task(worker.start())
+            stop_task = asyncio.create_task(stop_event.wait())
+
+            done, pending = await asyncio.wait(
+                {stream_task, stop_task},
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+
+            for task in pending:
+                task.cancel()
+                try:
+                    await task
+                except (asyncio.CancelledError, Exception):
+                    pass
+
+            if stop_event.is_set():
+                await worker.stop()
+                return
+
+            # Stream task finished (likely error) — restart after backoff
+            for task in done:
+                if task.exception():
+                    logger.error(
+                        "streaming_task_failed",
+                        error=str(task.exception()),
+                    )
+
+            logger.info("streaming_task_restarting", backoff_seconds=10)
+            try:
+                await asyncio.wait_for(stop_event.wait(), timeout=10.0)
+                await worker.stop()
+                return
+            except TimeoutError:
+                continue
+
+        except asyncio.CancelledError:
+            await worker.stop()
+            logger.info("streaming_task_cancelled")
+            return
 
 
 async def _nightly_scheduler(

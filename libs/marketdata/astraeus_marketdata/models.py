@@ -178,3 +178,25 @@ class DataGap(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class IngestionRunRecord(Base):
+    """Persistent record of ingestion runs for audit and status tracking."""
+
+    __tablename__ = "ingestion_runs"
+
+    run_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    source: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    symbols: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date] = mapped_column(Date, nullable=False)
+    resolution: Mapped[str] = mapped_column(String(8), nullable=False, default="1d")
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="running")
+    rows_fetched: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    rows_written: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    rows_skipped: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    errors: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

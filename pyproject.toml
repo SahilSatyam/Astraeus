@@ -13,6 +13,7 @@ dev = [
     "pytest>=8.2",
     "pytest-asyncio>=0.23",
     "pytest-cov>=5.0",
+    "hypothesis>=6.100",
     "pyyaml>=6.0",
     "types-pyyaml>=6.0",
 ]
@@ -27,6 +28,14 @@ astraeus-config = { workspace = true }
 astraeus-db = { workspace = true }
 astraeus-observability = { workspace = true }
 astraeus-marketdata = { workspace = true }
+astraeus-features = { workspace = true }
+astraeus-universe = { workspace = true }
+astraeus-strategy = { workspace = true }
+astraeus-portfolio = { workspace = true }
+astraeus-entities = { workspace = true }
+astraeus-altdata = { workspace = true }
+astraeus-nlp = { workspace = true }
+astraeus-rag = { workspace = true }
 astraeus-api = { workspace = true }
 astraeus-workers = { workspace = true }
 
@@ -76,6 +85,23 @@ module = [
     "exchange_calendars.*",
     "minio.*",
     "websockets.*",
+    "aiokafka.*",
+    "scipy.*",
+    "optuna.*",
+    "ray.*",
+    "mlflow.*",
+    "spacy.*",
+    "transformers.*",
+    "torch.*",
+    "sentence_transformers.*",
+    "tiktoken.*",
+    "bertopic.*",
+    "hdbscan.*",
+    "umap.*",
+    "praw.*",
+    "feedparser.*",
+    "bs4.*",
+    "numpy.*",
 ]
 ignore_missing_imports = true
 

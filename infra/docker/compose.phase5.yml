@@ -1,0 +1,118 @@
+# Phase 5 — Alt-Data Pipeline Services
+# Usage: docker compose -f compose.yml -f compose.phase5.yml up -d
+#
+# Services:
+# - altdata-ingest-reddit: Reddit PRAW adapter (scheduled)
+# - altdata-ingest-rss: RSS feed adapter (scheduled)
+# - altdata-ingest-edgar: SEC EDGAR adapter (scheduled)
+# - nlp-pipeline-worker: Processes documents through NLP stack
+# - topic-batch-worker: BERTopic refit (cron-triggered)
+
+services:
+  altdata-ingest-reddit:
+    build:
+      context: ../..
+      dockerfile: apps/workers/Dockerfile
+    command: ["python", "-m", "astraeus_workers.altdata_ingest", "--source", "reddit"]
+    environment:
+      ASTRAEUS_ENV: local
+      ASTRAEUS_DB_HOST: postgres
+      ASTRAEUS_REDIS_HOST: redis
+      ASTRAEUS_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      ASTRAEUS_MINIO_ENDPOINT: minio:9000
+      ASTRAEUS_ALTDATA_REDDIT_CLIENT_ID: ${ASTRAEUS_ALTDATA_REDDIT_CLIENT_ID:-}
+      ASTRAEUS_ALTDATA_REDDIT_CLIENT_SECRET: ${ASTRAEUS_ALTDATA_REDDIT_CLIENT_SECRET:-}
+      ASTRAEUS_ALTDATA_REDDIT_USER_AGENT: ${ASTRAEUS_ALTDATA_REDDIT_USER_AGENT:-astraeus:v0.1.0}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    restart: unless-stopped
+
+  altdata-ingest-rss:
+    build:
+      context: ../..
+      dockerfile: apps/workers/Dockerfile
+    command: ["python", "-m", "astraeus_workers.altdata_ingest", "--source", "rss"]
+    environment:
+      ASTRAEUS_ENV: local
+      ASTRAEUS_DB_HOST: postgres
+      ASTRAEUS_REDIS_HOST: redis
+      ASTRAEUS_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      ASTRAEUS_MINIO_ENDPOINT: minio:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    restart: unless-stopped
+
+  altdata-ingest-edgar:
+    build:
+      context: ../..
+      dockerfile: apps/workers/Dockerfile
+    command: ["python", "-m", "astraeus_workers.altdata_ingest", "--source", "edgar"]
+    environment:
+      ASTRAEUS_ENV: local
+      ASTRAEUS_DB_HOST: postgres
+      ASTRAEUS_REDIS_HOST: redis
+      ASTRAEUS_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      ASTRAEUS_MINIO_ENDPOINT: minio:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nlp-pipeline-worker:
+    build:
+      context: ../..
+      dockerfile: apps/workers/Dockerfile
+    command: ["python", "-m", "astraeus_workers.nlp_worker"]
+    environment:
+      ASTRAEUS_ENV: local
+      ASTRAEUS_DB_HOST: postgres
+      ASTRAEUS_REDIS_HOST: redis
+      ASTRAEUS_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      ASTRAEUS_MINIO_ENDPOINT: minio:9000
+      ASTRAEUS_ALTDATA_NLP_DEVICE: cpu
+      ASTRAEUS_ALTDATA_EMBEDDING_MODEL: BAAI/bge-small-en-v1.5
+      ASTRAEUS_ALTDATA_SENTIMENT_MODEL: ProsusAI/finbert
+      ASTRAEUS_ALTDATA_SPACY_MODEL: en_core_web_sm
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    restart: unless-stopped
+    # NLP models need more memory
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
+  topic-batch-worker:
+    build:
+      context: ../..
+      dockerfile: apps/workers/Dockerfile
+    command: ["python", "-m", "astraeus_workers.topic_refit"]
+    environment:
+      ASTRAEUS_ENV: local
+      ASTRAEUS_DB_HOST: postgres
+      ASTRAEUS_ALTDATA_NLP_DEVICE: cpu
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    # Triggered by cron or manual; not always-on
+    profiles: ["batch"]

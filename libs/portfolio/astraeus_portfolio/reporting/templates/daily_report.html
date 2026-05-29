@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Portfolio Report — {{ strategy_id }} — {{ as_of_date }}</title>
+    <style>
+        :root {
+            --color-primary: #1a365d;
+            --color-success: #276749;
+            --color-danger: #9b2c2c;
+            --color-warning: #975a16;
+            --color-bg: #ffffff;
+            --color-border: #e2e8f0;
+            --color-text: #2d3748;
+            --color-muted: #718096;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 11px;
+            line-height: 1.5;
+            color: var(--color-text);
+            padding: 24px;
+        }
+        h1 { font-size: 18px; color: var(--color-primary); margin-bottom: 4px; }
+        h2 { font-size: 14px; color: var(--color-primary); margin: 16px 0 8px; border-bottom: 1px solid var(--color-border); padding-bottom: 4px; }
+        h3 { font-size: 12px; color: var(--color-muted); margin: 12px 0 6px; }
+        .header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+        .header-meta { font-size: 10px; color: var(--color-muted); }
+        .status-passed { color: var(--color-success); font-weight: 600; }
+        .status-rejected { color: var(--color-danger); font-weight: 600; }
+        .status-fallback { color: var(--color-warning); font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 10px; }
+        th { background: #f7fafc; text-align: left; padding: 4px 8px; border: 1px solid var(--color-border); font-weight: 600; }
+        td { padding: 4px 8px; border: 1px solid var(--color-border); }
+        tr:nth-child(even) { background: #f7fafc; }
+        .number { text-align: right; font-variant-numeric: tabular-nums; }
+        .negative { color: var(--color-danger); }
+        .positive { color: var(--color-success); }
+        .flag { background: #fff5f5; }
+        .section { margin-bottom: 20px; page-break-inside: avoid; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .footer { margin-top: 24px; padding-top: 8px; border-top: 1px solid var(--color-border); font-size: 9px; color: var(--color-muted); }
+        @media print {
+            body { padding: 12px; }
+            .section { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cover -->
+    <div class="header">
+        <div>
+            <h1>{{ strategy_id }}</h1>
+            <span class="header-meta">Daily Portfolio Report</span>
+        </div>
+        <div style="text-align: right;">
+            <div><strong>{{ as_of_date }}</strong></div>
+            <div class="header-meta">NAV: ${{ nav }}</div>
+            <div>
+                {% if status == "passed" %}
+                <span class="status-passed">● PASSED</span>
+                {% elif status == "rejected" %}
+                <span class="status-rejected">● REJECTED</span>
+                {% else %}
+                <span class="status-fallback">● FALLBACK</span>
+                {% endif %}
+            </div>
+            <div class="header-meta">Optimizer: {{ optimizer }}</div>
+        </div>
+    </div>
+
+    <!-- Trade List -->
+    <div class="section">
+        <h2>Target Weights &amp; Changes</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Sector</th>
+                    <th class="number">Weight</th>
+                    <th class="number">Prior</th>
+                    <th class="number">Delta</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pos in positions %}
+                <tr>
+                    <td>{{ pos.symbol }}</td>
+                    <td>{{ pos.sector or "—" }}</td>
+                    <td class="number">{{ "%.4f"|format(pos.weight) }}</td>
+                    <td class="number">{{ "%.4f"|format(pos.prior_weight) if pos.prior_weight is not none else "—" }}</td>
+                    <td class="number {% if pos.delta and pos.delta > 0 %}positive{% elif pos.delta and pos.delta < 0 %}negative{% endif %}">
+                        {{ "%.4f"|format(pos.delta) if pos.delta is not none else "—" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Risk Dashboard -->
+    <div class="section">
+        <h2>Risk Dashboard</h2>
+        <div class="grid-2">
+            <div>
+                <h3>VaR / CVaR</h3>
+                <table>
+                    <thead>
+                        <tr><th>Metric</th><th>Conf.</th><th class="number">Historical</th><th class="number">Parametric</th><th class="number">Monte Carlo</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for row in var_table %}
+                        <tr class="{% if row.discrepancy_flag %}flag{% endif %}">
+                            <td>{{ row.metric }}</td>
+                            <td>{{ row.confidence }}</td>
+                            <td class="number">{{ "%.4f"|format(row.historical) }}</td>
+                            <td class="number">{{ "%.4f"|format(row.parametric) if row.parametric is not none else "—" }}</td>
+                            <td class="number">{{ "%.4f"|format(row.monte_carlo) if row.monte_carlo is not none else "—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <h3>Stress Scenarios</h3>
+                <table>
+                    <thead>
+                        <tr><th>Scenario</th><th class="number">PnL (%)</th><th class="number">Threshold</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for s in stress_scenarios %}
+                        <tr class="{% if s.breached %}flag{% endif %}">
+                            <td>{{ s.scenario_name }}</td>
+                            <td class="number negative">{{ "%.2f"|format(s.total_pnl_pct) }}%</td>
+                            <td class="number">{{ "%.1f"|format(s.threshold) }}%</td>
+                            <td>{% if s.breached %}<span class="status-rejected">BREACH</span>{% else %}<span class="status-passed">OK</span>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 12px;">
+            <div>
+                <h3>Concentration</h3>
+                <table>
+                    <tr><td>Max Cluster Weight</td><td class="number">{{ "%.4f"|format(max_cluster_weight) }}</td></tr>
+                    <tr><td>Effective N Bets</td><td class="number">{{ "%.2f"|format(effective_n_bets) }}</td></tr>
+                    <tr><td>Portfolio Beta</td><td class="number">{{ "%.4f"|format(portfolio_beta) }}</td></tr>
+                    <tr><td>Liquidity (5-day)</td><td class="number">{{ "%.2f"|format(liquidity_5day_pct * 100) }}%</td></tr>
+                </table>
+            </div>
+            <div>
+                <h3>Sector Exposure</h3>
+                <table>
+                    <thead><tr><th>Sector</th><th class="number">Weight</th><th class="number">Cap</th></tr></thead>
+                    <tbody>
+                        {% for sec in sector_exposures %}
+                        <tr>
+                            <td>{{ sec.sector }}</td>
+                            <td class="number">{{ "%.4f"|format(sec.weight) }}</td>
+                            <td class="number">{{ "%.2f"|format(sec.policy_cap) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attribution -->
+    <div class="section">
+        <h2>Attribution (Prior Day)</h2>
+        {% if attribution %}
+        <div class="grid-2">
+            <div>
+                <h3>Factor Decomposition</h3>
+                <table>
+                    <thead><tr><th>Factor</th><th class="number">PnL (bps)</th><th class="number">% of Total</th></tr></thead>
+                    <tbody>
+                        {% for f in attribution.factor_contributions %}
+                        <tr>
+                            <td>{{ f.factor }}</td>
+                            <td class="number {% if f.pnl_bps < 0 %}negative{% else %}positive{% endif %}">{{ "%.2f"|format(f.pnl_bps) }}</td>
+                            <td class="number">{{ "%.1f"|format(f.pct_of_total) if f.pct_of_total is not none else "—" }}%</td>
+                        </tr>
+                        {% endfor %}
+                        <tr style="font-weight: 600;">
+                            <td>Idiosyncratic</td>
+                            <td class="number">{{ "%.2f"|format(attribution.idio_pnl_bps) }}</td>
+                            <td class="number">—</td>
+                        </tr>
+                        <tr style="font-weight: 600; border-top: 2px solid var(--color-border);">
+                            <td>Total</td>
+                            <td class="number">{{ "%.2f"|format(attribution.total_pnl_bps) }}</td>
+                            <td class="number">100%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <h3>Top Contributors / Detractors</h3>
+                <table>
+                    <thead><tr><th>Symbol</th><th>Sector</th><th class="number">PnL (bps)</th></tr></thead>
+                    <tbody>
+                        {% for c in attribution.top_contributors %}
+                        <tr><td>{{ c.symbol }}</td><td>{{ c.sector or "—" }}</td><td class="number positive">+{{ "%.2f"|format(c.pnl_bps) }}</td></tr>
+                        {% endfor %}
+                        {% for d in attribution.top_detractors %}
+                        <tr><td>{{ d.symbol }}</td><td>{{ d.sector or "—" }}</td><td class="number negative">{{ "%.2f"|format(d.pnl_bps) }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <p style="color: var(--color-muted);">Attribution data not yet available (T+1).</p>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div>Generated: {{ generated_at }} | Policy: {{ policy_version }} | Code: {{ code_commit or "dev" }}</div>
+        <div>Covariance: {{ covariance_estimator }} | Optimizer: {{ optimizer }} | Constraint Hash: {{ constraint_set_hash or "—" }}</div>
+    </div>
+</body>
+</html>

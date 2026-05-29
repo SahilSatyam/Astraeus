@@ -13,12 +13,17 @@ it re-publishes on restart; downstream consumers deduplicate on payload_hash.
 from __future__ import annotations
 
 import asyncio
+import json
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, Protocol
 
 import structlog
 from sqlalchemy import select
 
 from astraeus_marketdata.models import Outbox
+
+if TYPE_CHECKING:
+    pass
 
 logger = structlog.get_logger("astraeus.marketdata.outbox_relay")
 
@@ -26,6 +31,55 @@ logger = structlog.get_logger("astraeus.marketdata.outbox_relay")
 _BATCH_SIZE = 100
 # Poll interval when no rows found
 _POLL_INTERVAL = 2.0
+
+
+class KafkaProducer(Protocol):
+    """Protocol for Kafka/Redpanda producers (matches aiokafka.AIOKafkaProducer)."""
+
+    async def send(
+        self,
+        topic: str,
+        value: bytes | None = None,
+        key: bytes | None = None,
+        headers: list[tuple[str, bytes]] | None = None,
+    ) -> Any: ...
+
+    async def start(self) -> None: ...
+
+    async def stop(self) -> None: ...
+
+
+async def create_kafka_producer(
+    bootstrap_servers: str,
+    client_id: str = "astraeus-outbox-relay",
+) -> Any:
+    """Create and start an aiokafka producer.
+
+    Returns None if aiokafka is not installed (falls back to log-only mode).
+    """
+    try:
+        from aiokafka import AIOKafkaProducer  # noqa: PLC0415
+
+        producer = AIOKafkaProducer(
+            bootstrap_servers=bootstrap_servers,
+            client_id=client_id,
+            acks="all",
+            enable_idempotence=True,
+            max_batch_size=16384,
+            linger_ms=10,
+        )
+        await producer.start()
+        logger.info("kafka_producer_started", bootstrap_servers=bootstrap_servers)
+        return producer
+    except ImportError:
+        logger.warning(
+            "aiokafka_not_installed",
+            msg="Running in log-only mode. Install aiokafka for Redpanda publishing.",
+        )
+        return None
+    except Exception:
+        logger.exception("kafka_producer_connect_failed")
+        return None
 
 
 async def relay_loop(
@@ -43,7 +97,7 @@ async def relay_loop(
     if stop_event is None:
         stop_event = asyncio.Event()
 
-    logger.info("outbox_relay_started")
+    logger.info("outbox_relay_started", mode="publish" if producer else "log-only")
 
     while not stop_event.is_set():
         try:
@@ -85,10 +139,30 @@ async def _drain_batch(
         now = datetime.now(tz=UTC)
 
         for row in rows:
-            # Publish to Kafka/Redpanda (or log in dev mode)
             if producer is not None:
-                # TODO(phase1): wire real Redpanda producer
-                pass
+                # Build headers as list of (key, value) tuples for Kafka
+                headers: list[tuple[str, bytes]] | None = None
+                if row.headers:
+                    headers = [
+                        (k, v.encode() if isinstance(v, str) else str(v).encode())
+                        for k, v in row.headers.items()
+                    ]
+
+                try:
+                    await producer.send(  # type: ignore[union-attr]
+                        topic=row.topic,
+                        value=row.payload,
+                        key=row.key,
+                        headers=headers,
+                    )
+                except Exception:
+                    logger.exception(
+                        "outbox_publish_failed",
+                        topic=row.topic,
+                        outbox_id=row.id,
+                    )
+                    # Skip this row for now; it'll be retried next cycle
+                    continue
             else:
                 logger.debug(
                     "outbox_relay_publish",

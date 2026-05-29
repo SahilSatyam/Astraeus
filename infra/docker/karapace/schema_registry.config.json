@@ -1,0 +1,12 @@
+{
+    "advertised_hostname": "karapace-registry",
+    "bootstrap_uri": "redpanda:9092",
+    "port": 8081,
+    "host": "0.0.0.0",
+    "client_id": "karapace-schema-registry",
+    "group_id": "karapace-schema-registry",
+    "master_eligibility": true,
+    "topic_name": "_schemas",
+    "log_level": "WARNING",
+    "compatibility": "BACKWARD"
+}

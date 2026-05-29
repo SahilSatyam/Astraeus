@@ -12,7 +12,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from astraeus_api.errors import register_exception_handlers
 from astraeus_api.lifespan import lifespan
 from astraeus_api.middleware import RequestContextMiddleware
-from astraeus_api.routes import health_router, marketdata_router
+from astraeus_api.routes import features_router, health_router, marketdata_router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -42,6 +42,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     register_exception_handlers(app)
     app.include_router(health_router)
     app.include_router(marketdata_router)
+    app.include_router(features_router)
 
     _instrument(app)
     return app

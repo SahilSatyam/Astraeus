@@ -47,6 +47,7 @@ services:
       ASTRAEUS_DB_NAME: astraeus
       ASTRAEUS_REDIS_HOST: redis
       ASTRAEUS_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      ASTRAEUS_KAFKA_SCHEMA_REGISTRY_URL: http://karapace-registry:8081
       ASTRAEUS_OBS_OTLP_ENDPOINT: http://jaeger:4317
       ASTRAEUS_OBS_OTLP_INSECURE: "true"
       ASTRAEUS_OBS_LOG_FORMAT: json
@@ -75,6 +76,10 @@ services:
       - "9000:9000"
       - "9001:9001"
 
+  karapace-registry:
+    ports:
+      - "8081:8081"
+
   jaeger:
     ports:
       - "16686:16686"
@@ -88,3 +93,49 @@ services:
   grafana:
     ports:
       - "3000:3000"
+
+  # --- Phase 2: Research Sandbox ---
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.14.0
+    command:
+      - mlflow
+      - server
+      - --host=0.0.0.0
+      - --port=5000
+      - --backend-store-uri=postgresql://astraeus:astraeus@postgres:5432/astraeus
+      - --default-artifact-root=s3://astraeus-mlflow/
+      - --serve-artifacts
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: astraeus
+      AWS_SECRET_ACCESS_KEY: astraeus123
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+
+  jupyterlab:
+    image: jupyter/scipy-notebook:python-3.12
+    command: start-notebook.py --NotebookApp.token='' --NotebookApp.password=''
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      ASTRAEUS_DB_HOST: postgres
+      ASTRAEUS_DB_PORT: "5432"
+      ASTRAEUS_DB_USER: astraeus
+      ASTRAEUS_DB_PASSWORD: astraeus
+      ASTRAEUS_DB_NAME: astraeus
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: astraeus
+      AWS_SECRET_ACCESS_KEY: astraeus123
+    volumes:
+      - notebookdata:/home/jovyan/work
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8888:8888"

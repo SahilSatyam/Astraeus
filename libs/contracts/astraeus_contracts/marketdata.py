@@ -166,6 +166,30 @@ class CorporateActionEvent(BaseModel):
     raw_payload: dict[str, Any] | None = Field(default=None, description="Original source payload")
 
 
+# --- Tick Events ---
+
+TICK_SCHEMA_VERSION = 1
+
+
+class TickEvent(BaseModel):
+    """Tick-level trade/quote event for streaming data.
+
+    Topic: md.equity.tick.v1
+    Key: symbol (bytes)
+    """
+
+    schema_version: int = Field(default=TICK_SCHEMA_VERSION)
+    symbol: str = Field(..., max_length=32, description="Ticker symbol")
+    ts: datetime = Field(..., description="Trade/quote timestamp (UTC)")
+    price: Decimal = Field(..., decimal_places=8, description="Trade price")
+    size: int = Field(..., description="Trade size (shares)")
+    exchange: str | None = Field(default=None, max_length=8, description="Exchange code")
+    conditions: list[str] | None = Field(default=None, description="Trade condition codes")
+    tape: str | None = Field(default=None, max_length=1, description="SIP tape (A/B/C)")
+    source: DataSource = Field(...)
+    run_id: str = Field(...)
+
+
 # --- DLQ Events ---
 
 DLQ_SCHEMA_VERSION = 1
@@ -196,6 +220,7 @@ class DLQEvent(BaseModel):
 SCHEMA_REGISTRY: dict[str, type[BaseModel]] = {
     "md.equity.daily.v1": BarEvent,
     "md.equity.minute.v1": BarEvent,
+    "md.equity.tick.v1": TickEvent,
     "md.macro.daily.v1": MacroEvent,
     "md.fundamentals.v1": FundamentalEvent,
     "md.corporate_actions.v1": CorporateActionEvent,

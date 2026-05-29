@@ -93,7 +93,7 @@ class KafkaSettings(BaseSettings):
 
     bootstrap_servers: str = "localhost:9092"
     client_id: str = "astraeus"
-    schema_registry_url: str | None = None
+    schema_registry_url: str = "http://localhost:8081"
 
 
 class ObservabilitySettings(BaseSettings):
