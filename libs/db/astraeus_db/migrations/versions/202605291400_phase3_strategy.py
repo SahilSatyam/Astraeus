@@ -1,8 +1,8 @@
 """phase3: strategy registry and backtest run tables
 
-Revision ID: 202605291400
-Revises: 202605291300
-Create Date: 2026-05-29 14:00:00+00:00
+Revision ID: 202605291401
+Revises: 202605291400
+Create Date: 2026-05-29 14:01:00+00:00
 
 Creates:
 - strategy: registered strategy definitions catalog
@@ -16,8 +16,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
-revision: str = "202605291400"
-down_revision: str = "202605291300"
+revision: str = "202605291401"
+down_revision: str = "202605291400"
 branch_labels: str | None = None
 depends_on: str | None = None
 
