@@ -38,6 +38,11 @@ from astraeus_contracts.portfolio import (
     ScenarioResult,
     TargetPortfolio,
 )
+from astraeus_contracts.altdata import (
+    DocumentIngestedEvent,
+    DocumentProcessedEvent,
+    SentimentFeatureEvent,
+)
 from astraeus_contracts.problem import ProblemDetails
 from astraeus_contracts.signals import SignalEvent
 from astraeus_contracts.topics import (
@@ -56,6 +61,8 @@ __all__ = [
     "CovarianceMethod",
     "DLQEvent",
     "DataSource",
+    "DocumentIngestedEvent",
+    "DocumentProcessedEvent",
     "FailedCheck",
     "FallbackAction",
     "FundamentalEvent",
@@ -74,6 +81,7 @@ __all__ = [
     "SCHEMA_REGISTRY",
     "ScenarioName",
     "ScenarioResult",
+    "SentimentFeatureEvent",
     "SignalEvent",
     "TargetPortfolio",
     "AssetClass",
