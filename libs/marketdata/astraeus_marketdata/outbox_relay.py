@@ -13,17 +13,13 @@ it re-publishes on restart; downstream consumers deduplicate on payload_hash.
 from __future__ import annotations
 
 import asyncio
-import json
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import Any, Protocol
 
 import structlog
 from sqlalchemy import select
 
 from astraeus_marketdata.models import Outbox
-
-if TYPE_CHECKING:
-    pass
 
 logger = structlog.get_logger("astraeus.marketdata.outbox_relay")
 
@@ -58,7 +54,7 @@ async def create_kafka_producer(
     Returns None if aiokafka is not installed (falls back to log-only mode).
     """
     try:
-        from aiokafka import AIOKafkaProducer  # noqa: PLC0415
+        from aiokafka import AIOKafkaProducer
 
         producer = AIOKafkaProducer(
             bootstrap_servers=bootstrap_servers,

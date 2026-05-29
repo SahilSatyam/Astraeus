@@ -34,9 +34,7 @@ async def should_refit(session: AsyncSession) -> bool:
 
     Returns True if the last refit was > REFIT_INTERVAL_DAYS ago or never ran.
     """
-    result = await session.execute(
-        text("SELECT max(fit_at) FROM topic_model_run")
-    )
+    result = await session.execute(text("SELECT max(fit_at) FROM topic_model_run"))
     last_fit = result.scalar_one_or_none()
 
     if last_fit is None:
@@ -146,9 +144,9 @@ async def persist_refit_result(
 
             sql = (
                 "INSERT INTO topic_assignment (chunk_id, topic_id, model_run_id, probability) "
-                "VALUES " + ", ".join(
-                    f"(:chunk_{i}, :topic_{i}, :model_run_id, :prob_{i})"
-                    for i in range(len(batch))
+                "VALUES "
+                + ", ".join(
+                    f"(:chunk_{i}, :topic_{i}, :model_run_id, :prob_{i})" for i in range(len(batch))
                 )
                 + " ON CONFLICT DO NOTHING"
             )
@@ -211,9 +209,7 @@ async def run_refit(session: AsyncSession) -> dict[str, object] | None:
         drift_score = modeler.compute_drift(previous_summary, result.topic_summary)
 
     # Persist
-    assignments = [
-        (a.chunk_id, a.topic_id, a.probability) for a in result.assignments
-    ]
+    assignments = [(a.chunk_id, a.topic_id, a.probability) for a in result.assignments]
     await persist_refit_result(
         session=session,
         model_run_id=result.model_run_id,

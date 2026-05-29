@@ -23,7 +23,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-
 # ---------------------------------------------------------------------------
 # Schema versions
 # ---------------------------------------------------------------------------
@@ -53,16 +52,12 @@ class DeterminismViolation(BaseModel):
     )
     violation_id: UUID = Field(..., description="Unique violation identifier")
     strategy_id: str = Field(..., max_length=128, description="Strategy identifier")
-    as_of_date: str = Field(
-        ..., description="Pipeline date in ISO format (YYYY-MM-DD)"
-    )
+    as_of_date: str = Field(..., description="Pipeline date in ISO format (YYYY-MM-DD)")
     task_name: str = Field(..., description="Task that produced divergent output")
     stored_hash: str = Field(..., description="Hash of the previously stored result")
     computed_hash: str = Field(..., description="Hash of the newly computed result")
     version: int = Field(..., description="Task run version that triggered detection")
-    detected_at: datetime = Field(
-        ..., description="UTC timestamp when violation was detected"
-    )
+    detected_at: datetime = Field(..., description="UTC timestamp when violation was detected")
 
 
 class TaskFailure(BaseModel):
@@ -80,20 +75,12 @@ class TaskFailure(BaseModel):
     )
     task_id: UUID = Field(..., description="Unique task run identifier")
     strategy_id: str = Field(..., max_length=128, description="Strategy identifier")
-    as_of_date: str = Field(
-        ..., description="Pipeline date in ISO format (YYYY-MM-DD)"
-    )
+    as_of_date: str = Field(..., description="Pipeline date in ISO format (YYYY-MM-DD)")
     task_name: str = Field(..., description="Name of the failed task")
     error_reason: str = Field(..., description="Human-readable failure reason")
-    attempt_count: int = Field(
-        ..., ge=1, description="Number of attempts made before giving up"
-    )
-    first_attempt_at: datetime = Field(
-        ..., description="UTC timestamp of the first attempt"
-    )
-    failed_at: datetime = Field(
-        ..., description="UTC timestamp of the final failure"
-    )
+    attempt_count: int = Field(..., ge=1, description="Number of attempts made before giving up")
+    first_attempt_at: datetime = Field(..., description="UTC timestamp of the first attempt")
+    failed_at: datetime = Field(..., description="UTC timestamp of the final failure")
     duration_ms: int | None = Field(
         default=None, description="Total wall-clock time across all attempts (ms)"
     )
@@ -119,14 +106,10 @@ class SignalBatchCompleted(BaseModel):
         description="Schema version for evolution",
     )
     strategy_id: str = Field(..., max_length=128, description="Strategy identifier")
-    as_of_date: str = Field(
-        ..., description="Signal date in ISO format (YYYY-MM-DD)"
-    )
+    as_of_date: str = Field(..., description="Signal date in ISO format (YYYY-MM-DD)")
     signal_count: int = Field(..., ge=0, description="Number of signals in the batch")
     batch_id: UUID = Field(..., description="Unique batch identifier")
-    completed_at: datetime = Field(
-        ..., description="UTC timestamp when batch processing completed"
-    )
+    completed_at: datetime = Field(..., description="UTC timestamp when batch processing completed")
 
 
 # ---------------------------------------------------------------------------

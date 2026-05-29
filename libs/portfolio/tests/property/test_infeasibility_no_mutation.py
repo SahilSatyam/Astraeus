@@ -19,18 +19,16 @@ Strategy:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import cvxpy as cp
-import numpy as np
 import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
+import numpy as np
 from astraeus_portfolio.constraints.base import Constraint
 from astraeus_portfolio.contracts import OptContext, OptResult
 from astraeus_portfolio.optimizers.base import Optimizer, OptimizerConfig
-
+from hypothesis import given, settings
 
 # ---------------------------------------------------------------------------
 # Test Optimizer (minimal concrete implementation for testing)
@@ -155,7 +153,7 @@ def st_infeasible_opt_context(draw: st.DrawFn) -> OptContext:
 
     # Symbols and sector map
     symbols = [f"ASSET_{i}" for i in range(n)]
-    sector_map = {s: "Technology" for s in symbols}
+    sector_map = dict.fromkeys(symbols, "Technology")
 
     # --- Create contradictory non-relaxable constraints ---
     # With fully_invested=True, sum(w) == 1.
@@ -163,7 +161,9 @@ def st_infeasible_opt_context(draw: st.DrawFn) -> OptContext:
     # Choose max_weight in (0, 1/n) exclusive
     max_weight_upper = 1.0 / n
     max_weight = draw(
-        st.floats(min_value=0.01, max_value=max_weight_upper * 0.9, allow_nan=False, allow_infinity=False)
+        st.floats(
+            min_value=0.01, max_value=max_weight_upper * 0.9, allow_nan=False, allow_infinity=False
+        )
     )
     non_relaxable_constraints: list[Constraint] = [
         MaxWeightConstraint(max_weight=max_weight),
@@ -172,7 +172,7 @@ def st_infeasible_opt_context(draw: st.DrawFn) -> OptContext:
     # Optionally add relaxable constraints to exercise the relaxation path
     n_relaxable = draw(st.integers(min_value=0, max_value=3))
     relaxable_constraints: list[Constraint] = []
-    for i in range(n_relaxable):
+    for _i in range(n_relaxable):
         priority = draw(st.sampled_from([1, 2, 3]))
         relaxable_constraints.append(RelaxableDummyConstraint(priority=priority))
 
@@ -180,7 +180,7 @@ def st_infeasible_opt_context(draw: st.DrawFn) -> OptContext:
 
     return OptContext(
         strategy_id="test_infeasible",
-        as_of_ts=datetime(2024, 1, 15, tzinfo=timezone.utc),
+        as_of_ts=datetime(2024, 1, 15, tzinfo=UTC),
         n_assets=n,
         symbols=symbols,
         expected_returns=expected_returns,
@@ -223,7 +223,7 @@ def st_infeasible_sum_cap_context(draw: st.DrawFn) -> OptContext:
     adv = rng.uniform(100_000, 10_000_000, size=n)
     beta = rng.uniform(0.5, 1.5, size=n)
     symbols = [f"ASSET_{i}" for i in range(n)]
-    sector_map = {s: "Financials" for s in symbols}
+    sector_map = dict.fromkeys(symbols, "Financials")
 
     # sum(w) <= cap where cap < 1, contradicts sum(w) == 1
     cap = draw(st.floats(min_value=0.01, max_value=0.8, allow_nan=False, allow_infinity=False))
@@ -236,15 +236,14 @@ def st_infeasible_sum_cap_context(draw: st.DrawFn) -> OptContext:
     # Optionally add relaxable constraints
     n_relaxable = draw(st.integers(min_value=0, max_value=2))
     relaxable_constraints: list[Constraint] = [
-        RelaxableDummyConstraint(priority=p)
-        for p in [2, 3][:n_relaxable]
+        RelaxableDummyConstraint(priority=p) for p in [2, 3][:n_relaxable]
     ]
 
     all_constraints = non_relaxable_constraints + relaxable_constraints
 
     return OptContext(
         strategy_id="test_infeasible_sum_cap",
-        as_of_ts=datetime(2024, 1, 15, tzinfo=timezone.utc),
+        as_of_ts=datetime(2024, 1, 15, tzinfo=UTC),
         n_assets=n,
         symbols=symbols,
         expected_returns=expected_returns,
@@ -292,8 +291,7 @@ class TestInfeasibilityNeverSilentlyMutates:
         result = optimizer.run(ctx)
 
         assert result.status == "failed", (
-            f"Expected status 'failed', got '{result.status}'. "
-            f"Weights: {result.weights}"
+            f"Expected status 'failed', got '{result.status}'. Weights: {result.weights}"
         )
 
     @given(ctx=st_infeasible_opt_context())
@@ -305,8 +303,7 @@ class TestInfeasibilityNeverSilentlyMutates:
         result = optimizer.run(ctx)
 
         assert len(result.weights) == 0, (
-            f"Expected empty weights, got array of length {len(result.weights)}: "
-            f"{result.weights}"
+            f"Expected empty weights, got array of length {len(result.weights)}: {result.weights}"
         )
 
     @given(ctx=st_infeasible_opt_context())
@@ -336,8 +333,7 @@ class TestInfeasibilityNeverSilentlyMutates:
         result = optimizer.run(ctx)
 
         assert result.status == "failed", (
-            f"Expected status 'failed', got '{result.status}'. "
-            f"Weights: {result.weights}"
+            f"Expected status 'failed', got '{result.status}'. Weights: {result.weights}"
         )
 
     @given(ctx=st_infeasible_sum_cap_context())
@@ -349,8 +345,7 @@ class TestInfeasibilityNeverSilentlyMutates:
         result = optimizer.run(ctx)
 
         assert len(result.weights) == 0, (
-            f"Expected empty weights, got array of length {len(result.weights)}: "
-            f"{result.weights}"
+            f"Expected empty weights, got array of length {len(result.weights)}: {result.weights}"
         )
 
     @given(ctx=st_infeasible_opt_context())
@@ -361,9 +356,7 @@ class TestInfeasibilityNeverSilentlyMutates:
 
         result = optimizer.run(ctx)
 
-        assert result.solver_used is None, (
-            f"Expected solver_used=None, got '{result.solver_used}'"
-        )
+        assert result.solver_used is None, f"Expected solver_used=None, got '{result.solver_used}'"
 
     @given(ctx=st_infeasible_opt_context())
     @settings(max_examples=50, deadline=None)
@@ -378,6 +371,5 @@ class TestInfeasibilityNeverSilentlyMutates:
 
         # Should have one relaxation event per relaxable constraint dropped
         assert len(result.relaxation_events) == n_relaxable, (
-            f"Expected {n_relaxable} relaxation events, "
-            f"got {len(result.relaxation_events)}"
+            f"Expected {n_relaxable} relaxation events, got {len(result.relaxation_events)}"
         )

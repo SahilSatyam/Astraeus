@@ -18,21 +18,15 @@ from decimal import Decimal
 
 import numpy as np
 import pytest
-
-from astraeus_portfolio.contracts import OptContext, OptResult
+from astraeus_portfolio.contracts import OptContext
 from astraeus_portfolio.optimizers.cvar import (
-    BOOTSTRAP_BLOCK_SIZE,
-    BOOTSTRAP_SCENARIO_COUNT,
     DEFAULT_BETA,
-    HISTORICAL_SCENARIO_COUNT,
-    MIN_SCENARIO_FACTOR,
     CVaROptimizer,
     CVaRValidationError,
     ScenarioMode,
     _generate_bootstrap_scenarios,
     _generate_historical_scenarios,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -48,9 +42,7 @@ def _make_psd_covariance(n: int, seed: int = 42) -> np.ndarray:
     return cov
 
 
-def _make_scenario_matrix(
-    n_scenarios: int, n_assets: int, seed: int = 42
-) -> np.ndarray:
+def _make_scenario_matrix(n_scenarios: int, n_assets: int, seed: int = 42) -> np.ndarray:
     """Generate a random scenario matrix of shape (n_scenarios, n_assets)."""
     rng = np.random.default_rng(seed)
     # Generate returns with realistic magnitudes (daily returns)
@@ -334,9 +326,7 @@ class TestCVaROptimization:
         portfolio CVaR <= CVaR of equal-weight portfolio on the same scenarios.
         """
         n_assets = 5
-        opt = CVaROptimizer(
-            beta=0.95, scenario_mode=ScenarioMode.HISTORICAL
-        )
+        opt = CVaROptimizer(beta=0.95, scenario_mode=ScenarioMode.HISTORICAL)
         ctx = _make_opt_context(n_assets=n_assets, n_scenarios=1000)
         result = opt.run(ctx)
 
@@ -344,17 +334,13 @@ class TestCVaROptimization:
         scenarios = ctx.scenarios[-1000:]
         portfolio_returns_opt = scenarios @ result.weights
         var_threshold = np.percentile(portfolio_returns_opt, (1 - 0.95) * 100)
-        cvar_opt = -np.mean(
-            portfolio_returns_opt[portfolio_returns_opt <= var_threshold]
-        )
+        cvar_opt = -np.mean(portfolio_returns_opt[portfolio_returns_opt <= var_threshold])
 
         # Compute CVaR for equal-weight portfolio
         w_eq = np.ones(n_assets) / n_assets
         portfolio_returns_eq = scenarios @ w_eq
         var_threshold_eq = np.percentile(portfolio_returns_eq, (1 - 0.95) * 100)
-        cvar_eq = -np.mean(
-            portfolio_returns_eq[portfolio_returns_eq <= var_threshold_eq]
-        )
+        cvar_eq = -np.mean(portfolio_returns_eq[portfolio_returns_eq <= var_threshold_eq])
 
         # CVaR of optimized should be <= CVaR of equal-weight
         assert cvar_opt <= cvar_eq + 1e-6
@@ -409,6 +395,7 @@ class TestCVaRConstraintRelaxation:
 
             def to_cvxpy(self, w, ctx):
                 import cvxpy as cp
+
                 # Require sum(w) >= 10 (impossible with sum(w) = 1)
                 return [cp.sum(w) >= 10]
 

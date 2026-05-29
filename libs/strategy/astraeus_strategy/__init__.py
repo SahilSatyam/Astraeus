@@ -17,7 +17,11 @@ from astraeus_strategy.cost_model import CostModel
 from astraeus_strategy.engines.event_driven import EventDrivenEngine, EventDrivenResult
 from astraeus_strategy.engines.vectorized import VectorizedEngine, VectorizedResult
 from astraeus_strategy.metrics import BacktestMetrics, compute_metrics
-from astraeus_strategy.monte_carlo import MonteCarloResult, bootstrap_returns, parameter_perturbation
+from astraeus_strategy.monte_carlo import (
+    MonteCarloResult,
+    bootstrap_returns,
+    parameter_perturbation,
+)
 from astraeus_strategy.protocol import Strategy, StrategyContext
 from astraeus_strategy.reconciliation import ReconciliationResult, reconcile
 from astraeus_strategy.registry import BacktestRun, StrategyEntry, compute_run_hash

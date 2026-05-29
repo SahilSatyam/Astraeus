@@ -11,14 +11,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any
 
 import structlog
 
 from astraeus_portfolio.contracts import (
-    ConstraintDiag,
     RiskReport,
-    ScenarioResult,
 )
 
 logger = structlog.get_logger(__name__)
@@ -146,24 +143,28 @@ def build_risk_report_data(
     mc_var_95 = risk_report.var_95_mc
     discrepancy_95_var = _check_discrepancy(hist_var_95, param_var_95)
 
-    report.var_table.append(VaRTableEntry(
-        confidence="95%",
-        metric="VaR",
-        historical=hist_var_95,
-        parametric=param_var_95,
-        monte_carlo=mc_var_95,
-        discrepancy_flag=discrepancy_95_var,
-    ))
+    report.var_table.append(
+        VaRTableEntry(
+            confidence="95%",
+            metric="VaR",
+            historical=hist_var_95,
+            parametric=param_var_95,
+            monte_carlo=mc_var_95,
+            discrepancy_flag=discrepancy_95_var,
+        )
+    )
 
     # 99% VaR
-    report.var_table.append(VaRTableEntry(
-        confidence="99%",
-        metric="VaR",
-        historical=risk_report.var_99_hist,
-        parametric=None,  # Only 95% parametric in schema
-        monte_carlo=None,
-        discrepancy_flag=False,
-    ))
+    report.var_table.append(
+        VaRTableEntry(
+            confidence="99%",
+            metric="VaR",
+            historical=risk_report.var_99_hist,
+            parametric=None,  # Only 95% parametric in schema
+            monte_carlo=None,
+            discrepancy_flag=False,
+        )
+    )
 
     # 95% CVaR
     hist_cvar_95 = risk_report.cvar_95_hist
@@ -171,36 +172,42 @@ def build_risk_report_data(
     mc_cvar_95 = risk_report.cvar_95_mc
     discrepancy_95_cvar = _check_discrepancy(hist_cvar_95, param_cvar_95)
 
-    report.var_table.append(VaRTableEntry(
-        confidence="95%",
-        metric="CVaR",
-        historical=hist_cvar_95,
-        parametric=param_cvar_95,
-        monte_carlo=mc_cvar_95,
-        discrepancy_flag=discrepancy_95_cvar,
-    ))
+    report.var_table.append(
+        VaRTableEntry(
+            confidence="95%",
+            metric="CVaR",
+            historical=hist_cvar_95,
+            parametric=param_cvar_95,
+            monte_carlo=mc_cvar_95,
+            discrepancy_flag=discrepancy_95_cvar,
+        )
+    )
 
     # 99% CVaR
-    report.var_table.append(VaRTableEntry(
-        confidence="99%",
-        metric="CVaR",
-        historical=risk_report.cvar_99_hist,
-        parametric=None,
-        monte_carlo=None,
-        discrepancy_flag=False,
-    ))
+    report.var_table.append(
+        VaRTableEntry(
+            confidence="99%",
+            metric="CVaR",
+            historical=risk_report.cvar_99_hist,
+            parametric=None,
+            monte_carlo=None,
+            discrepancy_flag=False,
+        )
+    )
 
     # --- Stress scenarios ---
     for scenario in risk_report.stress_scenarios:
         threshold = thresholds.get(scenario.scenario_name.value, Decimal("-25.0"))
         breached = scenario.total_pnl_pct < threshold
-        report.stress_scenarios.append(StressScenarioEntry(
-            scenario_name=scenario.scenario_name.value,
-            total_pnl_pct=scenario.total_pnl_pct,
-            threshold=threshold,
-            breached=breached,
-            factor_contributions=scenario.factor_contributions,
-        ))
+        report.stress_scenarios.append(
+            StressScenarioEntry(
+                scenario_name=scenario.scenario_name.value,
+                total_pnl_pct=scenario.total_pnl_pct,
+                threshold=threshold,
+                breached=breached,
+                factor_contributions=scenario.factor_contributions,
+            )
+        )
 
     # --- Concentration ---
     report.max_cluster_weight = risk_report.cluster_concentration.max_cluster_weight
@@ -220,17 +227,18 @@ def build_risk_report_data(
 
     for diag in risk_report.constraint_diagnostics:
         shadow = diag.shadow_price
-        is_tightest = False
         if shadow is not None and (tightest_shadow is None or abs(shadow) > abs(tightest_shadow)):
             tightest_shadow = shadow
             tightest_name = diag.constraint_name
 
-        report.constraint_diagnostics.append(ConstraintDiagEntry(
-            constraint_name=diag.constraint_name,
-            satisfied=diag.satisfied,
-            shadow_price=diag.shadow_price,
-            slack=diag.slack,
-        ))
+        report.constraint_diagnostics.append(
+            ConstraintDiagEntry(
+                constraint_name=diag.constraint_name,
+                satisfied=diag.satisfied,
+                shadow_price=diag.shadow_price,
+                slack=diag.slack,
+            )
+        )
 
     # Mark the tightest constraint
     if tightest_name:

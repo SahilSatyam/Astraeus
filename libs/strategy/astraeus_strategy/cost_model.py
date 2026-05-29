@@ -89,7 +89,7 @@ class SpreadEstimator:
             # Corwin-Schultz (2012) high-low estimator
             # Simplified single-day version
             beta = (math.log(high / low)) ** 2
-            gamma = (math.log(high / low)) ** 2
+            (math.log(high / low)) ** 2
             alpha = (math.sqrt(2 * beta) - math.sqrt(beta)) / (3 - 2 * math.sqrt(2))
             spread = 2 * (math.exp(alpha) - 1) / (1 + math.exp(alpha))
             return max(spread * 10000 / 2, 1.0)  # floor at 1 bps half-spread

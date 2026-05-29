@@ -93,7 +93,9 @@ def write_local(
     _validate_schema(df)
     df = _add_partition_columns(df)
 
-    feature_dir = base_path / f"feature_{group}_{name}" / f"feature_definition_hash={definition_hash}"
+    feature_dir = (
+        base_path / f"feature_{group}_{name}" / f"feature_definition_hash={definition_hash}"
+    )
     feature_dir.mkdir(parents=True, exist_ok=True)
 
     partitions: list[dict[str, Any]] = []
@@ -114,12 +116,14 @@ def write_local(
 
         row_count = len(write_df)
         total_rows += row_count
-        partitions.append({
-            "dt": str(dt),
-            "symbol_bucket": int(bucket),  # type: ignore[arg-type]
-            "row_count": row_count,
-            "path": str(out_path.relative_to(base_path)),
-        })
+        partitions.append(
+            {
+                "dt": str(dt),
+                "symbol_bucket": int(bucket),  # type: ignore[arg-type]
+                "row_count": row_count,
+                "path": str(out_path.relative_to(base_path)),
+            }
+        )
 
     # Write manifest
     manifest = _build_manifest(partitions, definition_hash, total_rows)
@@ -200,12 +204,14 @@ def write_minio(
 
         row_count = len(write_df)
         total_rows += row_count
-        partitions.append({
-            "dt": str(dt),
-            "symbol_bucket": int(symbol_bucket),  # type: ignore[arg-type]
-            "row_count": row_count,
-            "path": f"s3://{bucket}/{object_key}",
-        })
+        partitions.append(
+            {
+                "dt": str(dt),
+                "symbol_bucket": int(symbol_bucket),  # type: ignore[arg-type]
+                "row_count": row_count,
+                "path": f"s3://{bucket}/{object_key}",
+            }
+        )
 
     # Write manifest
     manifest = _build_manifest(partitions, definition_hash, total_rows)

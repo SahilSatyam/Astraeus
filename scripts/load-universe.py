@@ -178,7 +178,7 @@ async def main() -> None:
         new_securities=security_count,
     )
 
-    print(f"\nLoad complete:")
+    print("\nLoad complete:")
     print(f"  Universe rows inserted: {universe_count}")
     print(f"  New securities added:   {security_count}")
     print(f"  Total unique symbols:   {len(seen_symbols)}")

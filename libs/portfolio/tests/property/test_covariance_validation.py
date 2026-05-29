@@ -17,13 +17,12 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from hypothesis import given, settings
-from hypothesis import strategies as st
-
 from astraeus_portfolio.contracts import CovarianceConfig
 from astraeus_portfolio.covariance.factor_model import FactorModelEstimator
 from astraeus_portfolio.covariance.ledoit_wolf import LedoitWolfEstimator
 from astraeus_portfolio.covariance.sample import SampleCovarianceEstimator
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 # ---------------------------------------------------------------------------
 # Shared configuration and estimator fixtures
@@ -143,12 +142,11 @@ def st_non_2d_array(draw: st.DrawFn) -> np.ndarray:
     if ndim == 1:
         size = draw(st.integers(min_value=2, max_value=20))
         return rng.standard_normal(size) * 0.01
-    else:
-        # 3-D array
-        d1 = draw(st.integers(min_value=2, max_value=5))
-        d2 = draw(st.integers(min_value=2, max_value=5))
-        d3 = draw(st.integers(min_value=2, max_value=5))
-        return rng.standard_normal((d1, d2, d3)) * 0.01
+    # 3-D array
+    d1 = draw(st.integers(min_value=2, max_value=5))
+    d2 = draw(st.integers(min_value=2, max_value=5))
+    d3 = draw(st.integers(min_value=2, max_value=5))
+    return rng.standard_normal((d1, d2, d3)) * 0.01
 
 
 # ---------------------------------------------------------------------------
@@ -228,9 +226,7 @@ class TestCovarianceInsufficientObservations:
 
     @given(returns=st_returns_insufficient_obs())
     @settings(max_examples=100, deadline=None)
-    def test_sample_estimator_rejects_insufficient_obs(
-        self, returns: np.ndarray
-    ) -> None:
+    def test_sample_estimator_rejects_insufficient_obs(self, returns: np.ndarray) -> None:
         """SampleCovarianceEstimator raises ValueError with 'Insufficient observations'."""
         estimator = SampleCovarianceEstimator()
         with pytest.raises(ValueError, match="Insufficient observations"):
@@ -238,9 +234,7 @@ class TestCovarianceInsufficientObservations:
 
     @given(returns=st_returns_insufficient_obs())
     @settings(max_examples=100, deadline=None)
-    def test_ledoit_wolf_estimator_rejects_insufficient_obs(
-        self, returns: np.ndarray
-    ) -> None:
+    def test_ledoit_wolf_estimator_rejects_insufficient_obs(self, returns: np.ndarray) -> None:
         """LedoitWolfEstimator raises ValueError with 'Insufficient observations'."""
         estimator = LedoitWolfEstimator()
         with pytest.raises(ValueError, match="Insufficient observations"):
@@ -248,9 +242,7 @@ class TestCovarianceInsufficientObservations:
 
     @given(returns=st_returns_insufficient_obs())
     @settings(max_examples=100, deadline=None)
-    def test_factor_model_estimator_rejects_insufficient_obs(
-        self, returns: np.ndarray
-    ) -> None:
+    def test_factor_model_estimator_rejects_insufficient_obs(self, returns: np.ndarray) -> None:
         """FactorModelEstimator raises ValueError with 'Insufficient observations'."""
         n = returns.shape[1]
         estimator = _make_factor_model_estimator(n)

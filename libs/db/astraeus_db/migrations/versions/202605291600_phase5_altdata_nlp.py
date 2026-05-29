@@ -28,8 +28,16 @@ depends_on: str | None = None
 
 
 def upgrade() -> None:
-    # Enable pgvector extension
-    op.execute(sa.text("CREATE EXTENSION IF NOT EXISTS vector"))
+    # Enable pgvector extension (requires pgvector installed on the system)
+    # Gracefully skip if not available — vector columns will be NULL-only
+    conn = op.get_bind()
+    try:
+        conn.execute(sa.text("CREATE EXTENSION IF NOT EXISTS vector"))
+        _has_vector = True
+    except Exception:
+        conn.execute(sa.text("ROLLBACK"))
+        conn.execute(sa.text("BEGIN"))
+        _has_vector = False
 
     # --- raw_document ---
     op.create_table(
@@ -56,22 +64,35 @@ def upgrade() -> None:
 
     # --- document_chunk ---
     # Use raw SQL for the VECTOR column type (not natively supported by SA)
-    op.execute(sa.text("""
-        CREATE TABLE document_chunk (
-            chunk_id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            doc_id          UUID NOT NULL REFERENCES raw_document(doc_id),
-            chunk_idx       INT NOT NULL,
-            text            TEXT NOT NULL,
-            token_count     INT NOT NULL,
-            embedding       VECTOR(384),
-            UNIQUE (doc_id, chunk_idx)
-        )
-    """))
-    op.create_index("ix_document_chunk_doc_id", "document_chunk", ["doc_id"])
-    op.execute(sa.text(
-        "CREATE INDEX ix_document_chunk_embedding ON document_chunk "
-        "USING hnsw (embedding vector_cosine_ops)"
-    ))
+    if _has_vector:
+        op.execute(sa.text("""
+            CREATE TABLE document_chunk (
+                chunk_id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                doc_id          UUID NOT NULL REFERENCES raw_document(doc_id),
+                chunk_idx       INT NOT NULL,
+                text            TEXT NOT NULL,
+                token_count     INT NOT NULL,
+                embedding       VECTOR(384),
+                UNIQUE (doc_id, chunk_idx)
+            )
+        """))
+        op.create_index("ix_document_chunk_doc_id", "document_chunk", ["doc_id"])
+        op.execute(sa.text(
+            "CREATE INDEX ix_document_chunk_embedding ON document_chunk "
+            "USING hnsw (embedding vector_cosine_ops)"
+        ))
+    else:
+        op.execute(sa.text("""
+            CREATE TABLE document_chunk (
+                chunk_id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                doc_id          UUID NOT NULL REFERENCES raw_document(doc_id),
+                chunk_idx       INT NOT NULL,
+                text            TEXT NOT NULL,
+                token_count     INT NOT NULL,
+                UNIQUE (doc_id, chunk_idx)
+            )
+        """))
+        op.create_index("ix_document_chunk_doc_id", "document_chunk", ["doc_id"])
     op.execute(sa.text(
         "CREATE INDEX ix_document_chunk_fts ON document_chunk "
         "USING gin (to_tsvector('english', text))"

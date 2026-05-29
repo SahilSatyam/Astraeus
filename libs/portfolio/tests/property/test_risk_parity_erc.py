@@ -14,13 +14,11 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-import numpy as np
 import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
+import numpy as np
 from astraeus_portfolio.contracts import OptContext
 from astraeus_portfolio.optimizers.risk_parity import RiskParityConfig, RiskParityOptimizer
-
+from hypothesis import assume, given, settings
 
 # ---------------------------------------------------------------------------
 # Hypothesis Strategies
@@ -175,14 +173,10 @@ class TestRiskParityEqualRiskContribution:
         cov = ctx.covariance
 
         # Verify weights sum to 1.0
-        assert abs(np.sum(w) - 1.0) < 1e-6, (
-            f"Weights do not sum to 1.0: sum={np.sum(w):.10f}"
-        )
+        assert abs(np.sum(w) - 1.0) < 1e-6, f"Weights do not sum to 1.0: sum={np.sum(w):.10f}"
 
         # Verify all weights are non-negative
-        assert np.all(w >= -1e-10), (
-            f"Negative weights found: min={np.min(w):.10e}"
-        )
+        assert np.all(w >= -1e-10), f"Negative weights found: min={np.min(w):.10e}"
 
         # Compute risk contributions: RC_i = w_i * (Σw)_i / (w'Σw)
         sigma_w = cov @ w

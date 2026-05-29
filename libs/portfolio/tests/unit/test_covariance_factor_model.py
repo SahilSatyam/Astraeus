@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-
 from astraeus_portfolio.contracts import CovarianceConfig, CovarianceResult
 from astraeus_portfolio.covariance.factor_model import FactorModelEstimator
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -179,17 +177,27 @@ class TestFactorModelDiagonalMatrix:
 class TestFactorModelValidation:
     """Tests that FactorModelEstimator validates inputs correctly."""
 
-    def test_nan_in_returns_raises(self, estimator: FactorModelEstimator, config: CovarianceConfig) -> None:
-        returns = np.array([[1.0, 2.0, 3.0, 4.0, 5.0], [3.0, np.nan, 5.0, 6.0, 7.0], [5.0, 6.0, 7.0, 8.0, 9.0]])
+    def test_nan_in_returns_raises(
+        self, estimator: FactorModelEstimator, config: CovarianceConfig
+    ) -> None:
+        returns = np.array(
+            [[1.0, 2.0, 3.0, 4.0, 5.0], [3.0, np.nan, 5.0, 6.0, 7.0], [5.0, 6.0, 7.0, 8.0, 9.0]]
+        )
         with pytest.raises(ValueError, match="NaN"):
             estimator.estimate(returns, config)
 
-    def test_inf_in_returns_raises(self, estimator: FactorModelEstimator, config: CovarianceConfig) -> None:
-        returns = np.array([[1.0, 2.0, 3.0, 4.0, 5.0], [3.0, np.inf, 5.0, 6.0, 7.0], [5.0, 6.0, 7.0, 8.0, 9.0]])
+    def test_inf_in_returns_raises(
+        self, estimator: FactorModelEstimator, config: CovarianceConfig
+    ) -> None:
+        returns = np.array(
+            [[1.0, 2.0, 3.0, 4.0, 5.0], [3.0, np.inf, 5.0, 6.0, 7.0], [5.0, 6.0, 7.0, 8.0, 9.0]]
+        )
         with pytest.raises(ValueError, match="Inf"):
             estimator.estimate(returns, config)
 
-    def test_insufficient_observations_raises(self, estimator: FactorModelEstimator, config: CovarianceConfig) -> None:
+    def test_insufficient_observations_raises(
+        self, estimator: FactorModelEstimator, config: CovarianceConfig
+    ) -> None:
         # T=2, n=5 -> T < n+1
         returns = np.ones((2, 5))
         with pytest.raises(ValueError, match="Insufficient observations"):
@@ -207,7 +215,9 @@ class TestFactorModelValidation:
         with pytest.raises(ValueError, match="Dimensions must match"):
             estimator.estimate(returns, config)
 
-    def test_1d_returns_raises(self, estimator: FactorModelEstimator, config: CovarianceConfig) -> None:
+    def test_1d_returns_raises(
+        self, estimator: FactorModelEstimator, config: CovarianceConfig
+    ) -> None:
         returns = np.array([1.0, 2.0, 3.0])
         with pytest.raises(ValueError, match="2-D"):
             estimator.estimate(returns, config)

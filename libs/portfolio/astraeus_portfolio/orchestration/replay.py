@@ -17,7 +17,7 @@ import argparse
 import hashlib
 import json
 import sys
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Any
 
 import structlog
@@ -394,10 +394,7 @@ def main() -> None:
         if result.is_deterministic():
             print(f"Verify: PASS (hash={result.computed_hash})")
         else:
-            print(
-                f"Verify: FAIL — stored={result.stored_hash}, "
-                f"computed={result.computed_hash}"
-            )
+            print(f"Verify: FAIL — stored={result.stored_hash}, computed={result.computed_hash}")
             sys.exit(1)
 
 

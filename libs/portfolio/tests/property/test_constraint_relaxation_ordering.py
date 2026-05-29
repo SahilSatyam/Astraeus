@@ -22,14 +22,12 @@ from decimal import Decimal
 from typing import Any
 
 import cvxpy as cp
-import numpy as np
 import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
-from astraeus_portfolio.constraints.base import Constraint, relax_constraints, get_relaxation_order
-from astraeus_portfolio.contracts import OptContext, OptResult, RelaxationEvent
+import numpy as np
+from astraeus_portfolio.constraints.base import Constraint, relax_constraints
+from astraeus_portfolio.contracts import OptContext, RelaxationEvent
 from astraeus_portfolio.optimizers.base import Optimizer, OptimizerConfig
-
+from hypothesis import assume, given, settings
 
 # ---------------------------------------------------------------------------
 # Test Helpers: Concrete constraint and optimizer for testing
@@ -45,9 +43,7 @@ class _InfeasibleConstraint(Constraint):
     def __init__(self, name: str, priority: int, relaxable: bool) -> None:
         super().__init__(name=name, priority=priority, relaxable=relaxable)
 
-    def to_cvxpy(
-        self, w: cp.Variable, ctx: Any
-    ) -> list[cp.constraints.constraint.Constraint]:
+    def to_cvxpy(self, w: cp.Variable, ctx: Any) -> list[cp.constraints.constraint.Constraint]:
         """Return a constraint that is impossible to satisfy with sum(w)=1.
 
         Forces sum(w) >= 2, which contradicts the fully-invested sum(w)=1.
@@ -67,9 +63,7 @@ class _FeasibleConstraint(Constraint):
     def __init__(self, name: str, priority: int, relaxable: bool) -> None:
         super().__init__(name=name, priority=priority, relaxable=relaxable)
 
-    def to_cvxpy(
-        self, w: cp.Variable, ctx: Any
-    ) -> list[cp.constraints.constraint.Constraint]:
+    def to_cvxpy(self, w: cp.Variable, ctx: Any) -> list[cp.constraints.constraint.Constraint]:
         """Return a trivially satisfiable constraint (w >= -100)."""
         return [w >= -100.0]
 
@@ -103,9 +97,7 @@ def st_constraint_priorities(draw: st.DrawFn) -> list[tuple[str, int, bool]]:
     """
     # Always include at least one priority-0 non-relaxable constraint
     n_non_relaxable = draw(st.integers(min_value=1, max_value=3))
-    non_relaxable = [
-        (f"fixed_{i}", 0, False) for i in range(n_non_relaxable)
-    ]
+    non_relaxable = [(f"fixed_{i}", 0, False) for i in range(n_non_relaxable)]
 
     # Generate relaxable constraints with priorities 1-5
     n_relaxable = draw(st.integers(min_value=2, max_value=6))
@@ -144,9 +136,13 @@ def st_infeasible_opt_context(draw: st.DrawFn) -> tuple[OptContext, list[Constra
     constraints: list[Constraint] = []
     for name, priority, relaxable in constraint_specs:
         if priority == 0:
-            constraints.append(_FeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+            constraints.append(
+                _FeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+            )
         else:
-            constraints.append(_InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+            constraints.append(
+                _InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+            )
 
     ctx = OptContext(
         strategy_id="test_strategy",
@@ -204,9 +200,13 @@ class TestConstraintRelaxationOrdering:
         constraints = []
         for name, priority, relaxable in constraint_specs:
             if priority == 0:
-                constraints.append(_FeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+                constraints.append(
+                    _FeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+                )
             else:
-                constraints.append(_InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+                constraints.append(
+                    _InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+                )
 
         events: list[RelaxationEvent] = []
         for _remaining, event in relax_constraints(constraints):
@@ -231,9 +231,13 @@ class TestConstraintRelaxationOrdering:
         constraints = []
         for name, priority, relaxable in constraint_specs:
             if priority == 0:
-                constraints.append(_FeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+                constraints.append(
+                    _FeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+                )
             else:
-                constraints.append(_InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+                constraints.append(
+                    _InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+                )
 
         for _remaining, event in relax_constraints(constraints):
             assert event.priority > 0, (
@@ -250,9 +254,13 @@ class TestConstraintRelaxationOrdering:
         constraints = []
         for name, priority, relaxable in constraint_specs:
             if priority == 0:
-                constraints.append(_FeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+                constraints.append(
+                    _FeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+                )
             else:
-                constraints.append(_InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+                constraints.append(
+                    _InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+                )
 
         events: list[RelaxationEvent] = []
         for _remaining, event in relax_constraints(constraints):
@@ -276,9 +284,13 @@ class TestConstraintRelaxationOrdering:
         relaxable_names = set()
         for name, priority, relaxable in constraint_specs:
             if priority == 0:
-                constraints.append(_FeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+                constraints.append(
+                    _FeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+                )
             else:
-                constraints.append(_InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+                constraints.append(
+                    _InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+                )
                 relaxable_names.add(name)
 
         events: list[RelaxationEvent] = []
@@ -301,9 +313,13 @@ class TestConstraintRelaxationOrdering:
         constraints = []
         for name, priority, relaxable in constraint_specs:
             if priority == 0:
-                constraints.append(_FeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+                constraints.append(
+                    _FeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+                )
             else:
-                constraints.append(_InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable))
+                constraints.append(
+                    _InfeasibleConstraint(name=name, priority=priority, relaxable=relaxable)
+                )
 
         total_count = len(constraints)
         prev_count = total_count
@@ -342,7 +358,9 @@ class TestConstraintRelaxationOrdering:
         if result.relaxation_events:
             # Verify descending priority order
             for i in range(len(result.relaxation_events) - 1):
-                assert result.relaxation_events[i].priority >= result.relaxation_events[i + 1].priority, (
+                assert (
+                    result.relaxation_events[i].priority >= result.relaxation_events[i + 1].priority
+                ), (
                     f"Optimizer relaxation event at iteration "
                     f"{result.relaxation_events[i].iteration} has priority "
                     f"{result.relaxation_events[i].priority} but next event has "

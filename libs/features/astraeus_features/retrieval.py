@@ -35,7 +35,6 @@ import structlog
 from sqlalchemy import text
 
 if TYPE_CHECKING:
-    import polars as pl
     from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger("astraeus.features.retrieval")
@@ -149,7 +148,7 @@ async def get_panel(
     Returns:
         polars DataFrame with columns: symbol, as_of_ts, feature_1, feature_2, ...
     """
-    import polars as pl  # noqa: PLC0415
+    import polars as pl
 
     # Convert to polars if pandas
     if hasattr(entity_df, "to_pandas"):
@@ -169,9 +168,7 @@ async def get_panel(
     results: list[dict[str, Any]] = []
 
     for as_of_ts in df["as_of_ts"].unique().sort().to_list():
-        symbols_at_ts = (
-            df.filter(pl.col("as_of_ts") == as_of_ts)["symbol"].to_list()
-        )
+        symbols_at_ts = df.filter(pl.col("as_of_ts") == as_of_ts)["symbol"].to_list()
 
         # Ensure as_of_ts is tz-aware
         if hasattr(as_of_ts, "tzinfo") and as_of_ts.tzinfo is None:

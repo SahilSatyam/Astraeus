@@ -19,9 +19,9 @@ from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 from astraeus_strategy.types import DataDependency, Fill, Order, PortfolioState
 
 if TYPE_CHECKING:
-    import numpy as np
-    import polars as pl
     from datetime import datetime
+
+    import polars as pl
 
 
 class StrategyContext:

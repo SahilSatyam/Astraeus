@@ -71,9 +71,7 @@ class FactorDataUnavailableError(Exception):
 # ---------------------------------------------------------------------------
 
 
-def _newey_west_se(
-    X: np.ndarray, residuals: np.ndarray, lag: int = NEWEY_WEST_LAG
-) -> np.ndarray:
+def _newey_west_se(X: np.ndarray, residuals: np.ndarray, lag: int = NEWEY_WEST_LAG) -> np.ndarray:
     """Compute Newey-West HAC standard errors for OLS coefficients.
 
     Args:
@@ -237,15 +235,11 @@ class FactorAttributionEngine:
         hist_factor_returns = factor_returns[:-1, :]  # (T-1, 6)
 
         # Compute per-asset betas via rolling OLS
-        asset_betas = self._estimate_asset_betas(
-            realized_returns, hist_factor_returns, n_assets
-        )
+        asset_betas = self._estimate_asset_betas(realized_returns, hist_factor_returns, n_assets)
 
         # Compute portfolio factor exposure: B_p = sum(w_i * beta_i) for each factor
         # asset_betas is (n, 6) where excluded assets have zeros
-        portfolio_factor_exposure = self._compute_portfolio_exposure(
-            weights, asset_betas
-        )
+        portfolio_factor_exposure = self._compute_portfolio_exposure(weights, asset_betas)
 
         # Compute total realized portfolio PnL in bps
         total_pnl_bps = Decimal(str(round(float(np.dot(weights, realized_returns)) * 10000, 4)))
@@ -357,18 +351,14 @@ class FactorAttributionEngine:
         if weights.ndim != 1:
             raise ValueError(f"weights must be 1-D, got shape {weights.shape}")
         if realized_returns.ndim != 1:
-            raise ValueError(
-                f"realized_returns must be 1-D, got shape {realized_returns.shape}"
-            )
+            raise ValueError(f"realized_returns must be 1-D, got shape {realized_returns.shape}")
         if weights.shape[0] != realized_returns.shape[0]:
             raise ValueError(
                 f"weights ({weights.shape[0]}) and realized_returns "
                 f"({realized_returns.shape[0]}) must have same length"
             )
         if factor_returns.ndim != 2:
-            raise ValueError(
-                f"factor_returns must be 2-D, got shape {factor_returns.shape}"
-            )
+            raise ValueError(f"factor_returns must be 2-D, got shape {factor_returns.shape}")
         if factor_returns.shape[1] != len(FACTOR_NAMES):
             raise ValueError(
                 f"factor_returns must have {len(FACTOR_NAMES)} columns "
@@ -416,7 +406,7 @@ class FactorAttributionEngine:
         T_use = min(T_available, self._regression_window)
 
         # Use the most recent T_use days of factor returns
-        factor_window = hist_factor_returns[-T_use:, :]  # (T_use, 6)
+        hist_factor_returns[-T_use:, :]  # (T_use, 6)
 
         asset_betas = np.zeros((n_assets, len(FACTOR_NAMES)))
 
@@ -565,9 +555,7 @@ class FactorAttributionEngine:
                 f"must match n_assets ({n_assets})"
             )
         if realized_factor_returns.shape[0] != len(FACTOR_NAMES):
-            raise ValueError(
-                f"realized_factor_returns must have {len(FACTOR_NAMES)} elements"
-            )
+            raise ValueError(f"realized_factor_returns must have {len(FACTOR_NAMES)} elements")
 
         # Step 1: Estimate per-asset betas from historical data
         asset_betas, regression_results = self.estimate_betas_from_asset_returns(
@@ -578,18 +566,14 @@ class FactorAttributionEngine:
         portfolio_factor_exposure = self._compute_portfolio_exposure(weights, asset_betas)
 
         # Step 3: Compute total realized portfolio PnL in bps
-        total_pnl_bps = Decimal(
-            str(round(float(np.dot(weights, realized_returns)) * 10000, 4))
-        )
+        total_pnl_bps = Decimal(str(round(float(np.dot(weights, realized_returns)) * 10000, 4)))
 
         # Step 4: Compute factor PnL = B_p * f_realized (in return space, then to bps)
         factor_pnl_returns = portfolio_factor_exposure * realized_factor_returns  # (6,)
 
         factor_pnl_bps: dict[str, Decimal] = {}
         for i, name in enumerate(FACTOR_NAMES):
-            factor_pnl_bps[name] = Decimal(
-                str(round(float(factor_pnl_returns[i]) * 10000, 4))
-            )
+            factor_pnl_bps[name] = Decimal(str(round(float(factor_pnl_returns[i]) * 10000, 4)))
 
         # Step 5: Idiosyncratic PnL = realized_PnL - sum(factor_PnL)
         total_factor_pnl_bps = sum(factor_pnl_bps.values())

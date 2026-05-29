@@ -14,7 +14,6 @@ References:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 import structlog
@@ -95,7 +94,7 @@ def compute_attribution(
         return AttributionResult(n_observations=n)
 
     # Add intercept (alpha)
-    X = np.column_stack([np.ones(n)] + X_cols)
+    X = np.column_stack([np.ones(n), *X_cols])
 
     # OLS: β = (X'X)^{-1} X'y
     try:
@@ -110,7 +109,7 @@ def compute_attribution(
     y_hat = X @ beta_hat
     residuals = y - y_hat
     ss_res = float(np.sum(residuals**2))
-    ss_tot = float(np.sum((y - np.mean(y))**2))
+    ss_tot = float(np.sum((y - np.mean(y)) ** 2))
     r_squared = 1 - ss_res / max(ss_tot, 1e-10)
 
     k = len(valid_factors)  # number of regressors (excluding intercept)
@@ -137,12 +136,14 @@ def compute_attribution(
         # Using normal approximation for large n
         p_value = 2 * (1 - _norm_cdf(abs(t_i)))
 
-        exposures.append(FactorExposure(
-            factor_name=fname,
-            beta=beta_i,
-            t_stat=t_i,
-            p_value=p_value,
-        ))
+        exposures.append(
+            FactorExposure(
+                factor_name=fname,
+                beta=beta_i,
+                t_stat=t_i,
+                p_value=p_value,
+            )
+        )
 
     residual_vol = float(np.std(residuals)) * np.sqrt(trading_days)
 
@@ -168,4 +169,5 @@ def compute_attribution(
 def _norm_cdf(x: float) -> float:
     """Standard normal CDF approximation (Abramowitz & Stegun)."""
     import math
+
     return 0.5 * (1 + math.erf(x / math.sqrt(2)))

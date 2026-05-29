@@ -55,17 +55,18 @@ class MeanReversion5d(Strategy):
         top_pct = params.get("top_pct", 0.2)
         bottom_pct = params.get("bottom_pct", 0.2)
         gross_target = params.get("gross_target", 2.0)
-        vol_cap = params.get("vol_cap", 0.05)  # max daily vol for inclusion
+        params.get("vol_cap", 0.05)  # max daily vol for inclusion
 
         # Get latest 5-day returns for universe
         panel = (
-            feature_panel
-            .filter(pl.col("symbol").is_in(universe))
+            feature_panel.filter(pl.col("symbol").is_in(universe))
             .group_by("symbol")
-            .agg([
-                pl.col("close").last().alias("last_close"),
-                pl.col("close").shift(5).last().alias("close_5d_ago"),
-            ])
+            .agg(
+                [
+                    pl.col("close").last().alias("last_close"),
+                    pl.col("close").shift(5).last().alias("close_5d_ago"),
+                ]
+            )
             .collect()
         )
 
@@ -74,8 +75,9 @@ class MeanReversion5d(Strategy):
 
         # Compute 5-day return
         panel = panel.with_columns(
-            ((pl.col("last_close") - pl.col("close_5d_ago")) / pl.col("close_5d_ago"))
-            .alias("ret_5d")
+            ((pl.col("last_close") - pl.col("close_5d_ago")) / pl.col("close_5d_ago")).alias(
+                "ret_5d"
+            )
         ).filter(pl.col("ret_5d").is_not_null())
 
         if len(panel) < 20:

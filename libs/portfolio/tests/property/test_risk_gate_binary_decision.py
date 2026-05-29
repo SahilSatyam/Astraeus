@@ -11,16 +11,13 @@ Any single check failure results in "rejected" status.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import uuid4
 
 import hypothesis.strategies as st
-from hypothesis import given, settings
-
 from astraeus_portfolio.contracts import (
     ClusterReport,
-    ConstraintDiag,
     CovarianceMethod,
     OptimizerType,
     PortfolioStatus,
@@ -34,16 +31,15 @@ from astraeus_portfolio.risk.validation import (
     RiskGate,
     RiskPolicy,
     RiskPolicyThresholds,
-    ValidationResult,
     ValidationStatus,
 )
-
+from hypothesis import given, settings
 
 # ---------------------------------------------------------------------------
 # Hypothesis Strategies
 # ---------------------------------------------------------------------------
 
-NOW = datetime(2024, 6, 15, 16, 30, 0, tzinfo=timezone.utc)
+NOW = datetime(2024, 6, 15, 16, 30, 0, tzinfo=UTC)
 
 
 @st.composite
@@ -148,9 +144,7 @@ def _build_risk_report(metrics: dict) -> RiskReport:
     ]
 
     cluster_report = ClusterReport(
-        max_cluster_weight=Decimal(
-            str(round(metrics["max_cluster_weight"], 4))
-        ),
+        max_cluster_weight=Decimal(str(round(metrics["max_cluster_weight"], 4))),
         herfindahl_index=Decimal("0.05"),
         effective_n_bets=Decimal("5.0"),
         cluster_assignments={"AAPL": 1, "MSFT": 2},
@@ -243,8 +237,7 @@ class TestRiskGateBinaryDecision:
         if result.status == ValidationStatus.PASSED:
             # Passed means zero failed checks
             assert len(result.failed_checks) == 0, (
-                f"Status is 'passed' but failed_checks is non-empty: "
-                f"{result.failed_checks}"
+                f"Status is 'passed' but failed_checks is non-empty: {result.failed_checks}"
             )
 
     @given(
@@ -345,9 +338,7 @@ class TestRiskGateBinaryDecision:
             "stress_flash_crash": thresholds.stress_flash_crash_min + 5.0,
             "max_cluster_weight": thresholds.max_cluster_weight * 0.5,
             "beta": thresholds.beta_target,
-            "liquidity_5day_pct": min(
-                thresholds.liquidity_5day_min + 0.05, 1.0
-            ),
+            "liquidity_5day_pct": min(thresholds.liquidity_5day_min + 0.05, 1.0),
             "max_single_weight": safe_weight,
         }
 
@@ -392,8 +383,7 @@ class TestRiskGateBinaryDecision:
         result = gate.validate(portfolio, report_fail, policy)
 
         assert result.status == ValidationStatus.REJECTED, (
-            f"Single check failure should cause rejection but got "
-            f"status={result.status}"
+            f"Single check failure should cause rejection but got status={result.status}"
         )
         assert len(result.failed_checks) >= 1
         check_names = [fc.check_name for fc in result.failed_checks]

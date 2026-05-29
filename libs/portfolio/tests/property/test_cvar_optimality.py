@@ -18,11 +18,9 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
+import hypothesis.strategies as st
 import numpy as np
 import pytest
-import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
 from astraeus_portfolio.constraints.base import Constraint
 from astraeus_portfolio.constraints.box import BoxConstraint
 from astraeus_portfolio.contracts import OptContext
@@ -32,7 +30,7 @@ from astraeus_portfolio.optimizers.cvar import (
     CVaRValidationError,
     ScenarioMode,
 )
-
+from hypothesis import assume, given, settings
 
 # ---------------------------------------------------------------------------
 # Hypothesis Strategies
@@ -187,9 +185,7 @@ def st_insufficient_scenario_context(
 # ---------------------------------------------------------------------------
 
 
-def compute_portfolio_cvar(
-    weights: np.ndarray, scenarios: np.ndarray, beta: float
-) -> float:
+def compute_portfolio_cvar(weights: np.ndarray, scenarios: np.ndarray, beta: float) -> float:
     """Compute the CVaR of a portfolio at confidence level beta.
 
     CVaR = mean of returns at or below the VaR threshold.
@@ -254,9 +250,7 @@ class TestCVaROptimality:
         # Create optimizer and bypass scenario generation by directly
         # setting the scenario matrix. This tests the core LP formulation
         # without requiring 1000 historical rows.
-        optimizer = CVaROptimizer(
-            beta=beta, scenario_mode=ScenarioMode.HISTORICAL
-        )
+        optimizer = CVaROptimizer(beta=beta, scenario_mode=ScenarioMode.HISTORICAL)
         optimizer._scenario_matrix = scenarios
 
         # Call the base Optimizer.run() which invokes build_objective
@@ -299,9 +293,7 @@ class TestCVaRScenarioCountValidation:
 
     @given(data=st_insufficient_scenario_context())
     @settings(max_examples=50, deadline=None)
-    def test_rejects_insufficient_scenarios(
-        self, data: tuple[OptContext, int, int]
-    ) -> None:
+    def test_rejects_insufficient_scenarios(self, data: tuple[OptContext, int, int]) -> None:
         """CVaR optimizer raises CVaRValidationError when S < 2*n.
 
         The optimizer validates that the scenario count is sufficient
@@ -313,13 +305,9 @@ class TestCVaRScenarioCountValidation:
         ctx, n, s = data
 
         # Confirm our invariant: S < 2*n
-        assert s < 2 * n, (
-            f"Expected S < 2*n but got S={s}, n={n}, 2*n={2 * n}"
-        )
+        assert s < 2 * n, f"Expected S < 2*n but got S={s}, n={n}, 2*n={2 * n}"
 
-        optimizer = CVaROptimizer(
-            beta=0.95, scenario_mode=ScenarioMode.HISTORICAL
-        )
+        optimizer = CVaROptimizer(beta=0.95, scenario_mode=ScenarioMode.HISTORICAL)
 
         # Calling run() triggers scenario generation first. In historical
         # mode with < 1000 scenarios, it raises 'insufficient_historical_data'.

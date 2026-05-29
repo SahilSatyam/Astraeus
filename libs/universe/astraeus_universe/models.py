@@ -14,7 +14,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from astraeus_db.base import Base
-from sqlalchemy import DateTime, Index, String, Text, func, text
+from sqlalchemy import DateTime, Index, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -73,9 +73,7 @@ class SecurityAlias(Base):
     """
 
     __tablename__ = "security_alias"
-    __table_args__ = (
-        Index("ix_alias_canonical", "canonical_symbol", "alias_type"),
-    )
+    __table_args__ = (Index("ix_alias_canonical", "canonical_symbol", "alias_type"),)
 
     alias_type: Mapped[str] = mapped_column(String(16), primary_key=True)
     alias_value: Mapped[str] = mapped_column(String(32), primary_key=True)

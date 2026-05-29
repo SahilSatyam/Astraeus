@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from astraeus_config import Settings  # noqa: TC002 (FastAPI needs at runtime)
+from astraeus_config import Settings
 from astraeus_contracts import (
     HealthResponse,
     ReadinessCheck,
@@ -14,7 +14,7 @@ from astraeus_contracts import (
 from astraeus_domain import AstraeusError
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002 (FastAPI needs at runtime)
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from astraeus_api.deps import get_db_session, get_settings
 

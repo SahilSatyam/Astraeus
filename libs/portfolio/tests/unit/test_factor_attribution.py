@@ -3,22 +3,18 @@
 from __future__ import annotations
 
 from datetime import datetime
-from decimal import Decimal
 from unittest.mock import patch
 from uuid import uuid4
 
 import numpy as np
 import pytest
-
 from astraeus_portfolio.attribution.factor_model import (
     FACTOR_NAMES,
     FactorAttributionEngine,
     FactorDataUnavailableError,
-    RegressionResult,
     _newey_west_se,
     _run_ols_regression,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -104,29 +100,21 @@ class TestInputValidation:
         realized = np.ones(3)
         factor_returns = np.ones(6)
         with pytest.raises(ValueError, match="factor_returns must be 2-D"):
-            engine.run_factor_attribution(
-                portfolio_id, as_of_ts, weights, realized, factor_returns
-            )
+            engine.run_factor_attribution(portfolio_id, as_of_ts, weights, realized, factor_returns)
 
     def test_factor_returns_must_have_6_columns(self, engine, portfolio_id, as_of_ts):
         weights = np.ones(3)
         realized = np.ones(3)
         factor_returns = np.ones((100, 4))
         with pytest.raises(ValueError, match="must have 6 columns"):
-            engine.run_factor_attribution(
-                portfolio_id, as_of_ts, weights, realized, factor_returns
-            )
+            engine.run_factor_attribution(portfolio_id, as_of_ts, weights, realized, factor_returns)
 
-    def test_factor_returns_must_have_at_least_2_rows(
-        self, engine, portfolio_id, as_of_ts
-    ):
+    def test_factor_returns_must_have_at_least_2_rows(self, engine, portfolio_id, as_of_ts):
         weights = np.ones(3)
         realized = np.ones(3)
         factor_returns = np.ones((1, 6))
         with pytest.raises(ValueError, match="at least 2 rows"):
-            engine.run_factor_attribution(
-                portfolio_id, as_of_ts, weights, realized, factor_returns
-            )
+            engine.run_factor_attribution(portfolio_id, as_of_ts, weights, realized, factor_returns)
 
     def test_nan_in_factor_returns_rejected(self, engine, portfolio_id, as_of_ts):
         weights = np.ones(3)
@@ -134,18 +122,14 @@ class TestInputValidation:
         factor_returns = np.ones((100, 6))
         factor_returns[50, 2] = np.nan
         with pytest.raises(ValueError, match="NaN or Inf"):
-            engine.run_factor_attribution(
-                portfolio_id, as_of_ts, weights, realized, factor_returns
-            )
+            engine.run_factor_attribution(portfolio_id, as_of_ts, weights, realized, factor_returns)
 
     def test_inf_in_weights_rejected(self, engine, portfolio_id, as_of_ts):
         weights = np.array([0.5, np.inf, 0.5])
         realized = np.ones(3)
         factor_returns = np.ones((100, 6))
         with pytest.raises(ValueError, match="weights contains NaN or Inf"):
-            engine.run_factor_attribution(
-                portfolio_id, as_of_ts, weights, realized, factor_returns
-            )
+            engine.run_factor_attribution(portfolio_id, as_of_ts, weights, realized, factor_returns)
 
 
 # ---------------------------------------------------------------------------
@@ -408,7 +392,7 @@ class TestFullAttribution:
         )
 
         # All factor PnL should be zero
-        for factor_name, pnl in result.factor_pnl.items():
+        for _factor_name, pnl in result.factor_pnl.items():
             assert float(pnl) == 0.0
 
         # All PnL goes to idiosyncratic
@@ -494,19 +478,19 @@ class TestBetaEstimation:
         n_assets = 3
 
         factor_returns = rng.standard_normal((T, 6)) * 0.01
-        true_betas = np.array([
-            [1.0, 0.5, -0.3, 0.2, 0.1, -0.4],
-            [0.8, -0.2, 0.6, -0.1, 0.3, 0.2],
-            [1.2, 0.3, 0.1, 0.5, -0.2, 0.7],
-        ])
+        true_betas = np.array(
+            [
+                [1.0, 0.5, -0.3, 0.2, 0.1, -0.4],
+                [0.8, -0.2, 0.6, -0.1, 0.3, 0.2],
+                [1.2, 0.3, 0.1, 0.5, -0.2, 0.7],
+            ]
+        )
 
         # Generate asset returns from factor model (no noise for exact recovery)
         asset_returns = factor_returns @ true_betas.T
 
         engine = FactorAttributionEngine()
-        betas, results = engine.estimate_betas_from_asset_returns(
-            asset_returns, factor_returns
-        )
+        betas, results = engine.estimate_betas_from_asset_returns(asset_returns, factor_returns)
 
         np.testing.assert_allclose(betas, true_betas, atol=1e-8)
         assert all(r is not None for r in results)
@@ -524,9 +508,7 @@ class TestBetaEstimation:
         asset_returns[:202, 1] = np.nan
 
         engine = FactorAttributionEngine()
-        betas, results = engine.estimate_betas_from_asset_returns(
-            asset_returns, factor_returns
-        )
+        betas, results = engine.estimate_betas_from_asset_returns(asset_returns, factor_returns)
 
         # Asset 1 should be excluded (all zeros)
         np.testing.assert_array_equal(betas[1, :], np.zeros(6))

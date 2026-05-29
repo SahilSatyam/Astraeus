@@ -14,10 +14,10 @@ from .gfc_2008 import GFC2008Scenario
 from .rate_shock import RateShockScenario
 
 __all__ = [
+    "COVID2020Scenario",
+    "FlashCrashScenario",
+    "GFC2008Scenario",
+    "RateShockScenario",
     "StressContext",
     "StressScenario",
-    "GFC2008Scenario",
-    "COVID2020Scenario",
-    "RateShockScenario",
-    "FlashCrashScenario",
 ]

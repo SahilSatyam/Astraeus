@@ -17,17 +17,13 @@ from __future__ import annotations
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
 
 import cvxpy as cp
 import numpy as np
 import structlog
 
-from astraeus_portfolio.constraints.base import Constraint, relax_constraints
+from astraeus_portfolio.constraints.base import relax_constraints
 from astraeus_portfolio.contracts import OptContext, OptResult, RelaxationEvent
-
-if TYPE_CHECKING:
-    pass
 
 logger = structlog.get_logger(__name__)
 
@@ -176,8 +172,7 @@ class Optimizer(ABC):
         """
         if ctx.fully_invested:
             return [cp.sum(w) == 1]
-        else:
-            return [cp.sum(w) == 0]
+        return [cp.sum(w) == 0]
 
     def _build_constraint_expressions(
         self,
@@ -253,12 +248,11 @@ class Optimizer(ABC):
                         objective_value=prob.value,
                         relaxation_events=[],
                     )
-                else:
-                    logger.debug(
-                        "solver_non_optimal",
-                        solver=solver_name,
-                        status=prob.status,
-                    )
+                logger.debug(
+                    "solver_non_optimal",
+                    solver=solver_name,
+                    status=prob.status,
+                )
             except cp.SolverError as e:
                 logger.debug(
                     "solver_error",
@@ -313,9 +307,7 @@ class Optimizer(ABC):
             w_new = cp.Variable(ctx.n_assets)
             objective = cp.Minimize(self.build_objective(w_new, ctx))
             investment_constraints = self._build_investment_constraint(w_new, ctx)
-            constraint_exprs = self._build_constraint_expressions(
-                w_new, ctx, remaining_constraints
-            )
+            constraint_exprs = self._build_constraint_expressions(w_new, ctx, remaining_constraints)
             constraint_exprs.extend(investment_constraints)
             prob = cp.Problem(objective, constraint_exprs)
 

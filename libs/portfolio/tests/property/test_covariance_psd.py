@@ -12,15 +12,13 @@ a matrix where:
 
 from __future__ import annotations
 
-import numpy as np
 import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
+import numpy as np
 from astraeus_portfolio.contracts import CovarianceConfig
-from astraeus_portfolio.covariance.sample import SampleCovarianceEstimator
-from astraeus_portfolio.covariance.ledoit_wolf import LedoitWolfEstimator
 from astraeus_portfolio.covariance.factor_model import FactorModelEstimator
-
+from astraeus_portfolio.covariance.ledoit_wolf import LedoitWolfEstimator
+from astraeus_portfolio.covariance.sample import SampleCovarianceEstimator
+from hypothesis import given, settings
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -63,7 +61,9 @@ def st_valid_returns(draw: st.DrawFn) -> np.ndarray:
 
 
 @st.composite
-def st_factor_model_inputs(draw: st.DrawFn) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def st_factor_model_inputs(
+    draw: st.DrawFn,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Generate valid (returns, B, F, D) for the factor model estimator.
 
     Returns:
@@ -165,7 +165,9 @@ class TestCovariancePSDInvariant:
         result = estimator.estimate(returns, DEFAULT_CONFIG)
 
         np.testing.assert_allclose(
-            result.matrix, result.matrix.T, atol=1e-12,
+            result.matrix,
+            result.matrix.T,
+            atol=1e-12,
             err_msg="Sample covariance matrix is not symmetric",
         )
 
@@ -203,7 +205,9 @@ class TestCovariancePSDInvariant:
         result = estimator.estimate(returns, DEFAULT_CONFIG)
 
         np.testing.assert_allclose(
-            result.matrix, result.matrix.T, atol=1e-12,
+            result.matrix,
+            result.matrix.T,
+            atol=1e-12,
             err_msg="Ledoit-Wolf covariance matrix is not symmetric",
         )
 
@@ -255,7 +259,9 @@ class TestCovariancePSDInvariant:
         result = estimator.estimate(returns, DEFAULT_CONFIG)
 
         np.testing.assert_allclose(
-            result.matrix, result.matrix.T, atol=1e-12,
+            result.matrix,
+            result.matrix.T,
+            atol=1e-12,
             err_msg="Factor-model covariance matrix is not symmetric",
         )
 

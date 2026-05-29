@@ -22,7 +22,6 @@ import structlog
 
 from astraeus_portfolio.contracts import (
     FallbackAction,
-    OptContext,
     OptResult,
     PortfolioStatus,
     PortfolioWeight,
@@ -105,7 +104,7 @@ class FallbackExecutor:
                 risk_report_id=risk_report_id,
                 rejection_id=rejection_id,
             )
-        elif action == FallbackAction.HOLD_PRIOR:
+        if action == FallbackAction.HOLD_PRIOR:
             return self._apply_hold_prior(
                 strategy_id=strategy_id,
                 as_of_ts=as_of_ts,
@@ -114,7 +113,7 @@ class FallbackExecutor:
                 risk_report_id=risk_report_id,
                 rejection_id=rejection_id,
             )
-        elif action == FallbackAction.RETRY_RELAXED:
+        if action == FallbackAction.RETRY_RELAXED:
             return self._apply_retry_relaxed(
                 config=config,
                 strategy_id=strategy_id,
@@ -124,18 +123,17 @@ class FallbackExecutor:
                 risk_report_id=risk_report_id,
                 rejection_id=rejection_id,
             )
-        elif action == FallbackAction.ESCALATE_HITL:
+        if action == FallbackAction.ESCALATE_HITL:
             return self._apply_escalate(
                 strategy_id=strategy_id,
                 rejection_id=rejection_id,
             )
-        else:
-            logger.error("unknown_fallback_action", action=action)
-            return FallbackOutcome(
-                action_taken=action,
-                portfolio=None,
-                details={"error": f"Unknown fallback action: {action}"},
-            )
+        logger.error("unknown_fallback_action", action=action)
+        return FallbackOutcome(
+            action_taken=action,
+            portfolio=None,
+            details={"error": f"Unknown fallback action: {action}"},
+        )
 
     def _apply_cash(
         self,
@@ -272,25 +270,22 @@ class FallbackExecutor:
                     details={
                         "reason": "Retry with relaxed constraints succeeded.",
                         "opt_result_status": result.status,
-                        "relaxation_events": [
-                            e.model_dump() for e in result.relaxation_events
-                        ],
+                        "relaxation_events": [e.model_dump() for e in result.relaxation_events],
                     },
                 )
-            else:
-                logger.warning(
-                    "fallback_retry_still_infeasible",
-                    strategy_id=strategy_id,
-                    status=result.status,
-                )
-                return FallbackOutcome(
-                    action_taken=FallbackAction.RETRY_RELAXED,
-                    portfolio=None,
-                    details={
-                        "error": "Retry with relaxed constraints still infeasible.",
-                        "opt_result_status": result.status,
-                    },
-                )
+            logger.warning(
+                "fallback_retry_still_infeasible",
+                strategy_id=strategy_id,
+                status=result.status,
+            )
+            return FallbackOutcome(
+                action_taken=FallbackAction.RETRY_RELAXED,
+                portfolio=None,
+                details={
+                    "error": "Retry with relaxed constraints still infeasible.",
+                    "opt_result_status": result.status,
+                },
+            )
         except Exception as exc:
             logger.error(
                 "fallback_retry_exception",

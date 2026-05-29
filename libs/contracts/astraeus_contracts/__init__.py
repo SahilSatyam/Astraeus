@@ -1,5 +1,10 @@
 """Astraeus shared DTOs."""
 
+from astraeus_contracts.altdata import (
+    DocumentIngestedEvent,
+    DocumentProcessedEvent,
+    SentimentFeatureEvent,
+)
 from astraeus_contracts.health import (
     HealthResponse,
     HealthStatus,
@@ -50,12 +55,19 @@ from astraeus_contracts.topics import (
 )
 
 __all__ = [
+    "SCHEMA_REGISTRY",
+    "AssetClass",
     "AttributionResult",
+    "BarEvent",
     "ClusterReport",
     "ConstraintDiag",
+    "CorporateActionEvent",
+    "CorporateActionType",
     "CovarianceMethod",
     "DLQEvent",
     "DataSource",
+    "DocumentIngestedEvent",
+    "DocumentProcessedEvent",
     "FailedCheck",
     "FallbackAction",
     "FundamentalEvent",
@@ -71,15 +83,11 @@ __all__ = [
     "Resolution",
     "RiskRejection",
     "RiskReport",
-    "SCHEMA_REGISTRY",
     "ScenarioName",
     "ScenarioResult",
+    "SentimentFeatureEvent",
     "SignalEvent",
     "TargetPortfolio",
-    "AssetClass",
-    "BarEvent",
-    "CorporateActionEvent",
-    "CorporateActionType",
     "TickEvent",
     "VersionResponse",
     "bar_topic",

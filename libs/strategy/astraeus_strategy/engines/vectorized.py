@@ -81,8 +81,16 @@ class VectorizedEngine:
         # Get unique rebalance dates
         dates = (
             prices.filter(
-                (pl.col("ts") >= datetime(config.start.year, config.start.month, config.start.day, tzinfo=UTC))
-                & (pl.col("ts") <= datetime(config.end.year, config.end.month, config.end.day, 23, 59, 59, tzinfo=UTC))
+                (
+                    pl.col("ts")
+                    >= datetime(config.start.year, config.start.month, config.start.day, tzinfo=UTC)
+                )
+                & (
+                    pl.col("ts")
+                    <= datetime(
+                        config.end.year, config.end.month, config.end.day, 23, 59, 59, tzinfo=UTC
+                    )
+                )
             )
             .select("ts")
             .unique()
@@ -120,12 +128,7 @@ class VectorizedEngine:
                     .to_list()
                 )
             else:
-                universe = (
-                    prices.filter(pl.col("ts") == ts)
-                    .select("symbol")
-                    .to_series()
-                    .to_list()
-                )
+                universe = prices.filter(pl.col("ts") == ts).select("symbol").to_series().to_list()
 
             # Build PIT feature panel (only data <= ts)
             if feature_panel is not None:
@@ -155,7 +158,7 @@ class VectorizedEngine:
             )
 
             daily_returns.append(day_return)
-            portfolio.equity *= (1 + day_return)
+            portfolio.equity *= 1 + day_return
             equity_curve.append(portfolio.equity)
             prev_weights = targets
 

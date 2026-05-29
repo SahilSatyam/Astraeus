@@ -147,9 +147,7 @@ def _generate_bootstrap_scenarios(
 
     # For each scenario, pick a random block start and average the block
     max_start = t_available - block_size
-    if max_start < 0:
-        # If we don't have enough data for even one block, use what we have
-        max_start = 0
+    max_start = max(max_start, 0)
 
     block_starts = rng.integers(0, max_start + 1, size=n_scenarios)
 
@@ -330,7 +328,7 @@ class CVaROptimizer(Optimizer):
         constraints = super()._build_investment_constraint(w, ctx)
 
         scenario_matrix = self._scenario_matrix
-        s_count = scenario_matrix.shape[0]
+        scenario_matrix.shape[0]
 
         # Auxiliary constraints: u_s >= -r_s' · w - α
         # Vectorized: u >= -R @ w - α (element-wise)
@@ -357,11 +355,10 @@ class CVaROptimizer(Optimizer):
 
         if self.scenario_mode == ScenarioMode.HISTORICAL:
             return _generate_historical_scenarios(raw_scenarios)
-        else:
-            # Bootstrap mode
-            return _generate_bootstrap_scenarios(
-                raw_scenarios,
-                n_scenarios=BOOTSTRAP_SCENARIO_COUNT,
-                block_size=BOOTSTRAP_BLOCK_SIZE,
-                seed=ctx.seed,
-            )
+        # Bootstrap mode
+        return _generate_bootstrap_scenarios(
+            raw_scenarios,
+            n_scenarios=BOOTSTRAP_SCENARIO_COUNT,
+            block_size=BOOTSTRAP_BLOCK_SIZE,
+            seed=ctx.seed,
+        )

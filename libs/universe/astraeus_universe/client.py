@@ -19,11 +19,11 @@ Usage:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import and_, or_, select
+from sqlalchemy import or_, select
 
 from astraeus_universe.models import SecurityAlias, SecurityMaster, UniverseMembership
 
@@ -152,9 +152,7 @@ async def get_security(
     symbol: str,
 ) -> SecurityMaster | None:
     """Look up a security by canonical symbol."""
-    result = await session.execute(
-        select(SecurityMaster).where(SecurityMaster.symbol == symbol)
-    )
+    result = await session.execute(select(SecurityMaster).where(SecurityMaster.symbol == symbol))
     return result.scalar_one_or_none()
 
 

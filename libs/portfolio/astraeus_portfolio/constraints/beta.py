@@ -32,9 +32,7 @@ class BetaNeutralityConstraint(Constraint):
         tolerance: Maximum deviation from target (default 0.05).
     """
 
-    def __init__(
-        self, beta_target: float = 0.0, tolerance: float = 0.05
-    ) -> None:
+    def __init__(self, beta_target: float = 0.0, tolerance: float = 0.05) -> None:
         """Initialize beta neutrality constraint.
 
         Args:

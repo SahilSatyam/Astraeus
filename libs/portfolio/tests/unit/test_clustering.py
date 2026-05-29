@@ -6,10 +6,8 @@ from decimal import Decimal
 
 import numpy as np
 import pytest
-
 from astraeus_portfolio.contracts import ClusterReport
 from astraeus_portfolio.risk.clustering import (
-    compute_cluster_report,
     _compute_correlation_matrix,
     _compute_effective_n_bets,
     _compute_herfindahl_index,
@@ -17,8 +15,8 @@ from astraeus_portfolio.risk.clustering import (
     _correlation_to_distance,
     _pearson_correlation,
     _ward_clustering,
+    compute_cluster_report,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -272,9 +270,7 @@ class TestComputeCorrelationMatrix:
     def test_no_nan_full_overlap(self, rng: np.random.Generator) -> None:
         returns = rng.standard_normal((300, 3)) * 0.01
         symbols = ["A", "B", "C"]
-        corr, excluded = _compute_correlation_matrix(
-            returns, symbols, window=252, min_overlap=60
-        )
+        corr, excluded = _compute_correlation_matrix(returns, symbols, window=252, min_overlap=60)
         assert excluded == []
         assert corr.shape == (3, 3)
         # Diagonal should be 1
@@ -291,9 +287,7 @@ class TestComputeCorrelationMatrix:
         returns[:, 2] = np.random.default_rng(3).standard_normal(300) * 0.01
 
         symbols = ["A", "B", "C"]
-        corr, excluded = _compute_correlation_matrix(
-            returns, symbols, window=252, min_overlap=60
-        )
+        corr, excluded = _compute_correlation_matrix(returns, symbols, window=252, min_overlap=60)
         # Pair (A, B) should be excluded
         assert ("A", "B") in excluded
         # Correlation for excluded pair should be 0
@@ -305,9 +299,7 @@ class TestComputeCorrelationMatrix:
         # 500 rows, window=252 -> uses last 252 rows
         returns = rng.standard_normal((500, 2)) * 0.01
         symbols = ["A", "B"]
-        corr, _ = _compute_correlation_matrix(
-            returns, symbols, window=252, min_overlap=60
-        )
+        corr, _ = _compute_correlation_matrix(returns, symbols, window=252, min_overlap=60)
         # Manually compute correlation on last 252 rows
         data = returns[-252:, :]
         expected_corr = np.corrcoef(data, rowvar=False)[0, 1]
@@ -354,9 +346,7 @@ class TestComputeClusterReport:
         weights = np.array([0.4, 0.3, 0.3])
         cov = np.cov(returns, rowvar=False)
         symbols = ["A", "B", "C"]
-        result = compute_cluster_report(
-            returns, weights, cov, symbols, k=10
-        )
+        result = compute_cluster_report(returns, weights, cov, symbols, k=10)
         # Can't have more clusters than assets
         assert result.n_clusters <= n
 

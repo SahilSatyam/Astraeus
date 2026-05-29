@@ -12,7 +12,7 @@ References:
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -88,7 +88,7 @@ def compute_metrics(
         return BacktestMetrics()
 
     rf_daily = risk_free_rate / trading_days
-    excess = returns - rf_daily
+    returns - rf_daily
 
     # Basic stats
     mean_ret = float(np.mean(returns))
@@ -134,7 +134,11 @@ def compute_metrics(
     ir = 0.0
     if benchmark_returns is not None and len(benchmark_returns) == len(returns):
         active = returns - benchmark_returns
-        ir = float(np.mean(active)) / max(float(np.std(active, ddof=1)), 1e-10) * math.sqrt(trading_days)
+        ir = (
+            float(np.mean(active))
+            / max(float(np.std(active, ddof=1)), 1e-10)
+            * math.sqrt(trading_days)
+        )
 
     # Probabilistic Sharpe (Bailey & López de Prado 2012)
     psr = _probabilistic_sharpe(sharpe, len(returns), skew, kurt, sr_benchmark=0.0)
@@ -156,7 +160,9 @@ def compute_metrics(
         information_ratio=ir,
         max_drawdown=max_dd,
         max_dd_duration_days=dd_duration,
-        avg_drawdown=float(np.mean(drawdowns[drawdowns < -0.01])) if np.any(drawdowns < -0.01) else 0.0,
+        avg_drawdown=float(np.mean(drawdowns[drawdowns < -0.01]))
+        if np.any(drawdowns < -0.01)
+        else 0.0,
         var_95=var_95,
         cvar_95=cvar_95,
         tail_ratio=tail_ratio,
@@ -221,13 +227,10 @@ def _probabilistic_sharpe(
 
     Returns probability that true SR > sr_benchmark given observed SR.
     """
-    from scipy.stats import norm  # noqa: PLC0415
+    from scipy.stats import norm
 
     # Standard error of SR accounting for non-normality
-    se = math.sqrt(
-        (1 - skew * observed_sr + (kurt - 1) / 4 * observed_sr**2)
-        / max(n_obs - 1, 1)
-    )
+    se = math.sqrt((1 - skew * observed_sr + (kurt - 1) / 4 * observed_sr**2) / max(n_obs - 1, 1))
     if se == 0:
         return 1.0 if observed_sr > sr_benchmark else 0.0
 
@@ -248,16 +251,16 @@ def _deflated_sharpe(
     Adjusts for multiple testing by inflating the benchmark SR based on
     the expected maximum SR from n_trials independent trials.
     """
-    from scipy.stats import norm  # noqa: PLC0415
+    from scipy.stats import norm
 
     if n_trials <= 1:
         return _probabilistic_sharpe(observed_sr, n_obs, skew, kurt, sr_benchmark)
 
     # Expected max SR from n_trials (Euler-Mascheroni approximation)
     euler_mascheroni = 0.5772156649
-    e_max_sr = norm.ppf(1 - 1 / n_trials) * (
-        1 - euler_mascheroni
-    ) + euler_mascheroni * norm.ppf(1 - 1 / (n_trials * math.e))
+    e_max_sr = norm.ppf(1 - 1 / n_trials) * (1 - euler_mascheroni) + euler_mascheroni * norm.ppf(
+        1 - 1 / (n_trials * math.e)
+    )
 
     # Use inflated benchmark
     adjusted_benchmark = max(sr_benchmark, e_max_sr * math.sqrt(1.0 / max(n_obs, 1)))

@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import numpy as np
 import pytest
-
 from astraeus_portfolio.contracts import CovarianceConfig, CovarianceResult
 from astraeus_portfolio.covariance.base import CovarianceEstimator
 from astraeus_portfolio.covariance.utils import nearest_psd, validate_returns
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -20,9 +18,7 @@ from astraeus_portfolio.covariance.utils import nearest_psd, validate_returns
 class DummyEstimator(CovarianceEstimator):
     """Concrete estimator for testing the ABC interface."""
 
-    def estimate(
-        self, returns: np.ndarray, config: CovarianceConfig
-    ) -> CovarianceResult:
+    def estimate(self, returns: np.ndarray, config: CovarianceConfig) -> CovarianceResult:
         validate_returns(returns)
         t, n = returns.shape
         cov = np.cov(returns, rowvar=False)
@@ -32,11 +28,9 @@ class DummyEstimator(CovarianceEstimator):
             estimator="dummy",
             n_assets=n,
             n_observations=t,
-            condition_number=float(
-                np.linalg.cond(cov_psd)
-            ),
+            condition_number=float(np.linalg.cond(cov_psd)),
             shrinkage_intensity=None,
-            as_of_ts=datetime.now(tz=timezone.utc),
+            as_of_ts=datetime.now(tz=UTC),
         )
 
 

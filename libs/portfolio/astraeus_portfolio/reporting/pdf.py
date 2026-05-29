@@ -12,7 +12,6 @@ Generated via Jinja2 → HTML → WeasyPrint → PDF.
 
 from __future__ import annotations
 
-import os
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
@@ -86,20 +85,20 @@ class DailyReportRenderer:
         positions = []
         prior_weight_map: dict[str, Decimal] = {}
         if exposure and exposure.position_changes:
-            prior_weight_map = {
-                pc.symbol: pc.prior_weight for pc in exposure.position_changes
-            }
+            prior_weight_map = {pc.symbol: pc.prior_weight for pc in exposure.position_changes}
 
         for pw in portfolio.weights:
             prior = prior_weight_map.get(pw.symbol)
             delta = float(pw.weight) - float(prior) if prior is not None else None
-            positions.append({
-                "symbol": pw.symbol,
-                "sector": pw.sector,
-                "weight": float(pw.weight),
-                "prior_weight": float(prior) if prior is not None else None,
-                "delta": delta,
-            })
+            positions.append(
+                {
+                    "symbol": pw.symbol,
+                    "sector": pw.sector,
+                    "weight": float(pw.weight),
+                    "prior_weight": float(prior) if prior is not None else None,
+                    "delta": delta,
+                }
+            )
 
         # Sort by absolute weight descending
         positions.sort(key=lambda p: abs(p["weight"]), reverse=True)
@@ -256,6 +255,4 @@ class DailyReportRenderer:
             return html_path
 
         except Exception as exc:
-            raise PDFGenerationError(
-                f"Failed to generate PDF: {exc}"
-            ) from exc
+            raise PDFGenerationError(f"Failed to generate PDF: {exc}") from exc

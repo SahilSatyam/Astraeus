@@ -8,13 +8,11 @@ survive a model_dump() → model_validate() round-trip without data loss or muta
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import UUID
 
 import hypothesis.strategies as st
-from hypothesis import given, settings
-
 from astraeus_portfolio.contracts import (
     ClusterReport,
     ConstraintDiag,
@@ -27,6 +25,7 @@ from astraeus_portfolio.contracts import (
     ScenarioResult,
     TargetPortfolio,
 )
+from hypothesis import given, settings
 
 # ---------------------------------------------------------------------------
 # Hypothesis Strategies
@@ -39,7 +38,7 @@ st_uuid = st.uuids()
 st_datetime = st.datetimes(
     min_value=datetime(2000, 1, 1),
     max_value=datetime(2100, 1, 1),
-    timezones=st.just(timezone.utc),
+    timezones=st.just(UTC),
 )
 
 # Decimals within reasonable financial ranges (avoid extreme precision issues)
@@ -122,12 +121,8 @@ def st_scenario_result(draw: st.DrawFn) -> ScenarioResult:
     n_factors = draw(st.integers(min_value=0, max_value=3))
     n_assets = draw(st.integers(min_value=0, max_value=3))
 
-    factor_contributions = {
-        draw(st_short_string): draw(st_decimal_pct) for _ in range(n_factors)
-    }
-    asset_contributions = {
-        draw(st_symbol): draw(st_decimal_pct) for _ in range(n_assets)
-    }
+    factor_contributions = {draw(st_short_string): draw(st_decimal_pct) for _ in range(n_factors)}
+    asset_contributions = {draw(st_symbol): draw(st_decimal_pct) for _ in range(n_assets)}
 
     return ScenarioResult(
         scenario_name=draw(st_scenario_name),
@@ -135,9 +130,7 @@ def st_scenario_result(draw: st.DrawFn) -> ScenarioResult:
         total_pnl_pct=draw(st_decimal_pct),
         factor_contributions=factor_contributions,
         asset_contributions=asset_contributions,
-        proxy_estimated_assets=draw(
-            st.lists(st_symbol, min_size=0, max_size=3)
-        ),
+        proxy_estimated_assets=draw(st.lists(st_symbol, min_size=0, max_size=3)),
     )
 
 
@@ -146,8 +139,7 @@ def st_cluster_report(draw: st.DrawFn) -> ClusterReport:
     """Generate a valid ClusterReport instance."""
     n_assignments = draw(st.integers(min_value=1, max_value=5))
     cluster_assignments = {
-        draw(st_symbol): draw(st.integers(min_value=0, max_value=9))
-        for _ in range(n_assignments)
+        draw(st_symbol): draw(st.integers(min_value=0, max_value=9)) for _ in range(n_assignments)
     }
 
     return ClusterReport(
@@ -169,7 +161,10 @@ def st_constraint_diag(draw: st.DrawFn) -> ConstraintDiag:
         slack=draw(st.one_of(st.none(), st.floats(allow_nan=False, allow_infinity=False))),
         diagnostic=draw(
             st.fixed_dictionaries(
-                {"status": st_short_string, "value": st.floats(allow_nan=False, allow_infinity=False)}
+                {
+                    "status": st_short_string,
+                    "value": st.floats(allow_nan=False, allow_infinity=False),
+                }
             )
         ),
     )
@@ -205,12 +200,8 @@ def st_risk_report(draw: st.DrawFn) -> RiskReport:
     n_sectors = draw(st.integers(min_value=0, max_value=5))
     n_factors = draw(st.integers(min_value=0, max_value=5))
 
-    sector_exposure = {
-        draw(st_short_string): draw(st_decimal_pct) for _ in range(n_sectors)
-    }
-    factor_exposure = {
-        draw(st_short_string): draw(st_decimal_pct) for _ in range(n_factors)
-    }
+    sector_exposure = {draw(st_short_string): draw(st_decimal_pct) for _ in range(n_sectors)}
+    factor_exposure = {draw(st_short_string): draw(st_decimal_pct) for _ in range(n_factors)}
 
     return RiskReport(
         report_id=draw(st_uuid),
@@ -224,18 +215,14 @@ def st_risk_report(draw: st.DrawFn) -> RiskReport:
         cvar_95_param=draw(st_decimal_pct),
         var_95_mc=draw(st_decimal_pct),
         cvar_95_mc=draw(st_decimal_pct),
-        stress_scenarios=draw(
-            st.lists(st_scenario_result(), min_size=0, max_size=5)
-        ),
+        stress_scenarios=draw(st.lists(st_scenario_result(), min_size=0, max_size=5)),
         cluster_concentration=draw(st_cluster_report()),
         sector_exposure=sector_exposure,
         factor_exposure=factor_exposure,
         beta=draw(st_decimal_pct),
         effective_n_bets=draw(st_decimal_small),
         liquidity_5day_pct=draw(st_decimal_small),
-        constraint_diagnostics=draw(
-            st.lists(st_constraint_diag(), min_size=0, max_size=5)
-        ),
+        constraint_diagnostics=draw(st.lists(st_constraint_diag(), min_size=0, max_size=5)),
         policy_version=draw(st_short_string),
         schema_version="v1",
     )

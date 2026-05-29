@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import heapq
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import IntEnum
 from typing import Any
 
@@ -121,13 +121,15 @@ class EventDrivenEngine:
 
         # Enqueue all market data events
         for bar in bars:
-            self._enqueue(Event(
-                ts=bar.ts,
-                priority=EventPriority.MARKET_DATA,
-                sequence=self._next_seq(),
-                payload=bar,
-                event_type="bar",
-            ))
+            self._enqueue(
+                Event(
+                    ts=bar.ts,
+                    priority=EventPriority.MARKET_DATA,
+                    sequence=self._next_seq(),
+                    payload=bar,
+                    event_type="bar",
+                )
+            )
 
         # Process event loop
         while self._event_queue:
@@ -309,8 +311,8 @@ class EventDrivenEngine:
             total_shares = pos.quantity + fill.quantity
             if total_shares != 0:
                 pos.avg_cost = (
-                    (pos.quantity * pos.avg_cost + fill.quantity * fill.price) / total_shares
-                )
+                    pos.quantity * pos.avg_cost + fill.quantity * fill.price
+                ) / total_shares
             pos.quantity += fill.quantity
             portfolio.cash -= trade_value + total_cost
         else:

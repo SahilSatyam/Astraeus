@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import numpy as np
 
@@ -19,9 +19,7 @@ class SampleCovarianceEstimator(CovarianceEstimator):
     semi-definiteness with a configurable eigenvalue floor.
     """
 
-    def estimate(
-        self, returns: np.ndarray, config: CovarianceConfig
-    ) -> CovarianceResult:
+    def estimate(self, returns: np.ndarray, config: CovarianceConfig) -> CovarianceResult:
         """Estimate sample covariance from a daily return matrix (T×n).
 
         Args:
@@ -59,5 +57,5 @@ class SampleCovarianceEstimator(CovarianceEstimator):
             n_observations=t,
             condition_number=condition_number,
             shrinkage_intensity=None,
-            as_of_ts=datetime.now(tz=timezone.utc),
+            as_of_ts=datetime.now(tz=UTC),
         )

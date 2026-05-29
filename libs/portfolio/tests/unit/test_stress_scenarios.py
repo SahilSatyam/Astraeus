@@ -17,7 +17,6 @@ from decimal import Decimal
 
 import numpy as np
 import pytest
-
 from astraeus_portfolio.contracts import ScenarioName, ScenarioResult
 from astraeus_portfolio.risk.stress import (
     COVID2020Scenario,
@@ -27,7 +26,6 @@ from astraeus_portfolio.risk.stress import (
     StressContext,
     StressScenario,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -232,9 +230,9 @@ class TestGFC2008Scenario:
         fin_contrib = float(result.asset_contributions.get("FIN", Decimal("0")))
         staples_contrib = float(result.asset_contributions.get("STAPLES", Decimal("0")))
         # Both are negative, financials more so (or factor contributions absorb it)
-        total_fin = fin_contrib + sum(
-            float(v) for k, v in result.factor_contributions.items()
-        ) * 0.5  # Approximate share
+        total_fin = (
+            fin_contrib + sum(float(v) for k, v in result.factor_contributions.items()) * 0.5
+        )  # Approximate share
         # At minimum, total PnL should be negative
         assert float(result.total_pnl_pct) < 0
 
@@ -518,12 +516,14 @@ class TestFlashCrashScenario:
 class TestAllScenarios:
     """Tests that apply to all four scenarios."""
 
-    @pytest.fixture(params=[
-        GFC2008Scenario,
-        COVID2020Scenario,
-        RateShockScenario,
-        FlashCrashScenario,
-    ])
+    @pytest.fixture(
+        params=[
+            GFC2008Scenario,
+            COVID2020Scenario,
+            RateShockScenario,
+            FlashCrashScenario,
+        ]
+    )
     def scenario(self, request):
         """Parametrized fixture for all scenarios."""
         return request.param()

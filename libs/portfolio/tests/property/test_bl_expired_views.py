@@ -14,14 +14,12 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-import numpy as np
 import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
+import numpy as np
 from astraeus_portfolio.constraints.box import BoxConstraint
 from astraeus_portfolio.contracts import OptContext, View
 from astraeus_portfolio.optimizers.black_litterman import BlackLittermanOptimizer
-
+from hypothesis import assume, given, settings
 
 # ---------------------------------------------------------------------------
 # Hypothesis Strategies
@@ -38,8 +36,10 @@ def st_psd_covariance(draw: st.DrawFn, n: int) -> np.ndarray:
         st.lists(
             st.lists(
                 st.floats(
-                    min_value=-0.3, max_value=0.3,
-                    allow_nan=False, allow_infinity=False,
+                    min_value=-0.3,
+                    max_value=0.3,
+                    allow_nan=False,
+                    allow_infinity=False,
                 ),
                 min_size=n,
                 max_size=n,
@@ -79,8 +79,10 @@ def st_view(
         row = draw(
             st.lists(
                 st.floats(
-                    min_value=-1.0, max_value=1.0,
-                    allow_nan=False, allow_infinity=False,
+                    min_value=-1.0,
+                    max_value=1.0,
+                    allow_nan=False,
+                    allow_infinity=False,
                 ),
                 min_size=n_assets,
                 max_size=n_assets,
@@ -95,8 +97,10 @@ def st_view(
     Q = draw(
         st.lists(
             st.floats(
-                min_value=-0.05, max_value=0.10,
-                allow_nan=False, allow_infinity=False,
+                min_value=-0.05,
+                max_value=0.10,
+                allow_nan=False,
+                allow_infinity=False,
             ),
             min_size=k,
             max_size=k,
@@ -107,8 +111,10 @@ def st_view(
     confidence = draw(
         st.lists(
             st.floats(
-                min_value=0.1, max_value=0.95,
-                allow_nan=False, allow_infinity=False,
+                min_value=0.1,
+                max_value=0.95,
+                allow_nan=False,
+                allow_infinity=False,
             ),
             min_size=k,
             max_size=k,
@@ -125,7 +131,9 @@ def st_view(
         offset_seconds = draw(st.integers(min_value=0, max_value=86400 * 30))
         expires_at = as_of_ts + timedelta(seconds=offset_seconds)
 
-    view_id = draw(st.text(min_size=4, max_size=10, alphabet=st.characters(whitelist_categories=("L", "N"))))
+    view_id = draw(
+        st.text(min_size=4, max_size=10, alphabet=st.characters(whitelist_categories=("L", "N")))
+    )
 
     return View(
         view_id=view_id,
@@ -159,8 +167,10 @@ def st_bl_context_with_expired_views(
         draw(
             st.lists(
                 st.floats(
-                    min_value=-0.05, max_value=0.15,
-                    allow_nan=False, allow_infinity=False,
+                    min_value=-0.05,
+                    max_value=0.15,
+                    allow_nan=False,
+                    allow_infinity=False,
                 ),
                 min_size=n,
                 max_size=n,
@@ -173,8 +183,10 @@ def st_bl_context_with_expired_views(
     raw_weights = draw(
         st.lists(
             st.floats(
-                min_value=0.05, max_value=1.0,
-                allow_nan=False, allow_infinity=False,
+                min_value=0.05,
+                max_value=1.0,
+                allow_nan=False,
+                allow_infinity=False,
             ),
             min_size=n,
             max_size=n,
@@ -186,15 +198,13 @@ def st_bl_context_with_expired_views(
     # Generate expired views (at least 1)
     n_expired = draw(st.integers(min_value=1, max_value=3))
     expired_views = [
-        draw(st_view(n_assets=n, as_of_ts=as_of_ts, expired=True))
-        for _ in range(n_expired)
+        draw(st_view(n_assets=n, as_of_ts=as_of_ts, expired=True)) for _ in range(n_expired)
     ]
 
     # Generate unexpired views (at least 1)
     n_unexpired = draw(st.integers(min_value=1, max_value=3))
     unexpired_views = [
-        draw(st_view(n_assets=n, as_of_ts=as_of_ts, expired=False))
-        for _ in range(n_unexpired)
+        draw(st_view(n_assets=n, as_of_ts=as_of_ts, expired=False)) for _ in range(n_unexpired)
     ]
 
     all_views = expired_views + unexpired_views
@@ -247,8 +257,10 @@ def st_bl_context_all_expired(draw: st.DrawFn) -> OptContext:
         draw(
             st.lists(
                 st.floats(
-                    min_value=-0.05, max_value=0.15,
-                    allow_nan=False, allow_infinity=False,
+                    min_value=-0.05,
+                    max_value=0.15,
+                    allow_nan=False,
+                    allow_infinity=False,
                 ),
                 min_size=n,
                 max_size=n,
@@ -261,8 +273,10 @@ def st_bl_context_all_expired(draw: st.DrawFn) -> OptContext:
     raw_weights = draw(
         st.lists(
             st.floats(
-                min_value=0.05, max_value=1.0,
-                allow_nan=False, allow_infinity=False,
+                min_value=0.05,
+                max_value=1.0,
+                allow_nan=False,
+                allow_infinity=False,
             ),
             min_size=n,
             max_size=n,
@@ -274,8 +288,7 @@ def st_bl_context_all_expired(draw: st.DrawFn) -> OptContext:
     # Generate only expired views (at least 1)
     n_expired = draw(st.integers(min_value=1, max_value=4))
     expired_views = [
-        draw(st_view(n_assets=n, as_of_ts=as_of_ts, expired=True))
-        for _ in range(n_expired)
+        draw(st_view(n_assets=n, as_of_ts=as_of_ts, expired=True)) for _ in range(n_expired)
     ]
 
     symbols = [f"ASSET_{i}" for i in range(n)]
@@ -386,9 +399,7 @@ class TestBLExpiredViewExclusion:
 
     @given(ctx=st_bl_context_all_expired())
     @settings(max_examples=50, deadline=None)
-    def test_all_expired_views_fallback_to_equilibrium(
-        self, ctx: OptContext
-    ) -> None:
+    def test_all_expired_views_fallback_to_equilibrium(self, ctx: OptContext) -> None:
         """When all views are expired, BL must fall back to equilibrium returns.
 
         The result should be identical to running BL with no views at all,

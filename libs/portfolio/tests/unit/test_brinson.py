@@ -1,16 +1,13 @@
 """Unit tests for Brinson-Fachler sector attribution."""
 
 from datetime import datetime
-from decimal import Decimal
 from uuid import uuid4
 
 import pytest
-
 from astraeus_portfolio.attribution.brinson import (
     UNCLASSIFIED_SECTOR,
     BrinsonAttributionError,
     BrinsonResult,
-    SectorEffect,
     run_brinson,
 )
 
@@ -88,12 +85,8 @@ class TestBrinsonBasicDecomposition:
         )
 
         # Compute expected active return
-        port_return = sum(
-            portfolio_weights[s] * portfolio_returns[s] for s in portfolio_weights
-        )
-        bench_return = sum(
-            benchmark_weights[s] * benchmark_returns[s] for s in benchmark_weights
-        )
+        port_return = sum(portfolio_weights[s] * portfolio_returns[s] for s in portfolio_weights)
+        bench_return = sum(benchmark_weights[s] * benchmark_returns[s] for s in benchmark_weights)
         expected_active_bps = (port_return - bench_return) * 10000
 
         # Sum of effects should equal active return within 0.01 bps
@@ -123,12 +116,8 @@ class TestBrinsonBasicDecomposition:
         # r_b = 0.50*0.02 + 0.50*0.01 = 0.015
         # Tech allocation: (0.70 - 0.50) * (0.02 - 0.015) = 0.20 * 0.005 = 0.001 = 10 bps
         # HC allocation: (0.30 - 0.50) * (0.01 - 0.015) = -0.20 * -0.005 = 0.001 = 10 bps
-        tech_effect = next(
-            e for e in result.sector_effects if e.sector == "Information Technology"
-        )
-        hc_effect = next(
-            e for e in result.sector_effects if e.sector == "Health Care"
-        )
+        tech_effect = next(e for e in result.sector_effects if e.sector == "Information Technology")
+        hc_effect = next(e for e in result.sector_effects if e.sector == "Health Care")
 
         assert abs(float(tech_effect.allocation_bps) - 10.0) < 0.01
         assert abs(float(hc_effect.allocation_bps) - 10.0) < 0.01
@@ -156,12 +145,8 @@ class TestBrinsonBasicDecomposition:
 
         # Tech selection: 0.50 * (0.03 - 0.02) = 0.005 = 50 bps
         # HC selection: 0.50 * (0.01 - 0.01) = 0 bps
-        tech_effect = next(
-            e for e in result.sector_effects if e.sector == "Information Technology"
-        )
-        hc_effect = next(
-            e for e in result.sector_effects if e.sector == "Health Care"
-        )
+        tech_effect = next(e for e in result.sector_effects if e.sector == "Information Technology")
+        hc_effect = next(e for e in result.sector_effects if e.sector == "Health Care")
 
         assert abs(float(tech_effect.selection_bps) - 50.0) < 0.01
         assert abs(float(hc_effect.selection_bps) - 0.0) < 0.01
@@ -188,12 +173,8 @@ class TestBrinsonBasicDecomposition:
 
         # Tech interaction: (0.70 - 0.50) * (0.03 - 0.02) = 0.20 * 0.01 = 0.002 = 20 bps
         # HC interaction: (0.30 - 0.50) * (0.01 - 0.01) = -0.20 * 0.0 = 0 bps
-        tech_effect = next(
-            e for e in result.sector_effects if e.sector == "Information Technology"
-        )
-        hc_effect = next(
-            e for e in result.sector_effects if e.sector == "Health Care"
-        )
+        tech_effect = next(e for e in result.sector_effects if e.sector == "Information Technology")
+        hc_effect = next(e for e in result.sector_effects if e.sector == "Health Care")
 
         assert abs(float(tech_effect.interaction_bps) - 20.0) < 0.01
         assert abs(float(hc_effect.interaction_bps) - 0.0) < 0.01
@@ -226,9 +207,7 @@ class TestBrinsonEdgeCases:
         )
 
         # Consumer Discretionary: benchmark weight = 0, benchmark return = 0
-        cd_effect = next(
-            e for e in result.sector_effects if e.sector == "Consumer Discretionary"
-        )
+        cd_effect = next(e for e in result.sector_effects if e.sector == "Consumer Discretionary")
         # Allocation: (0.50 - 0.0) * (0.0 - r_b) where r_b = 1.0*0.02 = 0.02
         # = 0.50 * (-0.02) = -0.01 = -100 bps
         assert abs(float(cd_effect.allocation_bps) - (-100.0)) < 0.01

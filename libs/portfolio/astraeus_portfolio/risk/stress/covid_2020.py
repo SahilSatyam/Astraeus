@@ -6,8 +6,6 @@ Reference magnitude: SPY ≈ -33%.
 
 from __future__ import annotations
 
-from decimal import Decimal
-
 import numpy as np
 
 from astraeus_portfolio.contracts import ScenarioName, ScenarioResult

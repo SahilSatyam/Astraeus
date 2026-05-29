@@ -18,16 +18,14 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-import numpy as np
 import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
+import numpy as np
 from astraeus_portfolio.constraints.base import Constraint
 from astraeus_portfolio.constraints.box import BoxConstraint
 from astraeus_portfolio.contracts import OptContext
 from astraeus_portfolio.optimizers.base import OptimizerConfig
 from astraeus_portfolio.optimizers.mvo import MVOMode, MVOOptimizer
-
+from hypothesis import assume, given, settings
 
 # ---------------------------------------------------------------------------
 # Hypothesis Strategies
@@ -52,8 +50,10 @@ def st_psd_covariance(draw: st.DrawFn, n: int) -> np.ndarray:
         st.lists(
             st.lists(
                 st.floats(
-                    min_value=-0.5, max_value=0.5,
-                    allow_nan=False, allow_infinity=False,
+                    min_value=-0.5,
+                    max_value=0.5,
+                    allow_nan=False,
+                    allow_infinity=False,
                 ),
                 min_size=n,
                 max_size=n,
@@ -99,8 +99,10 @@ def st_opt_context(
     expected_returns = draw(
         st.lists(
             st.floats(
-                min_value=-0.10, max_value=0.30,
-                allow_nan=False, allow_infinity=False,
+                min_value=-0.10,
+                max_value=0.30,
+                allow_nan=False,
+                allow_infinity=False,
             ),
             min_size=n,
             max_size=n,
@@ -181,8 +183,10 @@ def st_opt_context_net_zero(draw: st.DrawFn) -> OptContext:
     expected_returns = draw(
         st.lists(
             st.floats(
-                min_value=-0.10, max_value=0.30,
-                allow_nan=False, allow_infinity=False,
+                min_value=-0.10,
+                max_value=0.30,
+                allow_nan=False,
+                allow_infinity=False,
             ),
             min_size=n,
             max_size=n,
@@ -300,8 +304,7 @@ class TestOptimizerWeightSumInvariant:
 
         weight_sum = float(np.sum(result.weights))
         assert abs(weight_sum - 0.0) <= 1e-6, (
-            f"Weight sum {weight_sum} deviates from 0.0 by "
-            f"{abs(weight_sum):.2e} (tolerance: 1e-6)"
+            f"Weight sum {weight_sum} deviates from 0.0 by {abs(weight_sum):.2e} (tolerance: 1e-6)"
         )
 
 

@@ -14,9 +14,9 @@ from datetime import date
 from typing import TYPE_CHECKING, Annotated
 
 from astraeus_domain.exceptions import NotFoundError
-from astraeus_features.models import FeatureRegistry, MaterializationRun
-from astraeus_features.registry import get_definition, list_features, register
 from astraeus_features.dsl import FeatureDefinition
+from astraeus_features.models import MaterializationRun
+from astraeus_features.registry import get_definition, list_features, register
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -69,12 +69,17 @@ class FeatureDetail(BaseModel):
 class RegisterFeatureRequest(BaseModel):
     name: str = Field(..., description="Unique feature name", max_length=128)
     group: str = Field(..., description="Feature group", max_length=64)
-    transform_sql: str = Field(..., description="SQL transform producing (symbol, event_ts, knowledge_ts, value, value_version)")
+    transform_sql: str = Field(
+        ...,
+        description="SQL transform producing (symbol, event_ts, knowledge_ts, value, value_version)",
+    )
     entity: str = Field(default="symbol", description="Entity type: symbol, universe, macro")
     dtype: str = Field(default="numeric", description="Value data type")
     description: str = Field(default="", description="Human-readable description")
     dependencies: list[str] = Field(default_factory=list, description="Upstream table dependencies")
-    materialization: str = Field(default="incremental", description="incremental, full, or on_demand")
+    materialization: str = Field(
+        default="incremental", description="incremental, full, or on_demand"
+    )
     freshness_sla_seconds: int | None = Field(default=None, description="Max staleness in seconds")
     knowledge_lag_seconds: int = Field(default=0, description="Knowledge lag in seconds")
     owner: str = Field(default="", description="Owner team or person")
@@ -200,7 +205,9 @@ async def register_feature_route(
         description=request.description,
         dependencies=request.dependencies,
         materialization=request.materialization,
-        freshness_sla=timedelta(seconds=request.freshness_sla_seconds) if request.freshness_sla_seconds else None,
+        freshness_sla=timedelta(seconds=request.freshness_sla_seconds)
+        if request.freshness_sla_seconds
+        else None,
         knowledge_lag=timedelta(seconds=request.knowledge_lag_seconds),
         owner=request.owner,
         tags=request.tags,

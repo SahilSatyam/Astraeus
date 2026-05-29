@@ -14,13 +14,11 @@ not satisfy this exactly.
 
 from __future__ import annotations
 
-import numpy as np
 import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
+import numpy as np
 from astraeus_portfolio.contracts import CovarianceConfig
 from astraeus_portfolio.covariance.sample import SampleCovarianceEstimator
-
+from hypothesis import assume, given, settings
 
 # ---------------------------------------------------------------------------
 # Hypothesis Strategies
@@ -80,9 +78,7 @@ class TestCovarianceVolatilityRoundTrip:
 
     @given(returns=st_valid_return_matrix())
     @settings(max_examples=200, deadline=None)
-    def test_covariance_diagonal_matches_direct_volatility(
-        self, returns: np.ndarray
-    ) -> None:
+    def test_covariance_diagonal_matches_direct_volatility(self, returns: np.ndarray) -> None:
         """Covariance diagonal sqrt * sqrt(252) matches direct annualized vol within 1% relative error."""
         estimator = SampleCovarianceEstimator()
         config = CovarianceConfig(eigenvalue_floor=1e-8)

@@ -419,8 +419,10 @@ async def replay(
     base_where = [
         MarketBarRaw.source == request.source,
         MarketBarRaw.resolution == request.resolution,
-        MarketBarRaw.ts >= datetime(request.start.year, request.start.month, request.start.day, tzinfo=UTC),
-        MarketBarRaw.ts <= datetime(request.end.year, request.end.month, request.end.day, 23, 59, 59, tzinfo=UTC),
+        MarketBarRaw.ts
+        >= datetime(request.start.year, request.start.month, request.start.day, tzinfo=UTC),
+        MarketBarRaw.ts
+        <= datetime(request.end.year, request.end.month, request.end.day, 23, 59, 59, tzinfo=UTC),
     ]
     if request.symbol:
         base_where.append(MarketBarRaw.symbol == request.symbol)

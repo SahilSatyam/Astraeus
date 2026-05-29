@@ -16,7 +16,9 @@ from __future__ import annotations
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram
 
 
-def register_marketdata_metrics(registry: CollectorRegistry) -> dict[str, Counter | Gauge | Histogram]:
+def register_marketdata_metrics(
+    registry: CollectorRegistry,
+) -> dict[str, Counter | Gauge | Histogram]:
     """Register all Phase 1 market data metrics and return them as a dict."""
 
     metrics: dict[str, Counter | Gauge | Histogram] = {}

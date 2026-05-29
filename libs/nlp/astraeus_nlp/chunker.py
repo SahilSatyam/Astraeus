@@ -176,7 +176,7 @@ class RecursiveChunker:
 
                 # Start new chunk with overlap from previous
                 overlap_segments = self._get_overlap_segments(current_segments)
-                current_segments = overlap_segments + [segment]
+                current_segments = [*overlap_segments, segment]
                 current_tokens = sum(self._counter.count(s) for s in current_segments)
 
         # Emit final chunk

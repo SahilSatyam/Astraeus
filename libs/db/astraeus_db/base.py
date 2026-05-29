@@ -7,7 +7,7 @@ imports this module to discover them.
 
 from __future__ import annotations
 
-from datetime import datetime  # noqa: TC003 (resolved at runtime by SQLAlchemy)
+from datetime import datetime
 
 from sqlalchemy import DateTime, Integer, String, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column

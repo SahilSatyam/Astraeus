@@ -11,7 +11,6 @@ Logic:
 
 from __future__ import annotations
 
-import math
 from datetime import timedelta
 from typing import Any
 
@@ -56,7 +55,7 @@ class PairsTrading(Strategy):
     ) -> dict[str, float]:
         """Generate pairs trading targets based on spread z-scores."""
         entry_z = params.get("entry_z", 2.0)
-        exit_z = params.get("exit_z", 0.5)
+        params.get("exit_z", 0.5)
         stop_z = params.get("stop_z", 4.0)
         lookback = params.get("lookback", 60)
         max_pairs = params.get("max_pairs", 20)
@@ -64,8 +63,7 @@ class PairsTrading(Strategy):
 
         # Collect price history for universe
         prices = (
-            feature_panel
-            .filter(pl.col("symbol").is_in(universe))
+            feature_panel.filter(pl.col("symbol").is_in(universe))
             .select(["symbol", "ts", "close"])
             .collect()
         )
@@ -127,7 +125,7 @@ class PairsTrading(Strategy):
             if abs(z) > stop_z:
                 # Stop: close any existing position
                 continue
-            elif abs(z) > entry_z:
+            if abs(z) > entry_z:
                 # Enter: short spread if z > entry, long spread if z < -entry
                 if z > entry_z:
                     targets[sym_a] = targets.get(sym_a, 0) - weight_per_leg

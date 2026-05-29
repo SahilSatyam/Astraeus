@@ -12,7 +12,7 @@ Reference:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import numpy as np
 
@@ -31,9 +31,7 @@ class LedoitWolfEstimator(CovarianceEstimator):
     optimal shrinkage intensity alpha minimizes the expected Frobenius loss.
     """
 
-    def estimate(
-        self, returns: np.ndarray, config: CovarianceConfig
-    ) -> CovarianceResult:
+    def estimate(self, returns: np.ndarray, config: CovarianceConfig) -> CovarianceResult:
         """Estimate covariance using Ledoit-Wolf shrinkage.
 
         Args:
@@ -80,7 +78,7 @@ class LedoitWolfEstimator(CovarianceEstimator):
             n_observations=t,
             condition_number=condition_number,
             shrinkage_intensity=float(alpha),
-            as_of_ts=datetime.now(tz=timezone.utc),
+            as_of_ts=datetime.now(tz=UTC),
         )
 
     @staticmethod

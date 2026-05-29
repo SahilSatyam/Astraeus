@@ -21,14 +21,14 @@ import cvxpy as cp
 import numpy as np
 import structlog
 
-from astraeus_portfolio.contracts import OptContext, OptResult, RelaxationEvent
+from astraeus_portfolio.contracts import OptContext, OptResult
 from astraeus_portfolio.optimizers.base import Optimizer, OptimizerConfig
 
 __all__ = [
     "MVOMode",
+    "MVOOptimizer",
     "MVOValidationError",
     "MeanVarianceOptimizer",
-    "MVOOptimizer",
 ]
 
 logger = structlog.get_logger(__name__)
@@ -116,20 +116,14 @@ class MeanVarianceOptimizer(Optimizer):
 
         # Validate risk_aversion
         if not (0.1 <= risk_aversion <= 100.0):
-            raise ValueError(
-                f"risk_aversion must be in [0.1, 100.0], got {risk_aversion}"
-            )
+            raise ValueError(f"risk_aversion must be in [0.1, 100.0], got {risk_aversion}")
 
         # Validate target_return for target_return mode
         if mode == MVOMode.TARGET_RETURN:
             if target_return is None:
-                raise ValueError(
-                    "target_return is required when mode is TARGET_RETURN"
-                )
+                raise ValueError("target_return is required when mode is TARGET_RETURN")
             if not (0.0 <= target_return <= 1.0):
-                raise ValueError(
-                    f"target_return must be in [0.0, 1.0], got {target_return}"
-                )
+                raise ValueError(f"target_return must be in [0.0, 1.0], got {target_return}")
 
         self.mode = mode
         self.risk_aversion = risk_aversion
@@ -182,14 +176,13 @@ class MeanVarianceOptimizer(Optimizer):
             return_term = ctx.expected_returns @ w
             return self.risk_aversion * risk_term - return_term
 
-        elif self.mode == MVOMode.MIN_VARIANCE:
+        if self.mode == MVOMode.MIN_VARIANCE:
             # Min-Variance: minimize w'Σw (no expected returns)
             return cp.quad_form(w, covariance)
 
-        else:
-            # Target-Return: minimize w'Σw (return constraint added via
-            # _build_investment_constraint override)
-            return cp.quad_form(w, covariance)
+        # Target-Return: minimize w'Σw (return constraint added via
+        # _build_investment_constraint override)
+        return cp.quad_form(w, covariance)
 
     def _build_investment_constraint(
         self, w: cp.Variable, ctx: OptContext

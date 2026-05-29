@@ -17,6 +17,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
+from astraeus_db.base import Base
 from sqlalchemy import (
     CheckConstraint,
     Date,
@@ -33,15 +34,15 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from astraeus_db.base import Base
-
 
 class TargetPortfolioModel(Base):
     """Target portfolios — one row per strategy per day, versioned."""
 
     __tablename__ = "target_portfolios"
     __table_args__ = (
-        UniqueConstraint("strategy_id", "as_of_ts", "version", name="uq_target_portfolios_strategy_date_version"),
+        UniqueConstraint(
+            "strategy_id", "as_of_ts", "version", name="uq_target_portfolios_strategy_date_version"
+        ),
         Index("idx_target_portfolios_strategy_date", "strategy_id", "as_of_ts"),
         CheckConstraint(
             "status IN ('passed', 'fallback_applied', 'rejected')",
@@ -76,10 +77,10 @@ class TargetPortfolioModel(Base):
     schema_version: Mapped[str] = mapped_column(Text, nullable=False, server_default="v1")
 
     # Relationships
-    weights: Mapped[list["PortfolioWeightModel"]] = relationship(
+    weights: Mapped[list[PortfolioWeightModel]] = relationship(
         back_populates="portfolio", cascade="all, delete-orphan"
     )
-    parent_portfolio: Mapped["TargetPortfolioModel | None"] = relationship(
+    parent_portfolio: Mapped[TargetPortfolioModel | None] = relationship(
         remote_side="TargetPortfolioModel.portfolio_id",
     )
 
@@ -105,16 +106,14 @@ class PortfolioWeightModel(Base):
     sector: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
-    portfolio: Mapped["TargetPortfolioModel"] = relationship(back_populates="weights")
+    portfolio: Mapped[TargetPortfolioModel] = relationship(back_populates="weights")
 
 
 class RiskReportModel(Base):
     """Risk reports — JSONB-rich risk metrics per portfolio."""
 
     __tablename__ = "risk_reports"
-    __table_args__ = (
-        Index("idx_risk_reports_portfolio", "portfolio_id"),
-    )
+    __table_args__ = (Index("idx_risk_reports_portfolio", "portfolio_id"),)
 
     report_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -231,12 +230,18 @@ class TaskRunModel(Base):
     __tablename__ = "task_runs"
     __table_args__ = (
         UniqueConstraint(
-            "strategy_id", "as_of_date", "task_name", "version",
+            "strategy_id",
+            "as_of_date",
+            "task_name",
+            "version",
             name="uq_task_runs_strategy_date_task_version",
         ),
         Index(
             "idx_task_runs_lookup",
-            "strategy_id", "as_of_date", "task_name", "version",
+            "strategy_id",
+            "as_of_date",
+            "task_name",
+            "version",
         ),
         CheckConstraint(
             "status IN ('running', 'completed', 'failed', 'timed_out')",
@@ -257,7 +262,5 @@ class TaskRunModel(Base):
     started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)

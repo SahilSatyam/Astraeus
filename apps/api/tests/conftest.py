@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Iterator  # noqa: TC003
+from collections.abc import AsyncIterator, Iterator
 
 import pytest
 from astraeus_api import create_app
@@ -15,7 +15,7 @@ from astraeus_config import (
     RedisSettings,
     Settings,
 )
-from fastapi import FastAPI  # noqa: TC002
+from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from pydantic import SecretStr
 
