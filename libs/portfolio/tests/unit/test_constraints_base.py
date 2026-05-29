@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
-
 from astraeus_portfolio.constraints.base import (
     Constraint,
     get_relaxation_order,
@@ -27,10 +26,10 @@ if TYPE_CHECKING:
 class DummyConstraint(Constraint):
     """Minimal concrete constraint for testing."""
 
-    def to_cvxpy(self, w: "cp.Variable", ctx: "OptContext") -> list:
+    def to_cvxpy(self, w: cp.Variable, ctx: OptContext) -> list:
         return []
 
-    def diagnostic(self, w_value: np.ndarray, ctx: "OptContext") -> dict:
+    def diagnostic(self, w_value: np.ndarray, ctx: OptContext) -> dict:
         return {"satisfied": True, "name": self.name}
 
 

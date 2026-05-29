@@ -24,22 +24,22 @@ Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import cvxpy as cp
 import numpy as np
 import structlog
-from scipy.cluster.hierarchy import fcluster, linkage
+from scipy.cluster.hierarchy import linkage
 from scipy.spatial.distance import squareform
 
 from astraeus_portfolio.constraints.base import Constraint
-from astraeus_portfolio.contracts import OptContext, OptResult, RelaxationEvent
+from astraeus_portfolio.contracts import OptContext, OptResult
 from astraeus_portfolio.optimizers.base import Optimizer, OptimizerConfig
 
 __all__ = [
-    "RiskParityOptimizer",
     "RiskParityConfig",
     "RiskParityNonConvergenceError",
+    "RiskParityOptimizer",
 ]
 
 logger = structlog.get_logger(__name__)
@@ -242,7 +242,11 @@ def solve_erc_newton(
 
         # Backtracking line search
         step = _backtracking_line_search(
-            w, direction, grad, cov, n,
+            w,
+            direction,
+            grad,
+            cov,
+            n,
             alpha=config.backtrack_alpha,
             beta=config.backtrack_beta,
         )
@@ -670,7 +674,10 @@ class RiskParityOptimizer(Optimizer):
 
         # Determine algorithm: ERC vs HRP
         cond_number = float(np.linalg.cond(cov))
-        use_hrp = n > self.rp_config.hrp_asset_threshold or cond_number > self.rp_config.hrp_condition_threshold
+        use_hrp = (
+            n > self.rp_config.hrp_asset_threshold
+            or cond_number > self.rp_config.hrp_condition_threshold
+        )
 
         if use_hrp:
             logger.info(
@@ -687,9 +694,7 @@ class RiskParityOptimizer(Optimizer):
                 n_assets=n,
                 condition_number=cond_number,
             )
-            weights, converged, grad_norm, iterations = solve_erc_newton(
-                cov, self.rp_config
-            )
+            weights, converged, grad_norm, iterations = solve_erc_newton(cov, self.rp_config)
 
             if not converged:
                 elapsed_ms = (time.perf_counter() - start_time) * 1000.0
@@ -721,10 +726,7 @@ class RiskParityOptimizer(Optimizer):
 
         # Apply additional constraints
         # Separate relaxable constraints (additional beyond box/positivity)
-        additional_constraints = [
-            c for c in ctx.constraints
-            if c.relaxable and c.priority > 0
-        ]
+        additional_constraints = [c for c in ctx.constraints if c.relaxable and c.priority > 0]
 
         if additional_constraints:
             if len(additional_constraints) <= 3:
@@ -740,9 +742,7 @@ class RiskParityOptimizer(Optimizer):
                     "applying_posthoc_projection",
                     n_constraints=len(additional_constraints),
                 )
-                weights = _project_onto_feasible_set(
-                    weights, ctx.constraints, ctx
-                )
+                weights = _project_onto_feasible_set(weights, ctx.constraints, ctx)
 
         # Ensure weights sum to 1 and are non-negative
         weights = np.maximum(weights, 0.0)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import numpy as np
 
@@ -50,9 +50,7 @@ class FactorModelEstimator(CovarianceEstimator):
         else:
             self._D = idiosyncratic_variance
 
-    def estimate(
-        self, returns: np.ndarray, config: CovarianceConfig
-    ) -> CovarianceResult:
+    def estimate(self, returns: np.ndarray, config: CovarianceConfig) -> CovarianceResult:
         """Estimate covariance using the factor model B × F × B' + D.
 
         Args:
@@ -97,7 +95,7 @@ class FactorModelEstimator(CovarianceEstimator):
             n_observations=t,
             condition_number=condition_number,
             shrinkage_intensity=None,
-            as_of_ts=datetime.now(tz=timezone.utc),
+            as_of_ts=datetime.now(tz=UTC),
         )
 
     @staticmethod
@@ -113,20 +111,14 @@ class FactorModelEstimator(CovarianceEstimator):
         """
         # Factor loadings: must be 2-D (n × k)
         if factor_loadings.ndim != 2:
-            msg = (
-                f"Factor loading matrix must be 2-D, "
-                f"got {factor_loadings.ndim}-D array."
-            )
+            msg = f"Factor loading matrix must be 2-D, got {factor_loadings.ndim}-D array."
             raise ValueError(msg)
 
         n, k = factor_loadings.shape
 
         # Factor covariance: must be 2-D (k × k)
         if factor_covariance.ndim != 2:
-            msg = (
-                f"Factor covariance matrix must be 2-D, "
-                f"got {factor_covariance.ndim}-D array."
-            )
+            msg = f"Factor covariance matrix must be 2-D, got {factor_covariance.ndim}-D array."
             raise ValueError(msg)
 
         if factor_covariance.shape != (k, k):

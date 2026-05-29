@@ -16,7 +16,7 @@ from typing import Any
 import numpy as np
 import structlog
 
-from astraeus_strategy.metrics import BacktestMetrics, compute_metrics
+from astraeus_strategy.metrics import compute_metrics
 
 logger = structlog.get_logger("astraeus.strategy.monte_carlo")
 

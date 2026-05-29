@@ -13,11 +13,8 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from unittest.mock import MagicMock
 
 import numpy as np
-import pytest
-
 from astraeus_portfolio.contracts import OptContext
 from astraeus_portfolio.optimizers.risk_parity import (
     RiskParityConfig,
@@ -29,7 +26,6 @@ from astraeus_portfolio.optimizers.risk_parity import (
     solve_erc_newton,
     solve_hrp,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -358,7 +354,7 @@ class TestRiskParityOptimizer:
         # Make one eigenvalue very small to increase condition number
         eigvals, eigvecs = np.linalg.eigh(cov)
         eigvals[0] = 1e-10  # Very small eigenvalue
-        eigvals[-1] = 1e4   # Very large eigenvalue
+        eigvals[-1] = 1e4  # Very large eigenvalue
         cov = eigvecs @ np.diag(eigvals) @ eigvecs.T
         cov = (cov + cov.T) / 2
 

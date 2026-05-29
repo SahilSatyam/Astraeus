@@ -7,7 +7,7 @@ the block exits cleanly and rolled back on any exception.
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator  # noqa: TC003 (return type at runtime)
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 

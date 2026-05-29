@@ -22,14 +22,13 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import numpy as np
 import structlog
 
 from astraeus_portfolio.contracts import (
     CovarianceMethod,
-    FallbackAction,
     OptimizerType,
     PortfolioStatus,
     PortfolioWeight,
@@ -237,14 +236,18 @@ class DailyPipelineOrchestrator:
         if adv is None:
             adv = np.ones(n_assets) * 1_000_000
         if sector_map is None:
-            sector_map = {s: "Unclassified" for s in symbols}
+            sector_map = dict.fromkeys(symbols, "Unclassified")
         if constraints is None:
             constraints = []
 
         from astraeus_portfolio.contracts import OptContext
 
-        covariance_matrix = cov_result.result.matrix if hasattr(cov_result.result, "matrix") else np.eye(n_assets)
-        betas = beta_result.result if isinstance(beta_result.result, np.ndarray) else np.ones(n_assets)
+        covariance_matrix = (
+            cov_result.result.matrix if hasattr(cov_result.result, "matrix") else np.eye(n_assets)
+        )
+        betas = (
+            beta_result.result if isinstance(beta_result.result, np.ndarray) else np.ones(n_assets)
+        )
 
         # Determine current weights from prior portfolio
         current_weights = np.zeros(n_assets)

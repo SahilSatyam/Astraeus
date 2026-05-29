@@ -15,23 +15,19 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-
 from astraeus_portfolio.risk.var_cvar import (
     InsufficientDataError,
     VaRConfig,
     VaRMethod,
-    VaRReport,
-    VaRResult,
+    _check_discrepancy,
+    _validate_returns,
     compute_historical_var,
     compute_monte_carlo_var,
     compute_monte_carlo_var_multivariate,
     compute_parametric_var,
     compute_var_cvar,
     compute_var_cvar_multivariate,
-    _check_discrepancy,
-    _validate_returns,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -46,9 +42,7 @@ def _generate_returns(
     return rng.normal(mu, sigma, size=n_days)
 
 
-def _generate_fat_tailed_returns(
-    n_days: int = 252, seed: int = 42
-) -> np.ndarray:
+def _generate_fat_tailed_returns(n_days: int = 252, seed: int = 42) -> np.ndarray:
     """Generate returns with fat tails (t-distribution, df=3)."""
     rng = np.random.default_rng(seed)
     return rng.standard_t(df=3, size=n_days) * 0.01
@@ -292,9 +286,7 @@ class TestMonteCarloVaR:
         """t-copula (df=4) produces heavier tails than Gaussian for same data."""
         # With fat-tailed historical data, MC should capture tail risk
         returns = _generate_fat_tailed_returns(n_days=500)
-        mc_var, _ = compute_monte_carlo_var(
-            returns, 0.99, lookback_window=500, seed=42
-        )
+        mc_var, _ = compute_monte_carlo_var(returns, 0.99, lookback_window=500, seed=42)
         # MC VaR should be positive and meaningful
         assert mc_var > 0
 
@@ -321,31 +313,21 @@ class TestMultivariateMonteCarloVaR:
         """Same seed produces identical multivariate results."""
         asset_returns = _generate_multivariate_returns(n_days=252, n_assets=3)
         weights = np.array([0.5, 0.3, 0.2])
-        var1, cvar1 = compute_monte_carlo_var_multivariate(
-            asset_returns, weights, 0.95, seed=42
-        )
-        var2, cvar2 = compute_monte_carlo_var_multivariate(
-            asset_returns, weights, 0.95, seed=42
-        )
+        var1, cvar1 = compute_monte_carlo_var_multivariate(asset_returns, weights, 0.95, seed=42)
+        var2, cvar2 = compute_monte_carlo_var_multivariate(asset_returns, weights, 0.95, seed=42)
         assert var1 == var2
         assert cvar1 == cvar2
 
     def test_concentrated_portfolio_higher_var(self) -> None:
         """Concentrated portfolio has higher VaR than diversified."""
-        asset_returns = _generate_multivariate_returns(
-            n_days=252, n_assets=5, seed=77
-        )
+        asset_returns = _generate_multivariate_returns(n_days=252, n_assets=5, seed=77)
         # Diversified
         w_div = np.array([0.2, 0.2, 0.2, 0.2, 0.2])
         # Concentrated in one asset
         w_conc = np.array([0.8, 0.05, 0.05, 0.05, 0.05])
 
-        var_div, _ = compute_monte_carlo_var_multivariate(
-            asset_returns, w_div, 0.95, seed=42
-        )
-        var_conc, _ = compute_monte_carlo_var_multivariate(
-            asset_returns, w_conc, 0.95, seed=42
-        )
+        var_div, _ = compute_monte_carlo_var_multivariate(asset_returns, w_div, 0.95, seed=42)
+        var_conc, _ = compute_monte_carlo_var_multivariate(asset_returns, w_conc, 0.95, seed=42)
         # Concentrated portfolio generally has higher risk
         # (not guaranteed for all random seeds, but likely)
         # We just check both are positive
@@ -470,15 +452,9 @@ class TestVaRReport:
         report = compute_var_cvar(returns, seed=42)
 
         for method in VaRMethod:
-            results_for_method = [
-                r for r in report.results if r.method == method
-            ]
-            var_95 = next(
-                r.var_pct for r in results_for_method if r.confidence_level == 0.95
-            )
-            var_99 = next(
-                r.var_pct for r in results_for_method if r.confidence_level == 0.99
-            )
+            results_for_method = [r for r in report.results if r.method == method]
+            var_95 = next(r.var_pct for r in results_for_method if r.confidence_level == 0.95)
+            var_99 = next(r.var_pct for r in results_for_method if r.confidence_level == 0.99)
             assert var_99 >= var_95 - 1e-10
 
     def test_deterministic_report(self) -> None:
@@ -487,7 +463,7 @@ class TestVaRReport:
         report1 = compute_var_cvar(returns, seed=42)
         report2 = compute_var_cvar(returns, seed=42)
 
-        for r1, r2 in zip(report1.results, report2.results):
+        for r1, r2 in zip(report1.results, report2.results, strict=False):
             assert r1.var_pct == r2.var_pct
             assert r1.cvar_pct == r2.cvar_pct
 
@@ -536,7 +512,7 @@ class TestMultivariateVaRReport:
         report1 = compute_var_cvar_multivariate(asset_returns, weights, seed=42)
         report2 = compute_var_cvar_multivariate(asset_returns, weights, seed=42)
 
-        for r1, r2 in zip(report1.results, report2.results):
+        for r1, r2 in zip(report1.results, report2.results, strict=False):
             assert r1.var_pct == r2.var_pct
             assert r1.cvar_pct == r2.cvar_pct
 

@@ -114,7 +114,7 @@ class AlpacaStreamClient:
     async def _connect_and_stream(self) -> None:
         """Establish connection, authenticate, subscribe, and process messages."""
         try:
-            import websockets  # noqa: PLC0415
+            import websockets
         except ImportError as exc:
             raise ImportError(
                 "websockets package required for streaming. Install with: pip install websockets"

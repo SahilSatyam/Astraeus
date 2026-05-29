@@ -15,7 +15,6 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import Any
 
-import numpy as np
 import polars as pl
 
 from astraeus_strategy.protocol import Strategy, StrategyContext
@@ -67,8 +66,7 @@ class FactorBlend(Strategy):
 
         # Collect latest factor scores for universe
         panel = (
-            feature_panel
-            .filter(pl.col("symbol").is_in(universe))
+            feature_panel.filter(pl.col("symbol").is_in(universe))
             .group_by("symbol")
             .agg([pl.col(c).last().alias(c) for c in factor_columns if c in feature_panel.columns])
             .collect()
@@ -86,13 +84,9 @@ class FactorBlend(Strategy):
             mean = panel[factor].mean()
             std = panel[factor].std()
             if std and std > 0:
-                panel = panel.with_columns(
-                    ((pl.col(factor) - mean) / std).alias(f"{factor}_z")
-                )
+                panel = panel.with_columns(((pl.col(factor) - mean) / std).alias(f"{factor}_z"))
             else:
-                panel = panel.with_columns(
-                    pl.lit(0.0).alias(f"{factor}_z")
-                )
+                panel = panel.with_columns(pl.lit(0.0).alias(f"{factor}_z"))
 
         # Composite score: equal-weight z-scores (equal-risk approximation)
         z_cols = [f"{f}_z" for f in available_factors]

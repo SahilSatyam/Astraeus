@@ -13,21 +13,16 @@ Tests cover:
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 
 import numpy as np
-import pytest
-
 from astraeus_portfolio.contracts import OptContext, View
 from astraeus_portfolio.optimizers.black_litterman import (
+    _DEFAULT_DELTA,
     BlackLittermanOptimizer,
     BLOptimizer,
-    _CONDITION_NUMBER_WARN,
-    _CONFIDENCE_CAP,
-    _DEFAULT_DELTA,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -100,7 +95,7 @@ def _make_view(
     P = []
     Q = []
     confs = []
-    for i in range(n_views):
+    for _i in range(n_views):
         row = [0.0] * n_assets
         row[0] = 1.0
         row[1] = -1.0
@@ -174,9 +169,7 @@ class TestEquilibriumReturns:
         delta = 2.5
         opt = BlackLittermanOptimizer(delta=delta)
         n = 3
-        sigma = np.array([[0.04, 0.01, 0.005],
-                          [0.01, 0.09, 0.02],
-                          [0.005, 0.02, 0.16]])
+        sigma = np.array([[0.04, 0.01, 0.005], [0.01, 0.09, 0.02], [0.005, 0.02, 0.16]])
         w_mkt = np.array([0.5, 0.3, 0.2])
 
         pi = opt._compute_equilibrium_returns(sigma, w_mkt)
@@ -500,7 +493,6 @@ class TestConditionNumberWarning:
 
     def test_well_conditioned_views_no_warning(self, caplog) -> None:
         """Well-conditioned views do not trigger a warning."""
-        import structlog
         import logging
 
         n = 5

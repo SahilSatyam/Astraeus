@@ -15,14 +15,12 @@ from decimal import Decimal
 
 import numpy as np
 import pytest
-
-from astraeus_portfolio.contracts import OptContext, OptResult
+from astraeus_portfolio.contracts import OptContext
 from astraeus_portfolio.optimizers.mvo import (
+    MeanVarianceOptimizer,
     MVOMode,
     MVOValidationError,
-    MeanVarianceOptimizer,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -103,9 +101,7 @@ class TestMVOInitialization:
 
     def test_target_return_mode(self) -> None:
         """Target-return mode requires a valid target_return."""
-        opt = MeanVarianceOptimizer(
-            mode=MVOMode.TARGET_RETURN, target_return=0.08
-        )
+        opt = MeanVarianceOptimizer(mode=MVOMode.TARGET_RETURN, target_return=0.08)
         assert opt.mode == MVOMode.TARGET_RETURN
         assert opt.target_return == 0.08
 
@@ -266,9 +262,7 @@ class TestMVOTangency:
         mu = np.array([0.15, 0.02])  # Asset 0 has much higher return
 
         opt = MeanVarianceOptimizer(mode=MVOMode.TANGENCY, risk_aversion=2.0)
-        ctx = _make_opt_context(
-            n_assets=2, covariance=cov, expected_returns=mu, risk_aversion=2.0
-        )
+        ctx = _make_opt_context(n_assets=2, covariance=cov, expected_returns=mu, risk_aversion=2.0)
         result = opt.run(ctx)
 
         # Asset 0 should have higher weight due to higher expected return
@@ -335,9 +329,7 @@ class TestMVOTargetReturn:
 
     def test_target_return_produces_valid_weights(self) -> None:
         """Target-return mode produces weights that sum to 1."""
-        opt = MeanVarianceOptimizer(
-            mode=MVOMode.TARGET_RETURN, target_return=0.05
-        )
+        opt = MeanVarianceOptimizer(mode=MVOMode.TARGET_RETURN, target_return=0.05)
         ctx = _make_opt_context(n_assets=5)
         result = opt.run(ctx)
         assert result.status in ("optimal", "optimal_inaccurate")
@@ -346,9 +338,7 @@ class TestMVOTargetReturn:
     def test_target_return_meets_target(self) -> None:
         """Target-return mode achieves at least the target return."""
         target = 0.05
-        opt = MeanVarianceOptimizer(
-            mode=MVOMode.TARGET_RETURN, target_return=target
-        )
+        opt = MeanVarianceOptimizer(mode=MVOMode.TARGET_RETURN, target_return=target)
         ctx = _make_opt_context(n_assets=5)
         result = opt.run(ctx)
 
@@ -360,12 +350,8 @@ class TestMVOTargetReturn:
         """Higher target return leads to higher portfolio variance."""
         cov = _make_psd_covariance(5, seed=77)
 
-        opt_low = MeanVarianceOptimizer(
-            mode=MVOMode.TARGET_RETURN, target_return=0.03
-        )
-        opt_high = MeanVarianceOptimizer(
-            mode=MVOMode.TARGET_RETURN, target_return=0.10
-        )
+        opt_low = MeanVarianceOptimizer(mode=MVOMode.TARGET_RETURN, target_return=0.03)
+        opt_high = MeanVarianceOptimizer(mode=MVOMode.TARGET_RETURN, target_return=0.10)
 
         # Use expected returns that make both targets feasible
         mu = np.array([0.05, 0.08, 0.12, 0.15, 0.20])
@@ -411,9 +397,7 @@ class TestMVODeterminism:
 
     def test_target_return_deterministic(self) -> None:
         """Target-return mode produces identical weights on repeated runs."""
-        opt = MeanVarianceOptimizer(
-            mode=MVOMode.TARGET_RETURN, target_return=0.05
-        )
+        opt = MeanVarianceOptimizer(mode=MVOMode.TARGET_RETURN, target_return=0.05)
         ctx = _make_opt_context(n_assets=5)
 
         result1 = opt.run(ctx)
@@ -440,18 +424,17 @@ class TestMVOSolverFallback:
                 super().__init__(name="box", priority=0, relaxable=False)
 
             def to_cvxpy(self, w, ctx):
-                import cvxpy as cp
                 return [w >= 0, w <= 0.5]
 
             def diagnostic(self, w_value, ctx):
-                return {"satisfied": bool(np.all(w_value >= -1e-6) and np.all(w_value <= 0.5 + 1e-6))}
+                return {
+                    "satisfied": bool(np.all(w_value >= -1e-6) and np.all(w_value <= 0.5 + 1e-6))
+                }
 
         # Set target return higher than achievable with box constraints
         # Max achievable return with w_i in [0, 0.5] and sum(w)=1:
         # With 5 assets and max weight 0.5, best case is 0.5*max + 0.5*second_max
-        opt = MeanVarianceOptimizer(
-            mode=MVOMode.TARGET_RETURN, target_return=0.99
-        )
+        opt = MeanVarianceOptimizer(mode=MVOMode.TARGET_RETURN, target_return=0.99)
         # All expected returns are low — max achievable is ~0.04
         mu = np.array([0.01, 0.02, 0.03, 0.04, 0.05])
         ctx = _make_opt_context(

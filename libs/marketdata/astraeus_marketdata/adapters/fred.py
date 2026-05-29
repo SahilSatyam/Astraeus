@@ -43,7 +43,7 @@ class FredAdapter(BaseAdapter):
         symbols: list[str],
         start: date,
         end: date,
-        resolution: str = "1d",  # noqa: ARG002
+        resolution: str = "1d",
     ) -> list[AdapterResult]:
         """Fetch FRED series. Each 'symbol' is a FRED series ID (e.g., GDP, CPIAUCSL)."""
         results: list[AdapterResult] = []

@@ -6,8 +6,6 @@ period. Reference magnitude: SPY ≈ -29%.
 
 from __future__ import annotations
 
-from decimal import Decimal
-
 import numpy as np
 
 from astraeus_portfolio.contracts import ScenarioName, ScenarioResult
@@ -86,7 +84,9 @@ class GFC2008Scenario(StressScenario):
                 # Assets with higher beta experience amplified shocks
                 if ctx.factor_loadings is not None and ctx.factor_loadings.shape[1] > 0:
                     # Use market beta (first factor loading) to scale
-                    market_beta = ctx.factor_loadings[i, 0] if ctx.factor_loadings.shape[1] > 0 else 1.0
+                    market_beta = (
+                        ctx.factor_loadings[i, 0] if ctx.factor_loadings.shape[1] > 0 else 1.0
+                    )
                     asset_shocks[i] = sector_shock * abs(market_beta)
                 else:
                     asset_shocks[i] = sector_shock

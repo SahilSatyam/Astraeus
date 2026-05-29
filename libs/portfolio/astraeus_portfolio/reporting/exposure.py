@@ -11,11 +11,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any
 
 import structlog
 
-from astraeus_portfolio.contracts import PortfolioWeight, TargetPortfolio
+from astraeus_portfolio.contracts import TargetPortfolio
 
 logger = structlog.get_logger(__name__)
 
@@ -156,7 +155,9 @@ def build_exposure_report(
                 FactorExposureEntry(
                     factor=factor,
                     exposure=Decimal(str(round(exposure, 6))),
-                    prior_exposure=Decimal(str(round(prior_exp, 6))) if prior_exp is not None else None,
+                    prior_exposure=Decimal(str(round(prior_exp, 6)))
+                    if prior_exp is not None
+                    else None,
                     delta=delta,
                 )
             )
@@ -179,9 +180,7 @@ def build_exposure_report(
         prior_weight_map: dict[str, Decimal] = {
             pw.symbol: pw.weight for pw in prior_portfolio.weights
         }
-        current_weight_map: dict[str, Decimal] = {
-            pw.symbol: pw.weight for pw in portfolio.weights
-        }
+        current_weight_map: dict[str, Decimal] = {pw.symbol: pw.weight for pw in portfolio.weights}
 
         all_symbols = set(prior_weight_map.keys()) | set(current_weight_map.keys())
         changes: list[PositionChange] = []

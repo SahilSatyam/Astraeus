@@ -32,9 +32,7 @@ class SectorCapConstraint(Constraint):
         unclassified_max: Maximum absolute weight for unclassified bucket (default 0.05 = 5%).
     """
 
-    def __init__(
-        self, sector_max: float = 0.25, unclassified_max: float = 0.05
-    ) -> None:
+    def __init__(self, sector_max: float = 0.25, unclassified_max: float = 0.05) -> None:
         """Initialize sector cap constraint.
 
         Args:
@@ -53,9 +51,7 @@ class SectorCapConstraint(Constraint):
         self.sector_max = sector_max
         self.unclassified_max = unclassified_max
 
-    def _get_sector_indices(
-        self, ctx: OptContext
-    ) -> dict[str, list[int]]:
+    def _get_sector_indices(self, ctx: OptContext) -> dict[str, list[int]]:
         """Group asset indices by sector.
 
         Args:

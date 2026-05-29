@@ -66,7 +66,9 @@ class Constraint(ABC):
         self.relaxable = relaxable
 
     @abstractmethod
-    def to_cvxpy(self, w: cp.Variable, ctx: OptContext) -> list[cp.constraints.constraint.Constraint]:
+    def to_cvxpy(
+        self, w: cp.Variable, ctx: OptContext
+    ) -> list[cp.constraints.constraint.Constraint]:
         """Convert this constraint to cvxpy constraint expressions.
 
         Args:

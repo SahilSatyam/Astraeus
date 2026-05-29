@@ -14,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Annotated
 
-from astraeus_config import Settings  # noqa: TC002 (FastAPI needs at runtime)
+from astraeus_config import Settings
 from astraeus_db import get_session
 from fastapi import Depends, Request
 

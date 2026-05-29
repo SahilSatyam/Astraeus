@@ -13,16 +13,14 @@ implies higher VaR).
 
 from __future__ import annotations
 
-import numpy as np
 import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
+import numpy as np
 from astraeus_portfolio.risk.var_cvar import (
     VaRConfig,
     VaRMethod,
     compute_var_cvar,
 )
-
+from hypothesis import assume, given, settings
 
 # ---------------------------------------------------------------------------
 # Hypothesis Strategies
@@ -109,9 +107,7 @@ class TestVaRCVaRRelationshipInvariant:
             if len(method_results) < 2:
                 continue
 
-            var_by_confidence = {
-                r.confidence_level: r.var_pct for r in method_results
-            }
+            var_by_confidence = {r.confidence_level: r.var_pct for r in method_results}
 
             if 0.95 in var_by_confidence and 0.99 in var_by_confidence:
                 assert var_by_confidence[0.99] >= var_by_confidence[0.95], (

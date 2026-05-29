@@ -17,11 +17,11 @@ Usage:
 from __future__ import annotations
 
 import hashlib
-import os
 import subprocess
+from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import UTC, datetime
-from typing import Any, Generator
+from typing import Any
 
 import structlog
 
@@ -32,7 +32,7 @@ def _get_git_commit() -> str | None:
     """Get current git commit SHA."""
     try:
         result = subprocess.run(
-            ["git", "rev-parse", "HEAD"],  # noqa: S603, S607
+            ["git", "rev-parse", "HEAD"],  # noqa: S607
             capture_output=True,
             text=True,
             timeout=5,
@@ -117,7 +117,7 @@ def run_experiment(
         ExperimentRun wrapper for logging metrics/artifacts.
     """
     try:
-        import mlflow  # noqa: PLC0415
+        import mlflow
 
         mlflow.set_experiment(experiment_name)
 
@@ -161,5 +161,7 @@ def run_experiment(
             msg="MLflow not available. Experiment tracking disabled.",
         )
         # Yield a no-op wrapper
-        wrapper = ExperimentRun(type("FakeRun", (), {"info": type("Info", (), {"run_id": "local"})()})())
+        wrapper = ExperimentRun(
+            type("FakeRun", (), {"info": type("Info", (), {"run_id": "local"})()})()
+        )
         yield wrapper

@@ -50,7 +50,7 @@ class MinIOArchiver:
         """Lazy-initialize the MinIO client."""
         if self._client is None:
             try:
-                from minio import Minio  # noqa: PLC0415
+                from minio import Minio
 
                 self._client = Minio(
                     self._endpoint,

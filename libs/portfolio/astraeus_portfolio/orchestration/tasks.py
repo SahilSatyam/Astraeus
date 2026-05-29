@@ -30,18 +30,17 @@ import numpy as np
 import structlog
 
 from astraeus_portfolio.contracts import (
-    CovarianceResult,
-    FallbackAction,
     OptContext,
-    OptResult,
     OptimizerType,
-    PortfolioStatus,
-    PortfolioWeight,
+    OptResult,
     RiskReport,
     TargetPortfolio,
 )
-from astraeus_portfolio.optimizers.fallback import FallbackConfig, FallbackExecutor, FallbackOutcome
-from astraeus_portfolio.risk.validation import RiskGate, RiskPolicy, ValidationResult, ValidationStatus
+from astraeus_portfolio.optimizers.fallback import FallbackConfig, FallbackExecutor
+from astraeus_portfolio.risk.validation import (
+    RiskGate,
+    RiskPolicy,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -233,10 +232,10 @@ def task_estimate_covariance(
         if returns_matrix is None:
             raise ValueError("returns_matrix is required for covariance estimation")
 
+        from astraeus_portfolio.contracts import CovarianceConfig
         from astraeus_portfolio.covariance.base import CovarianceEstimator
         from astraeus_portfolio.covariance.ledoit_wolf import LedoitWolfEstimator
         from astraeus_portfolio.covariance.sample import SampleCovarianceEstimator
-        from astraeus_portfolio.contracts import CovarianceConfig
 
         estimators: dict[str, type[CovarianceEstimator]] = {
             "sample": SampleCovarianceEstimator,
@@ -314,11 +313,13 @@ def task_estimate_betas(
             betas = np.ones(n_assets)
         else:
             market_demean = recent_market - np.mean(recent_market)
-            betas = np.array([
-                np.sum((recent_assets[:, i] - np.mean(recent_assets[:, i])) * market_demean)
-                / ((T - 1) * market_var)
-                for i in range(n_assets)
-            ])
+            betas = np.array(
+                [
+                    np.sum((recent_assets[:, i] - np.mean(recent_assets[:, i])) * market_demean)
+                    / ((T - 1) * market_var)
+                    for i in range(n_assets)
+                ]
+            )
 
         elapsed = (time.perf_counter() - start) * 1000
         return TaskResult(

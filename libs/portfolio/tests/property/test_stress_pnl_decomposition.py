@@ -12,19 +12,16 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-import numpy as np
 import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
-from astraeus_portfolio.contracts import ScenarioName
+import numpy as np
 from astraeus_portfolio.risk.stress import (
-    StressContext,
-    GFC2008Scenario,
     COVID2020Scenario,
-    RateShockScenario,
     FlashCrashScenario,
+    GFC2008Scenario,
+    RateShockScenario,
+    StressContext,
 )
-
+from hypothesis import given, settings
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -125,7 +122,9 @@ def st_stress_context(draw: st.DrawFn) -> StressContext:
     # Generate ADV (average daily volume in shares)
     adv_data = draw(
         st.lists(
-            st.floats(min_value=100_000.0, max_value=10_000_000.0, allow_nan=False, allow_infinity=False),
+            st.floats(
+                min_value=100_000.0, max_value=10_000_000.0, allow_nan=False, allow_infinity=False
+            ),
             min_size=n,
             max_size=n,
         )
@@ -207,7 +206,9 @@ def st_stress_context_no_factors(draw: st.DrawFn) -> StressContext:
 
     adv_data = draw(
         st.lists(
-            st.floats(min_value=100_000.0, max_value=10_000_000.0, allow_nan=False, allow_infinity=False),
+            st.floats(
+                min_value=100_000.0, max_value=10_000_000.0, allow_nan=False, allow_infinity=False
+            ),
             min_size=n,
             max_size=n,
         )

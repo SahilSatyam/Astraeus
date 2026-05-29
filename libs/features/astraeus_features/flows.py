@@ -23,13 +23,9 @@ Usage:
 from __future__ import annotations
 
 import hashlib
-from datetime import UTC, date, datetime, timedelta
-from typing import TYPE_CHECKING
+from datetime import date, timedelta
 
 import structlog
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger("astraeus.features.flows")
 
@@ -43,20 +39,26 @@ except ImportError:  # pragma: no cover
 
     def flow(**kwargs: Any):  # type: ignore[no-redef]
         """No-op flow decorator when prefect is not installed."""
+
         def decorator(fn: Any) -> Any:
             @wraps(fn)
             async def wrapper(*args: Any, **kw: Any) -> Any:
                 return await fn(*args, **kw)
+
             return wrapper
+
         return decorator
 
     def task(**kwargs: Any):  # type: ignore[no-redef]
         """No-op task decorator when prefect is not installed."""
+
         def decorator(fn: Any) -> Any:
             @wraps(fn)
             async def wrapper(*args: Any, **kw: Any) -> Any:
                 return await fn(*args, **kw)
+
             return wrapper
+
         return decorator
 
 
@@ -79,7 +81,9 @@ def _compute_chunk_hash(
     chunk_end: date,
 ) -> str:
     """Deterministic hash for a single chunk run."""
-    canonical = f"{feature_name}|{definition_hash}|{chunk_start.isoformat()}|{chunk_end.isoformat()}"
+    canonical = (
+        f"{feature_name}|{definition_hash}|{chunk_start.isoformat()}|{chunk_end.isoformat()}"
+    )
     return hashlib.sha256(canonical.encode()).hexdigest()
 
 
@@ -98,11 +102,11 @@ async def materialize_chunk(
     """
     from astraeus_config import Settings
     from astraeus_db import get_session
-    from astraeus_features.backfill import _compute_run_hash, _materialize_chunk
+    from sqlalchemy import select
+
+    from astraeus_features.backfill import _materialize_chunk
     from astraeus_features.models import MaterializationRun
     from astraeus_features.registry import get_definition
-
-    from sqlalchemy import select
 
     settings = Settings()
     chunk_hash = _compute_chunk_hash(feature_name, definition_hash, chunk_start, chunk_end)
@@ -200,6 +204,7 @@ async def backfill_feature_flow(
     """
     from astraeus_config import Settings
     from astraeus_db import get_session
+
     from astraeus_features.registry import get_definition
 
     start_date = date.fromisoformat(start)

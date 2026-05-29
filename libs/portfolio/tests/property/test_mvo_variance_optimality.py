@@ -14,16 +14,13 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-import numpy as np
 import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
+import numpy as np
 from astraeus_portfolio.constraints.base import Constraint
 from astraeus_portfolio.constraints.box import BoxConstraint
 from astraeus_portfolio.contracts import OptContext
-from astraeus_portfolio.optimizers.base import OptimizerConfig
 from astraeus_portfolio.optimizers.mvo import MVOMode, MVOOptimizer
-
+from hypothesis import assume, given, settings
 
 # ---------------------------------------------------------------------------
 # Hypothesis Strategies
@@ -204,9 +201,7 @@ class TestMVOVarianceOptimality:
 
     @given(ctx=st_mvo_feasible_context())
     @settings(max_examples=100, deadline=None)
-    def test_target_return_beats_equal_weight_when_feasible(
-        self, ctx: OptContext
-    ) -> None:
+    def test_target_return_beats_equal_weight_when_feasible(self, ctx: OptContext) -> None:
         """Target-return MVO produces variance <= equal-weight variance.
 
         When the target return is set to the equal-weight portfolio's expected

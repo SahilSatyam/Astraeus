@@ -26,11 +26,11 @@ STRATEGY_REGISTRY: dict[str, type] = {}
 
 def _load_strategies() -> None:
     """Lazy-load all reference strategies into the registry."""
-    from astraeus_strategy.strategies.momentum import Momentum12_1
-    from astraeus_strategy.strategies.mean_reversion import MeanReversion5d
-    from astraeus_strategy.strategies.pairs import PairsTrading
     from astraeus_strategy.strategies.factor_blend import FactorBlend
+    from astraeus_strategy.strategies.mean_reversion import MeanReversion5d
     from astraeus_strategy.strategies.ml_forecast import MLForecast
+    from astraeus_strategy.strategies.momentum import Momentum12_1
+    from astraeus_strategy.strategies.pairs import PairsTrading
 
     STRATEGY_REGISTRY["momentum_12_1"] = Momentum12_1
     STRATEGY_REGISTRY["mean_reversion_5d"] = MeanReversion5d
@@ -52,7 +52,9 @@ def parse_args() -> argparse.Namespace:
     run_parser.add_argument("--start", type=date.fromisoformat, default=date(2015, 1, 1))
     run_parser.add_argument("--end", type=date.fromisoformat, default=date(2024, 12, 31))
     run_parser.add_argument("--params", type=str, default="{}", help="JSON params")
-    run_parser.add_argument("--engine", choices=["vectorized", "event_driven"], default="vectorized")
+    run_parser.add_argument(
+        "--engine", choices=["vectorized", "event_driven"], default="vectorized"
+    )
     run_parser.add_argument("--seed", type=int, default=42)
     run_parser.add_argument("--capital", type=float, default=1_000_000.0)
 
@@ -90,7 +92,7 @@ def cmd_list() -> None:
     print("\nAvailable strategies:")
     print(f"{'Name':<25} {'Version':<10} {'Universe':<15} {'Frequency'}")
     print("-" * 65)
-    for name, cls in sorted(STRATEGY_REGISTRY.items()):
+    for _name, cls in sorted(STRATEGY_REGISTRY.items()):
         instance = cls()
         print(
             f"{instance.name:<25} {instance.version:<10} "
@@ -113,7 +115,7 @@ def cmd_run(args: argparse.Namespace) -> None:
 
     from astraeus_strategy.types import BacktestConfig
 
-    config = BacktestConfig(
+    BacktestConfig(
         strategy_name=args.strategy,
         params=params,
         start=args.start,
@@ -142,7 +144,7 @@ def cmd_run(args: argparse.Namespace) -> None:
     print(f"  History:      {strategy.dependencies.history_horizon.days} days")
     print()
     print("To execute with data, ensure the database is running and populated.")
-    print(f"  Config hash would be computed from: code + params + data lineage + seed")
+    print("  Config hash would be computed from: code + params + data lineage + seed")
 
 
 def cmd_reconcile(args: argparse.Namespace) -> None:
@@ -192,9 +194,11 @@ def cmd_walk_forward(args: argparse.Namespace) -> None:
     print()
 
     for w in windows:
-        print(f"  Fold {w.fold_index}: train [{w.train_start} → {w.train_end}] "
-              f"val [{w.val_start} → {w.val_end}] "
-              f"OOS [{w.oos_start} → {w.oos_end}]")
+        print(
+            f"  Fold {w.fold_index}: train [{w.train_start} → {w.train_end}] "
+            f"val [{w.val_start} → {w.val_end}] "
+            f"OOS [{w.oos_start} → {w.oos_end}]"
+        )
 
     print()
     print("  Requires price data in the database for execution.")

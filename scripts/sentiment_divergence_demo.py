@@ -92,9 +92,11 @@ def detect_divergences(
     for i in range(window, n):
         # Divergence: price down but sentiment positive, or vice versa
         price_dir = 1 if price_trend[i] > 0.02 else (-1 if price_trend[i] < -0.02 else 0)
-        sent_dir = 1 if sentiment_avg[i] > threshold else (-1 if sentiment_avg[i] < -threshold else 0)
+        sent_dir = (
+            1 if sentiment_avg[i] > threshold else (-1 if sentiment_avg[i] < -threshold else 0)
+        )
 
-        is_divergent = (price_dir != 0 and sent_dir != 0 and price_dir != sent_dir)
+        is_divergent = price_dir != 0 and sent_dir not in (0, price_dir)
 
         if is_divergent and not in_divergence:
             in_divergence = True
@@ -102,28 +104,36 @@ def detect_divergences(
         elif not is_divergent and in_divergence:
             duration = i - div_start
             if duration >= window:
-                divergences.append({
-                    "start_day": div_start,
-                    "end_day": i,
-                    "duration_days": duration,
-                    "avg_price_trend": float(np.mean(price_trend[div_start:i])),
-                    "avg_sentiment": float(np.mean(sentiment_avg[div_start:i])),
-                    "type": "bullish_divergence" if price_trend[div_start] < 0 else "bearish_divergence",
-                })
+                divergences.append(
+                    {
+                        "start_day": div_start,
+                        "end_day": i,
+                        "duration_days": duration,
+                        "avg_price_trend": float(np.mean(price_trend[div_start:i])),
+                        "avg_sentiment": float(np.mean(sentiment_avg[div_start:i])),
+                        "type": "bullish_divergence"
+                        if price_trend[div_start] < 0
+                        else "bearish_divergence",
+                    }
+                )
             in_divergence = False
 
     # Handle ongoing divergence at end
     if in_divergence:
         duration = n - div_start
         if duration >= window:
-            divergences.append({
-                "start_day": div_start,
-                "end_day": n - 1,
-                "duration_days": duration,
-                "avg_price_trend": float(np.mean(price_trend[div_start:])),
-                "avg_sentiment": float(np.mean(sentiment_avg[div_start:])),
-                "type": "bullish_divergence" if price_trend[div_start] < 0 else "bearish_divergence",
-            })
+            divergences.append(
+                {
+                    "start_day": div_start,
+                    "end_day": n - 1,
+                    "duration_days": duration,
+                    "avg_price_trend": float(np.mean(price_trend[div_start:])),
+                    "avg_sentiment": float(np.mean(sentiment_avg[div_start:])),
+                    "type": "bullish_divergence"
+                    if price_trend[div_start] < 0
+                    else "bearish_divergence",
+                }
+            )
 
     return divergences
 

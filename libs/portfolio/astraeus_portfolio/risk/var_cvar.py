@@ -11,13 +11,12 @@ All results are expressed as a percentage of portfolio NAV.
 from __future__ import annotations
 
 import logging
-import warnings
 from dataclasses import dataclass
 from enum import StrEnum
 
 import numpy as np
-from scipy import stats
-from scipy.stats import norm, t as t_dist
+from scipy.stats import norm
+from scipy.stats import t as t_dist
 
 logger = logging.getLogger(__name__)
 
@@ -59,8 +58,7 @@ class InsufficientDataError(Exception):
         self.available = available
         self.minimum_required = minimum_required
         super().__init__(
-            f"Insufficient trading days: {available} available, "
-            f"{minimum_required} required."
+            f"Insufficient trading days: {available} available, {minimum_required} required."
         )
 
 
@@ -94,9 +92,7 @@ class VaRReport:
 # ---------------------------------------------------------------------------
 
 
-def _validate_returns(
-    portfolio_returns: np.ndarray, min_observations: int
-) -> None:
+def _validate_returns(portfolio_returns: np.ndarray, min_observations: int) -> None:
     """Validate portfolio return series has sufficient data.
 
     Args:
@@ -108,9 +104,7 @@ def _validate_returns(
         ValueError: If returns contain NaN or Inf values.
     """
     if portfolio_returns.ndim != 1:
-        raise ValueError(
-            f"portfolio_returns must be 1-D, got shape {portfolio_returns.shape}"
-        )
+        raise ValueError(f"portfolio_returns must be 1-D, got shape {portfolio_returns.shape}")
 
     if np.any(np.isnan(portfolio_returns)):
         raise ValueError("portfolio_returns contains NaN values")
@@ -120,9 +114,7 @@ def _validate_returns(
 
     n = len(portfolio_returns)
     if n < min_observations:
-        raise InsufficientDataError(
-            available=n, minimum_required=min_observations
-        )
+        raise InsufficientDataError(available=n, minimum_required=min_observations)
 
 
 def compute_historical_var(
@@ -235,8 +227,8 @@ def compute_monte_carlo_var(
     rng = np.random.default_rng(seed)
 
     # Estimate parameters from historical returns
-    mu = np.mean(returns)
-    sigma = np.std(returns, ddof=1)
+    np.mean(returns)
+    np.std(returns, ddof=1)
 
     # Generate t-distributed random samples (t-copula with 1 dimension)
     # For a single portfolio return series, the t-copula simplifies to
@@ -354,9 +346,7 @@ def compute_monte_carlo_var_multivariate(
     # Step 5: Apply inverse empirical CDF per asset
     simulated_asset_returns = np.empty_like(uniform_samples)
     for i in range(n_assets):
-        simulated_asset_returns[:, i] = np.quantile(
-            returns[:, i], uniform_samples[:, i]
-        )
+        simulated_asset_returns[:, i] = np.quantile(returns[:, i], uniform_samples[:, i])
 
     # Compute portfolio returns from simulated asset returns
     simulated_portfolio_returns = simulated_asset_returns @ weights
@@ -367,9 +357,7 @@ def compute_monte_carlo_var_multivariate(
     var_pct = -var_threshold * 100.0
 
     # CVaR: mean of returns at or below VaR threshold
-    tail_returns = simulated_portfolio_returns[
-        simulated_portfolio_returns <= var_threshold
-    ]
+    tail_returns = simulated_portfolio_returns[simulated_portfolio_returns <= var_threshold]
     if len(tail_returns) == 0:
         cvar_pct = var_pct
     else:
@@ -459,9 +447,7 @@ def compute_var_cvar(
 
     for confidence_level in config.confidence_levels:
         # Historical VaR/CVaR
-        hist_var, hist_cvar = compute_historical_var(
-            portfolio_returns, confidence_level, lookback
-        )
+        hist_var, hist_cvar = compute_historical_var(portfolio_returns, confidence_level, lookback)
         results.append(
             VaRResult(
                 method=VaRMethod.HISTORICAL,
@@ -546,9 +532,7 @@ def compute_var_cvar_multivariate(
         config = VaRConfig()
 
     if asset_returns.ndim != 2:
-        raise ValueError(
-            f"asset_returns must be 2-D (T×n), got shape {asset_returns.shape}"
-        )
+        raise ValueError(f"asset_returns must be 2-D (T×n), got shape {asset_returns.shape}")
 
     if weights.ndim != 1:
         raise ValueError(f"weights must be 1-D, got shape {weights.shape}")
@@ -573,9 +557,7 @@ def compute_var_cvar_multivariate(
 
     for confidence_level in config.confidence_levels:
         # Historical VaR/CVaR (from portfolio returns)
-        hist_var, hist_cvar = compute_historical_var(
-            portfolio_returns, confidence_level, lookback
-        )
+        hist_var, hist_cvar = compute_historical_var(portfolio_returns, confidence_level, lookback)
         results.append(
             VaRResult(
                 method=VaRMethod.HISTORICAL,

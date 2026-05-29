@@ -11,9 +11,7 @@ check failure results in "rejected" status.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from decimal import Decimal
 from enum import StrEnum
-from typing import Any
 
 from astraeus_portfolio.contracts import (
     FailedCheck,
@@ -21,7 +19,6 @@ from astraeus_portfolio.contracts import (
     ScenarioName,
     TargetPortfolio,
 )
-
 
 # ---------------------------------------------------------------------------
 # Validation Result
@@ -184,9 +181,7 @@ class RiskGate:
         )
 
         # --- Single-name weight check ---
-        max_weight = max(
-            abs(float(pw.weight)) for pw in portfolio.weights
-        )
+        max_weight = max(abs(float(pw.weight)) for pw in portfolio.weights)
         self._check_upper_bound(
             failed,
             check_name="single_name_weight",

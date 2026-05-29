@@ -87,9 +87,7 @@ def compute_cluster_report(
 
     # Report warnings for excluded pairs
     if excluded_pairs:
-        excluded_str = ", ".join(
-            f"({a}, {b})" for a, b in excluded_pairs
-        )
+        excluded_str = ", ".join(f"({a}, {b})" for a, b in excluded_pairs)
         msg = (
             f"Excluded {len(excluded_pairs)} asset pair(s) from correlation "
             f"matrix due to < {min_overlap} overlapping trading days: {excluded_str}"
@@ -106,16 +104,12 @@ def compute_cluster_report(
     cluster_labels = _ward_clustering(distance_matrix, k=effective_k)
 
     # Step 4: Build cluster assignments
-    cluster_assignments = {
-        symbols[i]: int(cluster_labels[i]) for i in range(n)
-    }
+    cluster_assignments = {symbols[i]: int(cluster_labels[i]) for i in range(n)}
 
     # Step 5: Compute concentration metrics
     max_cluster_weight = _compute_max_cluster_weight(weights, cluster_labels)
     herfindahl_index = _compute_herfindahl_index(weights, cluster_labels)
-    effective_n_bets = _compute_effective_n_bets(
-        weights, covariance, cluster_labels
-    )
+    effective_n_bets = _compute_effective_n_bets(weights, covariance, cluster_labels)
 
     return ClusterReport(
         n_clusters=effective_k,
@@ -216,7 +210,7 @@ def _correlation_to_distance(corr_matrix: np.ndarray) -> np.ndarray:
     Returns the full n×n distance matrix.
     """
     # Ensure diagonal is exactly 1 for zero self-distance
-    n = corr_matrix.shape[0]
+    corr_matrix.shape[0]
     dist = np.sqrt(0.5 * (1.0 - corr_matrix))
     # Force diagonal to zero
     np.fill_diagonal(dist, 0.0)
@@ -240,7 +234,7 @@ def _ward_clustering(distance_matrix: np.ndarray, *, k: int) -> np.ndarray:
     labels : np.ndarray
         (n,) array of cluster labels (0-indexed).
     """
-    n = distance_matrix.shape[0]
+    distance_matrix.shape[0]
 
     # Convert to condensed form for scipy
     condensed = squareform(distance_matrix, checks=False)
@@ -256,9 +250,7 @@ def _ward_clustering(distance_matrix: np.ndarray, *, k: int) -> np.ndarray:
     return labels
 
 
-def _compute_max_cluster_weight(
-    weights: np.ndarray, cluster_labels: np.ndarray
-) -> float:
+def _compute_max_cluster_weight(weights: np.ndarray, cluster_labels: np.ndarray) -> float:
     """Compute max cluster weight: max_c(sum(|w_i| for i in cluster_c))."""
     unique_labels = np.unique(cluster_labels)
     max_weight = 0.0
@@ -269,9 +261,7 @@ def _compute_max_cluster_weight(
     return max_weight
 
 
-def _compute_herfindahl_index(
-    weights: np.ndarray, cluster_labels: np.ndarray
-) -> float:
+def _compute_herfindahl_index(weights: np.ndarray, cluster_labels: np.ndarray) -> float:
     """Compute Herfindahl index: sum(cluster_weight_c^2) across all clusters."""
     unique_labels = np.unique(cluster_labels)
     hhi = 0.0

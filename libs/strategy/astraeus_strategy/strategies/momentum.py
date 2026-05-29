@@ -25,9 +25,7 @@ from astraeus_strategy.types import (
     FeatureRef,
     Fill,
     Order,
-    OrderType,
     PortfolioState,
-    Side,
     UniverseRef,
 )
 
@@ -63,8 +61,7 @@ class Momentum12_1(Strategy):
         # Get momentum scores for universe members at as_of_ts
         # The feature panel is already PIT-filtered (ts <= as_of_ts)
         scores = (
-            feature_panel
-            .filter(pl.col("symbol").is_in(universe))
+            feature_panel.filter(pl.col("symbol").is_in(universe))
             .group_by("symbol")
             .agg(pl.col("close").last().alias("last_close"))
             .collect()
@@ -75,9 +72,7 @@ class Momentum12_1(Strategy):
 
         # If we have a momentum feature column, use it directly
         if "momentum_12_1" in scores.columns:
-            scores = scores.with_columns(
-                pl.col("momentum_12_1").alias("score")
-            )
+            scores = scores.with_columns(pl.col("momentum_12_1").alias("score"))
         else:
             # Fallback: compute from close prices in the panel
             # This is a simplified version; real impl uses the feature store

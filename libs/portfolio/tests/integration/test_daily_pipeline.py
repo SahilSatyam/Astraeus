@@ -24,8 +24,6 @@ from uuid import uuid4
 
 import numpy as np
 import pytest
-
-from astraeus_portfolio.attribution.brinson import run_brinson
 from astraeus_portfolio.attribution.runner import AttributionRunner
 from astraeus_portfolio.constraints.base import Constraint
 from astraeus_portfolio.constraints.box import BoxConstraint
@@ -36,9 +34,8 @@ from astraeus_portfolio.contracts import (
     ConstraintDiag,
     CovarianceMethod,
     FallbackAction,
-    OptimizerType,
     OptContext,
-    OptResult,
+    OptimizerType,
     PortfolioStatus,
     PortfolioWeight,
     RiskReport,
@@ -64,7 +61,6 @@ from astraeus_portfolio.risk.validation import (
     RiskPolicyThresholds,
     ValidationStatus,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -125,10 +121,12 @@ def opt_context(
 
     # Betas
     market_var = np.var(market_returns, ddof=1)
-    betas = np.array([
-        np.cov(synthetic_returns[:, i], market_returns)[0, 1] / market_var
-        for i in range(N_ASSETS)
-    ])
+    betas = np.array(
+        [
+            np.cov(synthetic_returns[:, i], market_returns)[0, 1] / market_var
+            for i in range(N_ASSETS)
+        ]
+    )
 
     constraints: list[Constraint] = [
         BoxConstraint(w_max=0.15),
@@ -537,17 +535,17 @@ class TestDailyPipelineEndToEnd:
         adv = rng.uniform(500_000, 5_000_000, size=N_ASSETS)
 
         orchestrator = DailyPipelineOrchestrator(config)
-        kwargs = dict(
-            as_of_date=date(2026, 5, 28),
-            returns_matrix=synthetic_returns,
-            market_returns=market_returns,
-            symbols=SYMBOLS,
-            expected_returns=expected_returns,
-            prices=prices,
-            adv=adv,
-            sector_map=sector_map,
-            constraints=[BoxConstraint(w_max=0.15)],
-        )
+        kwargs = {
+            "as_of_date": date(2026, 5, 28),
+            "returns_matrix": synthetic_returns,
+            "market_returns": market_returns,
+            "symbols": SYMBOLS,
+            "expected_returns": expected_returns,
+            "prices": prices,
+            "adv": adv,
+            "sector_map": sector_map,
+            "constraints": [BoxConstraint(w_max=0.15)],
+        }
 
         result1 = orchestrator.run(**kwargs)
         result2 = orchestrator.run(**kwargs)
@@ -690,6 +688,8 @@ class TestReportGeneration:
 
             # Should produce either .pdf or .html depending on WeasyPrint availability
             assert result_path.exists()
-            content = result_path.read_text(encoding="utf-8") if result_path.suffix == ".html" else ""
+            content = (
+                result_path.read_text(encoding="utf-8") if result_path.suffix == ".html" else ""
+            )
             if result_path.suffix == ".html":
                 assert "test_strategy" in content

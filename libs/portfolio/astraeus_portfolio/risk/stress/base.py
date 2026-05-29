@@ -116,10 +116,12 @@ class StressScenario(ABC):
 
                 factor_names = [f"factor_{i}" for i in range(B.shape[1])]
                 for i, fname in enumerate(factor_names):
-                    factor_contributions[fname] = Decimal(str(round(float(factor_pnl_per_factor[i]), 6)))
+                    factor_contributions[fname] = Decimal(
+                        str(round(float(factor_pnl_per_factor[i]), 6))
+                    )
 
                 # Residual = total asset PnL - sum of factor PnL
-                factor_total = float(sum(float(v) for v in factor_contributions.values()))
+                float(sum(float(v) for v in factor_contributions.values()))
                 residual = asset_pnl - (B @ factor_shocks) * weights
 
                 for i, sym in enumerate(ctx.symbols):
@@ -150,7 +152,12 @@ class StressScenario(ABC):
             scenario_name=self.name,
             scenario_version=self.scenario_version,
             total_pnl_pct=Decimal(str(round(total_pnl * 100, 4))),
-            factor_contributions={k: Decimal(str(round(float(v) * 100, 4))) for k, v in factor_contributions.items()},
-            asset_contributions={k: Decimal(str(round(float(v) * 100, 4))) for k, v in residual_asset_contributions.items()},
+            factor_contributions={
+                k: Decimal(str(round(float(v) * 100, 4))) for k, v in factor_contributions.items()
+            },
+            asset_contributions={
+                k: Decimal(str(round(float(v) * 100, 4)))
+                for k, v in residual_asset_contributions.items()
+            },
             proxy_estimated_assets=proxy_assets,
         )

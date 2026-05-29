@@ -126,9 +126,7 @@ def run_brinson(
         BrinsonAttributionError: If fewer than 1 holding has a valid sector classification.
     """
     # Validate: at least 1 holding must have a valid sector classification
-    classified_count = sum(
-        1 for symbol in portfolio_weights if symbol in sector_map
-    )
+    classified_count = sum(1 for symbol in portfolio_weights if symbol in sector_map)
     if classified_count < 1:
         raise BrinsonAttributionError(
             "Insufficient classified holdings: portfolio contains "
@@ -168,30 +166,24 @@ def run_brinson(
     # Compute sector-level returns (holding-weighted averages)
     for sector, data in sectors.items():
         if data.portfolio_weight != 0.0:
-            data.portfolio_return = (
-                data._portfolio_weighted_return / data.portfolio_weight
-            )
+            data.portfolio_return = data._portfolio_weighted_return / data.portfolio_weight
         else:
             data.portfolio_return = 0.0
 
         if data.benchmark_weight != 0.0:
-            data.benchmark_return = (
-                data._benchmark_weighted_return / data.benchmark_weight
-            )
+            data.benchmark_return = data._benchmark_weighted_return / data.benchmark_weight
         else:
             # Sector in portfolio but not benchmark: benchmark return = 0
             data.benchmark_return = 0.0
 
     # Compute total benchmark return: r_b = sum(w_b_s * r_b_s)
     total_benchmark_return = sum(
-        data.benchmark_weight * data.benchmark_return
-        for data in sectors.values()
+        data.benchmark_weight * data.benchmark_return for data in sectors.values()
     )
 
     # Compute total portfolio return: r_p = sum(w_p_s * r_p_s)
     total_portfolio_return = sum(
-        data.portfolio_weight * data.portfolio_return
-        for data in sectors.values()
+        data.portfolio_weight * data.portfolio_return for data in sectors.values()
     )
 
     # Compute Brinson-Fachler effects per sector

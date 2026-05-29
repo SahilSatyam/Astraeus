@@ -18,9 +18,7 @@ class CovarianceEstimator(ABC):
     """
 
     @abstractmethod
-    def estimate(
-        self, returns: np.ndarray, config: CovarianceConfig
-    ) -> CovarianceResult:
+    def estimate(self, returns: np.ndarray, config: CovarianceConfig) -> CovarianceResult:
         """Estimate covariance from a daily return matrix (T×n).
 
         Args:

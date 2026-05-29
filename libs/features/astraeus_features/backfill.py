@@ -91,9 +91,7 @@ async def backfill_feature(
     Returns:
         The MaterializationRun record.
     """
-    run_hash = _compute_run_hash(
-        feature_def.name, feature_def.definition_hash, start, end
-    )
+    run_hash = _compute_run_hash(feature_def.name, feature_def.definition_hash, start, end)
 
     # Create materialization run record
     run = MaterializationRun(
@@ -213,9 +211,15 @@ async def _materialize_chunk(
         {
             "knowledge_ts": knowledge_ts,
             "source_hash": run_hash,
-            "chunk_start": datetime(chunk_start.year, chunk_start.month, chunk_start.day, tzinfo=UTC),
-            "chunk_end": datetime(chunk_end.year, chunk_end.month, chunk_end.day, 23, 59, 59, tzinfo=UTC),
-            "as_of": datetime(chunk_end.year, chunk_end.month, chunk_end.day, 23, 59, 59, tzinfo=UTC),
+            "chunk_start": datetime(
+                chunk_start.year, chunk_start.month, chunk_start.day, tzinfo=UTC
+            ),
+            "chunk_end": datetime(
+                chunk_end.year, chunk_end.month, chunk_end.day, 23, 59, 59, tzinfo=UTC
+            ),
+            "as_of": datetime(
+                chunk_end.year, chunk_end.month, chunk_end.day, 23, 59, 59, tzinfo=UTC
+            ),
         },
     )
 

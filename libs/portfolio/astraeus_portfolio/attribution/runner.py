@@ -13,7 +13,6 @@ from __future__ import annotations
 import time
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any
 from uuid import UUID, uuid4
 
 import numpy as np
@@ -52,9 +51,7 @@ class AttributionRunner:
             benchmark_name: Benchmark for Brinson attribution.
             min_history_days: Minimum history required for factor regression.
         """
-        self.factor_names = factor_names or [
-            "MKT-RF", "SMB", "HML", "RMW", "CMA", "MOM"
-        ]
+        self.factor_names = factor_names or ["MKT-RF", "SMB", "HML", "RMW", "CMA", "MOM"]
         self.benchmark_name = benchmark_name
         self.min_history_days = min_history_days
 
@@ -105,7 +102,11 @@ class AttributionRunner:
             results.append(factor_result)
 
         # --- Brinson attribution ---
-        if benchmark_weights is not None and benchmark_returns is not None and sector_map is not None:
+        if (
+            benchmark_weights is not None
+            and benchmark_returns is not None
+            and sector_map is not None
+        ):
             brinson_result = self._run_brinson_attribution(
                 portfolio_id=portfolio_id,
                 as_of_ts=as_of_ts,
@@ -161,13 +162,12 @@ class AttributionRunner:
                 return None
 
             symbols = list(portfolio_weights.keys())
-            n_assets = len(symbols)
+            len(symbols)
             n_factors = len(self.factor_names)
 
             # Compute portfolio return
             portfolio_return = sum(
-                portfolio_weights[s] * asset_returns.get(s, 0.0)
-                for s in symbols
+                portfolio_weights[s] * asset_returns.get(s, 0.0) for s in symbols
             )
 
             # Compute factor PnL contributions using portfolio-level exposure
@@ -180,9 +180,7 @@ class AttributionRunner:
 
             # Estimate portfolio factor exposures
             weights_array = np.array([portfolio_weights.get(s, 0.0) for s in symbols])
-            factor_returns_today = np.array([
-                factor_returns.get(f, 0.0) for f in self.factor_names
-            ])
+            factor_returns_today = np.array([factor_returns.get(f, 0.0) for f in self.factor_names])
 
             # Per-asset beta estimation
             betas, _ = engine.estimate_betas_from_asset_returns(

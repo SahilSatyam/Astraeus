@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import hashlib
 import json
 import sys
 from datetime import UTC, date, datetime
@@ -31,8 +30,7 @@ from datetime import UTC, date, datetime
 import structlog
 from astraeus_config import Settings
 from astraeus_db.session import get_sessionmaker
-from astraeus_marketdata.archival import MinIOArchiver
-from astraeus_marketdata.models import DataLineage, MarketBarRaw, Outbox
+from astraeus_marketdata.models import MarketBarRaw, Outbox
 from astraeus_observability import configure_logging
 from sqlalchemy import func, select
 
@@ -138,8 +136,7 @@ async def _count_rows(
                 MarketBarRaw.source == source,
                 MarketBarRaw.resolution == resolution,
                 MarketBarRaw.ts >= datetime(start.year, start.month, start.day, tzinfo=UTC),
-                MarketBarRaw.ts
-                <= datetime(end.year, end.month, end.day, 23, 59, 59, tzinfo=UTC),
+                MarketBarRaw.ts <= datetime(end.year, end.month, end.day, 23, 59, 59, tzinfo=UTC),
             )
         )
         if symbol:
@@ -267,8 +264,7 @@ async def _verify_hashes(
                 MarketBarRaw.source == source,
                 MarketBarRaw.resolution == resolution,
                 MarketBarRaw.ts >= datetime(start.year, start.month, start.day, tzinfo=UTC),
-                MarketBarRaw.ts
-                <= datetime(end.year, end.month, end.day, 23, 59, 59, tzinfo=UTC),
+                MarketBarRaw.ts <= datetime(end.year, end.month, end.day, 23, 59, 59, tzinfo=UTC),
             )
             .order_by(MarketBarRaw.ts, MarketBarRaw.symbol)
         )
@@ -331,7 +327,7 @@ async def main() -> None:
     )
 
     print(f"\n{'=' * 60}")
-    print(f"  Astraeus Market Data Replay")
+    print("  Astraeus Market Data Replay")
     print(f"{'=' * 60}")
     print(f"  Source:     {args.source}")
     print(f"  Symbol:     {args.symbol or 'ALL'}")
@@ -367,7 +363,7 @@ async def main() -> None:
 
     # Verification pass
     if args.verify:
-        print(f"\nRunning hash verification...")
+        print("\nRunning hash verification...")
         total_checked, mismatches, details = await _verify_hashes(
             session_factory=session_factory,
             source=args.source,
@@ -381,14 +377,14 @@ async def main() -> None:
         print(f"  Mismatches:    {mismatches}")
 
         if mismatches > 0:
-            print(f"\n  ⚠ Hash mismatches detected:")
+            print("\n  ⚠ Hash mismatches detected:")
             for detail in details[:20]:
                 print(detail)
             if len(details) > 20:
                 print(f"  ... and {len(details) - 20} more")
             sys.exit(1)
         else:
-            print(f"  ✓ All hashes match — data is reproducible")
+            print("  ✓ All hashes match — data is reproducible")
 
     print()
 

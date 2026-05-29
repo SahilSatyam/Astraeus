@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-
 from astraeus_portfolio.contracts import CovarianceConfig, CovarianceResult
 from astraeus_portfolio.covariance.sample import SampleCovarianceEstimator
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -40,63 +38,93 @@ class TestSampleCovarianceEstimator:
     """Tests for SampleCovarianceEstimator.estimate()."""
 
     def test_returns_covariance_result(
-        self, estimator: SampleCovarianceEstimator, config: CovarianceConfig, valid_returns: np.ndarray
+        self,
+        estimator: SampleCovarianceEstimator,
+        config: CovarianceConfig,
+        valid_returns: np.ndarray,
     ) -> None:
         result = estimator.estimate(valid_returns, config)
         assert isinstance(result, CovarianceResult)
 
     def test_estimator_field_is_sample(
-        self, estimator: SampleCovarianceEstimator, config: CovarianceConfig, valid_returns: np.ndarray
+        self,
+        estimator: SampleCovarianceEstimator,
+        config: CovarianceConfig,
+        valid_returns: np.ndarray,
     ) -> None:
         result = estimator.estimate(valid_returns, config)
         assert result.estimator == "sample"
 
     def test_shrinkage_intensity_is_none(
-        self, estimator: SampleCovarianceEstimator, config: CovarianceConfig, valid_returns: np.ndarray
+        self,
+        estimator: SampleCovarianceEstimator,
+        config: CovarianceConfig,
+        valid_returns: np.ndarray,
     ) -> None:
         result = estimator.estimate(valid_returns, config)
         assert result.shrinkage_intensity is None
 
     def test_matrix_shape_matches_assets(
-        self, estimator: SampleCovarianceEstimator, config: CovarianceConfig, valid_returns: np.ndarray
+        self,
+        estimator: SampleCovarianceEstimator,
+        config: CovarianceConfig,
+        valid_returns: np.ndarray,
     ) -> None:
         result = estimator.estimate(valid_returns, config)
         n = valid_returns.shape[1]
         assert result.matrix.shape == (n, n)
 
     def test_n_assets_correct(
-        self, estimator: SampleCovarianceEstimator, config: CovarianceConfig, valid_returns: np.ndarray
+        self,
+        estimator: SampleCovarianceEstimator,
+        config: CovarianceConfig,
+        valid_returns: np.ndarray,
     ) -> None:
         result = estimator.estimate(valid_returns, config)
         assert result.n_assets == valid_returns.shape[1]
 
     def test_n_observations_correct(
-        self, estimator: SampleCovarianceEstimator, config: CovarianceConfig, valid_returns: np.ndarray
+        self,
+        estimator: SampleCovarianceEstimator,
+        config: CovarianceConfig,
+        valid_returns: np.ndarray,
     ) -> None:
         result = estimator.estimate(valid_returns, config)
         assert result.n_observations == valid_returns.shape[0]
 
     def test_matrix_is_symmetric(
-        self, estimator: SampleCovarianceEstimator, config: CovarianceConfig, valid_returns: np.ndarray
+        self,
+        estimator: SampleCovarianceEstimator,
+        config: CovarianceConfig,
+        valid_returns: np.ndarray,
     ) -> None:
         result = estimator.estimate(valid_returns, config)
         np.testing.assert_allclose(result.matrix, result.matrix.T, atol=1e-14)
 
     def test_matrix_is_psd(
-        self, estimator: SampleCovarianceEstimator, config: CovarianceConfig, valid_returns: np.ndarray
+        self,
+        estimator: SampleCovarianceEstimator,
+        config: CovarianceConfig,
+        valid_returns: np.ndarray,
     ) -> None:
         result = estimator.estimate(valid_returns, config)
         eigenvalues = np.linalg.eigvalsh(result.matrix)
         assert np.all(eigenvalues >= config.eigenvalue_floor - 1e-12)
 
     def test_condition_number_positive(
-        self, estimator: SampleCovarianceEstimator, config: CovarianceConfig, valid_returns: np.ndarray
+        self,
+        estimator: SampleCovarianceEstimator,
+        config: CovarianceConfig,
+        valid_returns: np.ndarray,
     ) -> None:
         result = estimator.estimate(valid_returns, config)
         assert result.condition_number > 0
 
     def test_as_of_ts_is_set(
-        self, estimator: SampleCovarianceEstimator, config: CovarianceConfig, valid_returns: np.ndarray
+        self,
+        estimator: SampleCovarianceEstimator,
+        config: CovarianceConfig,
+        valid_returns: np.ndarray,
     ) -> None:
         result = estimator.estimate(valid_returns, config)
         assert result.as_of_ts is not None
@@ -167,16 +195,16 @@ class TestSampleCovarianceEdgeCases:
         assert result.matrix.shape == (1, 1)
         assert result.n_assets == 1
 
-    def test_known_covariance(
-        self, estimator: SampleCovarianceEstimator
-    ) -> None:
+    def test_known_covariance(self, estimator: SampleCovarianceEstimator) -> None:
         """Verify against a known covariance for a simple case."""
         # Two perfectly correlated assets
-        returns = np.array([
-            [0.01, 0.02],
-            [0.02, 0.04],
-            [-0.01, -0.02],
-        ])
+        returns = np.array(
+            [
+                [0.01, 0.02],
+                [0.02, 0.04],
+                [-0.01, -0.02],
+            ]
+        )
         config = CovarianceConfig(eigenvalue_floor=1e-10)
         result = estimator.estimate(returns, config)
 
@@ -185,9 +213,7 @@ class TestSampleCovarianceEdgeCases:
         # After nearest_psd, should be close (already PSD in this case)
         np.testing.assert_allclose(result.matrix, expected, atol=1e-9)
 
-    def test_eigenvalue_floor_applied(
-        self, estimator: SampleCovarianceEstimator
-    ) -> None:
+    def test_eigenvalue_floor_applied(self, estimator: SampleCovarianceEstimator) -> None:
         """Verify that eigenvalue floor is applied from config."""
         # Create returns that produce a near-singular covariance
         # (two nearly identical columns)

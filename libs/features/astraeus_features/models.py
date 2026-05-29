@@ -13,16 +13,12 @@ from datetime import datetime
 
 from astraeus_db.base import Base
 from sqlalchemy import (
-    BigInteger,
     DateTime,
     Index,
     Integer,
-    Numeric,
-    SmallInteger,
     String,
     Text,
     func,
-    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -69,9 +65,7 @@ class MaterializationRun(Base):
     """Tracks feature materialization runs for lineage and resumability."""
 
     __tablename__ = "feature_materialization_runs"
-    __table_args__ = (
-        Index("ix_mat_run_feature", "feature_name", "started_at"),
-    )
+    __table_args__ = (Index("ix_mat_run_feature", "feature_name", "started_at"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     feature_name: Mapped[str] = mapped_column(String(128), nullable=False)

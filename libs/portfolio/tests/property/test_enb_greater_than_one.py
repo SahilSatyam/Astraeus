@@ -10,14 +10,10 @@ ENB = 1 / sum(p_c^2) where p_c = w_c'Σw / w'Σw
 
 from __future__ import annotations
 
-from decimal import Decimal
-
-import numpy as np
 import hypothesis.strategies as st
-from hypothesis import given, settings, assume
-
+import numpy as np
 from astraeus_portfolio.risk.clustering import compute_cluster_report
-
+from hypothesis import assume, given, settings
 
 # ---------------------------------------------------------------------------
 # Hypothesis Strategies
@@ -35,8 +31,10 @@ def st_psd_covariance(draw: st.DrawFn, n: int) -> np.ndarray:
         st.lists(
             st.lists(
                 st.floats(
-                    min_value=-0.5, max_value=0.5,
-                    allow_nan=False, allow_infinity=False,
+                    min_value=-0.5,
+                    max_value=0.5,
+                    allow_nan=False,
+                    allow_infinity=False,
                 ),
                 min_size=n,
                 max_size=n,
@@ -75,8 +73,10 @@ def st_portfolio_with_multiple_nonzero_weights(
     raw_weights = draw(
         st.lists(
             st.floats(
-                min_value=0.01, max_value=1.0,
-                allow_nan=False, allow_infinity=False,
+                min_value=0.01,
+                max_value=1.0,
+                allow_nan=False,
+                allow_infinity=False,
             ),
             min_size=n_nonzero,
             max_size=n_nonzero,
@@ -104,8 +104,10 @@ def st_portfolio_with_multiple_nonzero_weights(
         st.lists(
             st.lists(
                 st.floats(
-                    min_value=-0.10, max_value=0.10,
-                    allow_nan=False, allow_infinity=False,
+                    min_value=-0.10,
+                    max_value=0.10,
+                    allow_nan=False,
+                    allow_infinity=False,
                 ),
                 min_size=n,
                 max_size=n,

@@ -35,9 +35,7 @@ class SignalEvent(BaseModel):
     strategy_id: str = Field(..., description="Strategy UUID")
     run_hash: str = Field(..., description="Content-addressable run hash")
     raw_score: float = Field(..., description="Strategy's native score")
-    ranked_score: float = Field(
-        ..., description="Cross-sectional rank, normalized to [-1, 1]"
-    )
+    ranked_score: float = Field(..., description="Cross-sectional rank, normalized to [-1, 1]")
     target_weight: float = Field(
         ..., description="Intended portfolio weight, pre-portfolio-construction"
     )

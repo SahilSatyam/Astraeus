@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-
 from astraeus_portfolio.contracts import CovarianceConfig, CovarianceResult
 from astraeus_portfolio.covariance.ledoit_wolf import LedoitWolfEstimator
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -111,9 +109,7 @@ class TestLedoitWolfEstimator:
 class TestLedoitWolfShrinkage:
     """Tests for shrinkage-specific behavior."""
 
-    def test_shrinkage_reduces_condition_number(
-        self, estimator: LedoitWolfEstimator
-    ) -> None:
+    def test_shrinkage_reduces_condition_number(self, estimator: LedoitWolfEstimator) -> None:
         """Shrinkage toward identity should reduce condition number vs sample."""
         rng = np.random.default_rng(123)
         # Create returns with high condition number (correlated assets)
@@ -146,13 +142,15 @@ class TestLedoitWolfShrinkage:
         n = 5
         # Use correlated returns so the target differs from sample cov
         # Same DGP (same seed, same correlation structure) but different T
-        cov_true = np.array([
-            [1.0, 0.5, 0.3, 0.2, 0.1],
-            [0.5, 1.0, 0.4, 0.3, 0.2],
-            [0.3, 0.4, 1.0, 0.5, 0.3],
-            [0.2, 0.3, 0.5, 1.0, 0.4],
-            [0.1, 0.2, 0.3, 0.4, 1.0],
-        ])
+        cov_true = np.array(
+            [
+                [1.0, 0.5, 0.3, 0.2, 0.1],
+                [0.5, 1.0, 0.4, 0.3, 0.2],
+                [0.3, 0.4, 1.0, 0.5, 0.3],
+                [0.2, 0.3, 0.5, 1.0, 0.4],
+                [0.1, 0.2, 0.3, 0.4, 1.0],
+            ]
+        )
         L = np.linalg.cholesky(cov_true)
 
         rng_small = np.random.default_rng(55)
@@ -178,7 +176,7 @@ class TestLedoitWolfShrinkage:
         n = 10
         base = rng.standard_normal((60, 3))
         noise = rng.standard_normal((60, n)) * 0.3
-        returns = noise + base[:, :min(3, n)] @ rng.standard_normal((3, n))
+        returns = noise + base[:, : min(3, n)] @ rng.standard_normal((3, n))
         result = estimator.estimate(returns, config)
         # Should have some shrinkage (not zero)
         assert result.shrinkage_intensity > 0.0
@@ -240,18 +238,14 @@ class TestLedoitWolfEdgeCases:
         result = estimator.estimate(returns, config)
         assert result.matrix.shape == (n, n)
 
-    def test_single_asset(
-        self, estimator: LedoitWolfEstimator, config: CovarianceConfig
-    ) -> None:
+    def test_single_asset(self, estimator: LedoitWolfEstimator, config: CovarianceConfig) -> None:
         """Single asset (n=1) with T >= 2 should produce a 1×1 matrix."""
         returns = np.array([[0.01], [0.02], [-0.01], [0.03]])
         result = estimator.estimate(returns, config)
         assert result.matrix.shape == (1, 1)
         assert result.n_assets == 1
 
-    def test_eigenvalue_floor_applied(
-        self, estimator: LedoitWolfEstimator
-    ) -> None:
+    def test_eigenvalue_floor_applied(self, estimator: LedoitWolfEstimator) -> None:
         """Verify that eigenvalue floor is applied from config."""
         rng = np.random.default_rng(99)
         base = rng.standard_normal((50, 1))
@@ -265,9 +259,7 @@ class TestLedoitWolfEdgeCases:
         eigenvalues = np.linalg.eigvalsh(result.matrix)
         assert np.all(eigenvalues >= floor - 1e-12)
 
-    def test_large_universe(
-        self, estimator: LedoitWolfEstimator, config: CovarianceConfig
-    ) -> None:
+    def test_large_universe(self, estimator: LedoitWolfEstimator, config: CovarianceConfig) -> None:
         """Test with a larger universe (n=50, T=100)."""
         rng = np.random.default_rng(101)
         returns = rng.standard_normal((100, 50))

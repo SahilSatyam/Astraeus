@@ -69,17 +69,19 @@ class MLForecast(Strategy):
         retrain_freq_days = params.get("retrain_freq_days", 21)
         max_positions = params.get("max_positions", 50)
         gross_target = params.get("gross_target", 1.5)
-        feature_cols = params.get("feature_cols", [
-            "momentum_12_1", "value_book_to_market",
-            "quality_roe", "low_vol_60d", "size_log_mcap",
-        ])
+        feature_cols = params.get(
+            "feature_cols",
+            [
+                "momentum_12_1",
+                "value_book_to_market",
+                "quality_roe",
+                "low_vol_60d",
+                "size_log_mcap",
+            ],
+        )
 
         # Collect feature panel
-        panel = (
-            feature_panel
-            .filter(pl.col("symbol").is_in(universe))
-            .collect()
-        )
+        panel = feature_panel.filter(pl.col("symbol").is_in(universe)).collect()
 
         if panel.is_empty() or len(panel) < 100:
             return {}
@@ -99,9 +101,9 @@ class MLForecast(Strategy):
             return {}
 
         # Get latest features for prediction
-        latest = panel.group_by("symbol").agg([
-            pl.col(c).last().alias(c) for c in feature_cols if c in panel.columns
-        ])
+        latest = panel.group_by("symbol").agg(
+            [pl.col(c).last().alias(c) for c in feature_cols if c in panel.columns]
+        )
 
         available_cols = [c for c in feature_cols if c in latest.columns]
         if not available_cols:
@@ -118,7 +120,7 @@ class MLForecast(Strategy):
 
         # Primary prediction: direction
         try:
-            primary_pred = self._primary_model.predict(X)
+            self._primary_model.predict(X)
             primary_proba = self._primary_model.predict_proba(X)[:, 1]
         except Exception:
             return {}
@@ -157,7 +159,7 @@ class MLForecast(Strategy):
     def _train(self, panel: pl.DataFrame, feature_cols: list[str], params: dict[str, Any]) -> None:
         """Train primary and meta models on historical data."""
         try:
-            from xgboost import XGBClassifier  # noqa: PLC0415
+            from xgboost import XGBClassifier
         except ImportError:
             # XGBoost not installed — skip training
             return

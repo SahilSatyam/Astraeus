@@ -125,15 +125,17 @@ def generate_windows(
             if oos_end <= oos_start:
                 break
 
-            windows.append(WalkForwardWindow(
-                train_start=train_start,
-                train_end=current_train_end,
-                val_start=val_start,
-                val_end=val_end,
-                oos_start=oos_start,
-                oos_end=oos_end,
-                fold_index=fold_index,
-            ))
+            windows.append(
+                WalkForwardWindow(
+                    train_start=train_start,
+                    train_end=current_train_end,
+                    val_start=val_start,
+                    val_end=val_end,
+                    oos_start=oos_start,
+                    oos_end=oos_end,
+                    fold_index=fold_index,
+                )
+            )
 
             fold_index += 1
             current_train_end += timedelta(days=config.step_days)
@@ -159,15 +161,17 @@ def generate_windows(
             if oos_end > end:
                 break
 
-            windows.append(WalkForwardWindow(
-                train_start=current_start,
-                train_end=train_end,
-                val_start=val_start,
-                val_end=val_end,
-                oos_start=oos_start,
-                oos_end=oos_end,
-                fold_index=fold_index,
-            ))
+            windows.append(
+                WalkForwardWindow(
+                    train_start=current_start,
+                    train_end=train_end,
+                    val_start=val_start,
+                    val_end=val_end,
+                    oos_start=oos_start,
+                    oos_end=oos_end,
+                    fold_index=fold_index,
+                )
+            )
 
             fold_index += 1
             current_start += timedelta(days=config.step_days)

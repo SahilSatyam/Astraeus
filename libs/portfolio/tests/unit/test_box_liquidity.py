@@ -8,7 +8,6 @@ from decimal import Decimal
 import cvxpy as cp
 import numpy as np
 import pytest
-
 from astraeus_portfolio.constraints import BoxConstraint, LiquidityConstraint
 from astraeus_portfolio.contracts import OptContext
 

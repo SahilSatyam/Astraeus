@@ -26,8 +26,8 @@ from astraeus_portfolio.optimizers.base import Optimizer, OptimizerConfig
 from astraeus_portfolio.optimizers.mvo import MeanVarianceOptimizer, MVOMode
 
 __all__ = [
-    "BlackLittermanOptimizer",
     "BLOptimizer",
+    "BlackLittermanOptimizer",
 ]
 
 logger = structlog.get_logger(__name__)
@@ -116,7 +116,6 @@ class BlackLittermanOptimizer(Optimizer):
         Returns:
             An OptResult with the solution weights from the MVO solver.
         """
-        n = ctx.n_assets
         sigma = ctx.covariance
         w_mkt = ctx.current_weights  # Market-cap weights
 
@@ -194,9 +193,7 @@ class BlackLittermanOptimizer(Optimizer):
 
         return cp.quad_form(w, ctx.covariance)
 
-    def _compute_equilibrium_returns(
-        self, sigma: np.ndarray, w_mkt: np.ndarray
-    ) -> np.ndarray:
+    def _compute_equilibrium_returns(self, sigma: np.ndarray, w_mkt: np.ndarray) -> np.ndarray:
         """Compute market-implied equilibrium returns.
 
         Π = δ * Σ * w_mkt
@@ -210,9 +207,7 @@ class BlackLittermanOptimizer(Optimizer):
         """
         return self.delta * sigma @ w_mkt
 
-    def _filter_expired_views(
-        self, views: list[View] | None, as_of_ts
-    ) -> list[View]:
+    def _filter_expired_views(self, views: list[View] | None, as_of_ts) -> list[View]:
         """Filter out views whose expires_at is earlier than as_of_ts.
 
         Args:

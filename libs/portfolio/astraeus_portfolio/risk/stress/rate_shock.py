@@ -6,8 +6,6 @@ in interest rates, with sector-specific impacts derived from rate sensitivity.
 
 from __future__ import annotations
 
-from decimal import Decimal
-
 import numpy as np
 
 from astraeus_portfolio.contracts import ScenarioName, ScenarioResult
@@ -18,19 +16,19 @@ from .base import StressContext, StressScenario
 # Positive values indicate sectors that benefit from rising rates;
 # negative values indicate sectors hurt by rising rates.
 _RATE_SECTOR_SHOCKS: dict[str, float] = {
-    "Financials": 0.04,           # Banks benefit from wider NIM
-    "Energy": -0.02,              # Moderate negative (higher discount rates)
-    "Materials": -0.03,           # Moderate negative
-    "Industrials": -0.04,         # Moderate negative
+    "Financials": 0.04,  # Banks benefit from wider NIM
+    "Energy": -0.02,  # Moderate negative (higher discount rates)
+    "Materials": -0.03,  # Moderate negative
+    "Industrials": -0.04,  # Moderate negative
     "Consumer Discretionary": -0.06,  # Higher borrowing costs hurt spending
     "Information Technology": -0.08,  # Growth stocks hurt by higher discount rates
-    "Technology": -0.08,          # Same as IT
+    "Technology": -0.08,  # Same as IT
     "Communication Services": -0.05,  # Moderate negative
-    "Health Care": -0.03,         # Relatively defensive
-    "Consumer Staples": -0.02,    # Defensive, low rate sensitivity
-    "Utilities": -0.10,           # Bond proxies, highly rate-sensitive
-    "Real Estate": -0.12,         # REITs highly rate-sensitive
-    "Unclassified": -0.05,        # Market average proxy
+    "Health Care": -0.03,  # Relatively defensive
+    "Consumer Staples": -0.02,  # Defensive, low rate sensitivity
+    "Utilities": -0.10,  # Bond proxies, highly rate-sensitive
+    "Real Estate": -0.12,  # REITs highly rate-sensitive
+    "Unclassified": -0.05,  # Market average proxy
 }
 
 # Market-wide factor shock for +200bps (equity risk premium compression)

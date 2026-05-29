@@ -17,8 +17,8 @@ from astraeus_portfolio.constraints.turnover import TurnoverConstraint
 __all__ = [
     "BetaNeutralityConstraint",
     "BoxConstraint",
-    "Constraint",
     "ConcentrationConstraint",
+    "Constraint",
     "FactorNeutralityConstraint",
     "LiquidityConstraint",
     "SectorCapConstraint",
