@@ -7,6 +7,9 @@ role-based access control.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Coroutine
+from typing import Any
+
 import structlog
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -91,7 +94,9 @@ async def get_current_user(
     return principal
 
 
-def require_role(*roles: Role):
+def require_role(
+    *roles: Role,
+) -> Callable[..., Coroutine[Any, Any, Principal]]:
     """Dependency factory: require the user to have one of the specified roles.
 
     Usage:
@@ -115,8 +120,7 @@ def require_role(*roles: Role):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=(
-                    "Insufficient permissions. Required role: "
-                    f"{', '.join(r.value for r in roles)}"
+                    f"Insufficient permissions. Required role: {', '.join(r.value for r in roles)}"
                 ),
             )
         return user

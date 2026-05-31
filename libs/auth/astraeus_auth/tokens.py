@@ -8,7 +8,7 @@ Handles both:
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 
 from jose import JWTError, jwt
 
@@ -52,7 +52,7 @@ def decode_token(token: str, settings: AuthSettings) -> dict[str, Any]:
     if "sub" not in payload and "name" not in payload:
         raise TokenError("Token missing subject claim")
 
-    return payload
+    return cast("dict[str, Any]", payload)
 
 
 def token_to_principal(payload: dict[str, Any]) -> Principal:
@@ -96,10 +96,13 @@ def create_service_token(
         "type": "service",
     }
 
-    return jwt.encode(
-        payload,
-        settings.jwt_secret.get_secret_value(),
-        algorithm=settings.jwt_algorithm,
+    return cast(
+        "str",
+        jwt.encode(
+            payload,
+            settings.jwt_secret.get_secret_value(),
+            algorithm=settings.jwt_algorithm,
+        ),
     )
 
 
@@ -127,8 +130,11 @@ def create_access_token(
         "type": "access",
     }
 
-    return jwt.encode(
-        payload,
-        settings.jwt_secret.get_secret_value(),
-        algorithm=settings.jwt_algorithm,
+    return cast(
+        "str",
+        jwt.encode(
+            payload,
+            settings.jwt_secret.get_secret_value(),
+            algorithm=settings.jwt_algorithm,
+        ),
     )

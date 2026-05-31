@@ -159,6 +159,7 @@ module = [
     "sklearn.*",
     "alpaca.*",
     "ib_insync.*",
+    "jose.*",
 ]
 ignore_missing_imports = true
 

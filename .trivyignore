@@ -1,0 +1,19 @@
+# Trivy ignore rules for known acceptable findings.
+# Each entry is a Trivy check ID with justification.
+
+# EKS public endpoint — required for CI/CD and developer access.
+# Access is restricted via IAM and security groups in production.
+AVD-AWS-0040
+
+# Security group unrestricted egress — standard pattern for private subnets
+# behind NAT gateway. Ingress is restricted.
+AVD-AWS-0104
+
+# RDS not using IAM auth — we use Secrets Manager managed credentials.
+AVD-AWS-0177
+
+# S3 bucket logging — audit bucket doesn't need access logging on itself.
+AVD-AWS-0089
+
+# CloudWatch log group not encrypted — using default AWS encryption.
+AVD-AWS-0017

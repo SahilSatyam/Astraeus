@@ -148,7 +148,9 @@ def main() -> None:
             print("    - Floating-point precision difference (unlikely with Postgres)")
             print()
             print("  Next steps:")
-            print("    1. Check row count: SELECT COUNT(*) FROM market_data.ohlcv_daily WHERE symbol='SPY' AND date BETWEEN '2024-01-02' AND '2024-01-31'")
+            print(
+                "    1. Check row count: SELECT COUNT(*) FROM market_data.ohlcv_daily WHERE symbol='SPY' AND date BETWEEN '2024-01-02' AND '2024-01-31'"
+            )
             print("    2. Compare a sample row against known values")
             print("    3. If data is correct but hash differs, regenerate baseline")
             sys.exit(1)
