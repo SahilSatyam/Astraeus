@@ -110,12 +110,12 @@ def run_load_test(
     for _method, path in ENDPOINTS:
         results[path] = EndpointResult(endpoint=path)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("  Astraeus Load Test")
     print(f"  Target: {base_url}")
     print(f"  Concurrency: {concurrency}")
     print(f"  Duration: {duration_seconds}s")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     end_time = time.time() + duration_seconds
 
@@ -153,9 +153,9 @@ def run_load_test(
 
 def print_results(results: dict[str, EndpointResult]) -> None:
     """Print formatted results table."""
-    print(f"\n{'─'*80}")
+    print(f"\n{'─' * 80}")
     print(f"{'Endpoint':<20} {'Total':>8} {'OK%':>8} {'Avg':>8} {'P50':>8} {'P95':>8} {'P99':>8}")
-    print(f"{'─'*80}")
+    print(f"{'─' * 80}")
 
     all_ok = True
     for path, r in results.items():
@@ -169,7 +169,7 @@ def print_results(results: dict[str, EndpointResult]) -> None:
             for code, count in r.errors.items():
                 print(f"  └─ HTTP {code}: {count} errors")
 
-    print(f"{'─'*80}")
+    print(f"{'─' * 80}")
     print("  Latencies in milliseconds")
     print()
 
