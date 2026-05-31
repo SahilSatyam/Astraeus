@@ -27,7 +27,7 @@ jobs:
           - app: oms
             context: "."
           - app: web
-            context: "apps/web"
+            context: "."
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
