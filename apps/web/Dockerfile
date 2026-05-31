@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:22-alpine AS base
+FROM node:26-alpine AS base
 
 # ---------- deps ----------
 FROM base AS deps
