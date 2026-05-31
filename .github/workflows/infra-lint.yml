@@ -49,6 +49,8 @@ jobs:
           tflint --init
           tflint --recursive
         working-directory: infra/terraform
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   helm-lint:
     name: Helm Lint & Template
