@@ -1,5 +1,16 @@
 # RDS module — Managed PostgreSQL for the control plane.
 
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.40"
+    }
+  }
+}
+
 variable "identifier" {
   description = "RDS instance identifier"
   type        = string

@@ -1,5 +1,16 @@
 # Observability module — managed Grafana workspace (optional) and log retention.
 
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.40"
+    }
+  }
+}
+
 variable "environment" {
   description = "Environment name"
   type        = string
@@ -9,16 +20,6 @@ variable "project" {
   description = "Project name"
   type        = string
   default     = "astraeus"
-}
-
-variable "vpc_id" {
-  description = "VPC ID for security group"
-  type        = string
-}
-
-variable "subnet_ids" {
-  description = "Subnet IDs for Grafana workspace"
-  type        = list(string)
 }
 
 variable "log_retention_days" {

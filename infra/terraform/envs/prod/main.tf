@@ -94,7 +94,6 @@ module "network" {
 module "eks" {
   source             = "../../modules/eks"
   cluster_name       = local.cluster_name
-  vpc_id             = module.network.vpc_id
   subnet_ids         = module.network.private_subnet_ids
   environment        = local.environment
   kubernetes_version = "1.29"
@@ -144,7 +143,7 @@ module "irsa_api" {
     Statement = [{
       Effect   = "Allow"
       Action   = ["s3:GetObject", "s3:ListBucket"]
-      Resource = ["${module.s3_data_lake.bucket_arn}", "${module.s3_data_lake.bucket_arn}/*"]
+      Resource = [module.s3_data_lake.bucket_arn, "${module.s3_data_lake.bucket_arn}/*"]
     }]
   })
 }
@@ -170,8 +169,6 @@ module "irsa_oms" {
 module "observability" {
   source                   = "../../modules/observability"
   environment              = local.environment
-  vpc_id                   = module.network.vpc_id
-  subnet_ids               = module.network.private_subnet_ids
   log_retention_days       = 90
   audit_log_retention_days = 2555  # ~7 years for trading events
 }

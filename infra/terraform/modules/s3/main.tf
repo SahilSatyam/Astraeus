@@ -1,5 +1,16 @@
 # S3 module — Data lake, backups, and MLflow artifact storage.
 
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.40"
+    }
+  }
+}
+
 variable "bucket_name" {
   description = "S3 bucket name"
   type        = string
@@ -8,18 +19,6 @@ variable "bucket_name" {
 variable "environment" {
   description = "Environment name"
   type        = string
-}
-
-variable "enable_replication" {
-  description = "Enable cross-region replication"
-  type        = bool
-  default     = false
-}
-
-variable "replication_destination_bucket_arn" {
-  description = "Destination bucket ARN for replication"
-  type        = string
-  default     = ""
 }
 
 resource "aws_kms_key" "s3" {

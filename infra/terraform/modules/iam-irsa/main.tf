@@ -1,6 +1,17 @@
 # IAM-IRSA module — Workload identity for Kubernetes pods.
 # Creates an IAM role that a specific ServiceAccount in a specific namespace can assume.
 
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.40"
+    }
+  }
+}
+
 variable "cluster_name" {
   description = "EKS cluster name"
   type        = string

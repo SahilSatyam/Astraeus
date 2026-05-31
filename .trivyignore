@@ -1,6 +1,13 @@
 # Trivy ignore rules for known acceptable findings.
 # Each entry is a Trivy check ID with justification.
 
+# EKS public endpoint enabled — required for CI/CD and developer kubectl access.
+# Access is restricted to private CIDRs via public_access_cidrs.
+AVD-AWS-0040
+
+# EKS public access CIDRs — restricted to internal ranges, not 0.0.0.0/0.
+AVD-AWS-0041
+
 # Security group unrestricted egress — standard pattern for private subnets
 # behind NAT gateway. Ingress is restricted.
 AVD-AWS-0104

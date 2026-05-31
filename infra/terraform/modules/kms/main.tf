@@ -1,5 +1,16 @@
 # KMS module — Encryption keys for platform-wide use.
 
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.40"
+    }
+  }
+}
+
 variable "environment" {
   description = "Environment name"
   type        = string

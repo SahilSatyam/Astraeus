@@ -62,7 +62,6 @@ module "network" {
 module "eks" {
   source             = "../../modules/eks"
   cluster_name       = local.cluster_name
-  vpc_id             = module.network.vpc_id
   subnet_ids         = module.network.private_subnet_ids
   environment        = local.environment
   kubernetes_version = "1.29"

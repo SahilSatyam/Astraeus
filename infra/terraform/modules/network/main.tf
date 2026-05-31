@@ -1,6 +1,17 @@
 # Network module — VPC, subnets, NAT gateway, route tables.
 # Produces a production-grade VPC with public/private subnets across 3 AZs.
 
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.40"
+    }
+  }
+}
+
 variable "cidr" {
   description = "VPC CIDR block"
   type        = string
