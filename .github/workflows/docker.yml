@@ -19,7 +19,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [api, workers, oms, web]
+        include:
+          - app: api
+            context: "."
+          - app: workers
+            context: "."
+          - app: oms
+            context: "."
+          - app: web
+            context: "apps/web"
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
@@ -39,7 +47,7 @@ jobs:
             type=sha,format=short
       - uses: docker/build-push-action@ee4ca427a2f43b6a16632044ca514c076267da23 # v6.19.0
         with:
-          context: ${{ matrix.app == 'web' && 'apps/web' || '.' }}
+          context: ${{ matrix.context }}
           file: apps/${{ matrix.app }}/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
