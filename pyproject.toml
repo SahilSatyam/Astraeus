@@ -19,7 +19,7 @@ dev = [
 ]
 
 [tool.uv.workspace]
-members = ["apps/api", "apps/workers", "libs/*"]
+members = ["apps/api", "apps/workers", "apps/oms", "apps/recon_worker", "libs/*"]
 
 [tool.uv.sources]
 astraeus-domain = { workspace = true }
@@ -36,6 +36,15 @@ astraeus-entities = { workspace = true }
 astraeus-altdata = { workspace = true }
 astraeus-nlp = { workspace = true }
 astraeus-rag = { workspace = true }
+astraeus-agent-runtime = { workspace = true }
+astraeus-recommender = { workspace = true }
+astraeus-regime = { workspace = true }
+astraeus-ensemble = { workspace = true }
+astraeus-trading = { workspace = true }
+astraeus-brokers = { workspace = true }
+astraeus-risk = { workspace = true }
+astraeus-oms = { workspace = true }
+astraeus-recon-worker = { workspace = true }
 astraeus-api = { workspace = true }
 astraeus-workers = { workspace = true }
 
@@ -96,6 +105,15 @@ ignore = [
 "libs/portfolio/**" = ["E501", "PLR0912", "E741", "B007", "B904", "RUF043"]
 "libs/portfolio/**/tests/**" = ["S", "PLR2004", "ARG", "PLR0915", "F841", "B904", "RUF043"]
 "apps/workers/**" = ["E501"]
+"libs/agent_runtime/**" = ["E501"]
+"libs/recommender/**" = ["E501"]
+"libs/regime/**" = ["E501"]
+"libs/ensemble/**" = ["E501"]
+"libs/trading/**" = ["E501"]
+"libs/brokers/**" = ["E501"]
+"libs/risk/**" = ["E501"]
+"apps/oms/**" = ["E501"]
+"apps/recon_worker/**" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -136,6 +154,10 @@ module = [
     "feedparser.*",
     "bs4.*",
     "numpy.*",
+    "hmmlearn.*",
+    "sklearn.*",
+    "alpaca.*",
+    "ib_insync.*",
 ]
 ignore_missing_imports = true
 
@@ -151,6 +173,15 @@ module = [
     "astraeus_contracts.*",
     "astraeus_marketdata.*",
     "astraeus_api.*",
+    "astraeus_agent_runtime.*",
+    "astraeus_recommender.*",
+    "astraeus_regime.*",
+    "astraeus_ensemble.*",
+    "astraeus_trading.*",
+    "astraeus_brokers.*",
+    "astraeus_risk.*",
+    "astraeus_oms.*",
+    "astraeus_recon_worker.*",
 ]
 strict = false
 disable_error_code = ["attr-defined", "no-any-return", "arg-type", "assignment", "no-untyped-def", "unused-ignore", "type-arg", "operator", "list-item", "no-untyped-call", "misc", "valid-type", "name-defined", "import-not-found", "untyped-decorator", "no-redef"]
