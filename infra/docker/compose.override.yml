@@ -20,7 +20,6 @@ services:
       ASTRAEUS_DB_PASSWORD: astraeus
       ASTRAEUS_DB_NAME: astraeus
       ASTRAEUS_REDIS_HOST: redis
-      ASTRAEUS_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
       ASTRAEUS_OBS_OTLP_ENDPOINT: http://jaeger:4317
       ASTRAEUS_OBS_OTLP_INSECURE: "true"
       ASTRAEUS_OBS_LOG_FORMAT: json
@@ -46,15 +45,11 @@ services:
       ASTRAEUS_DB_PASSWORD: astraeus
       ASTRAEUS_DB_NAME: astraeus
       ASTRAEUS_REDIS_HOST: redis
-      ASTRAEUS_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
-      ASTRAEUS_KAFKA_SCHEMA_REGISTRY_URL: http://karapace-registry:8081
       ASTRAEUS_OBS_OTLP_ENDPOINT: http://jaeger:4317
       ASTRAEUS_OBS_OTLP_INSECURE: "true"
       ASTRAEUS_OBS_LOG_FORMAT: json
     depends_on:
       postgres:
-        condition: service_healthy
-      redpanda:
         condition: service_healthy
 
   # Dev port mappings for the data plane (only enabled in this override file).
@@ -66,19 +61,10 @@ services:
     ports:
       - "6379:6379"
 
-  redpanda:
-    ports:
-      - "19092:19092"
-      - "8082:8082"
-
   minio:
     ports:
       - "9000:9000"
       - "9001:9001"
-
-  karapace-registry:
-    ports:
-      - "8081:8081"
 
   jaeger:
     ports:
