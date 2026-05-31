@@ -167,6 +167,15 @@ module "irsa_oms" {
   })
 }
 
+module "observability" {
+  source                   = "../../modules/observability"
+  environment              = local.environment
+  vpc_id                   = module.network.vpc_id
+  subnet_ids               = module.network.private_subnet_ids
+  log_retention_days       = 90
+  audit_log_retention_days = 2555  # ~7 years for trading events
+}
+
 output "cluster_endpoint" {
   value = module.eks.cluster_endpoint
 }

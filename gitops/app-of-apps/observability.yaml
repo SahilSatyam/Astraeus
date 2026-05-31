@@ -1,0 +1,46 @@
+# Observability domain — SLO rules, dashboards, cost controls
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: observability-slo-rules
+  namespace: argocd
+spec:
+  project: observability
+  source:
+    repoURL: https://github.com/sahil/Astraeus.git
+    targetRevision: main
+    path: infra/k8s/observability
+    directory:
+      recurse: true
+      include: "*.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: observability-grafana-dashboards
+  namespace: argocd
+spec:
+  project: observability
+  source:
+    repoURL: https://github.com/sahil/Astraeus.git
+    targetRevision: main
+    path: infra/k8s/observability/grafana-dashboards
+    directory:
+      recurse: false
+      include: "*.json"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

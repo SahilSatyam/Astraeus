@@ -1,0 +1,70 @@
+# Velero backup schedules — cluster-state backup for CRDs and configs.
+# Note: Postgres is backed up by CNPG (WAL archiving), not Velero.
+# Velero handles: namespaces, configmaps, secrets metadata, CRDs, PVCs metadata.
+---
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: daily-cluster-state
+  namespace: velero
+spec:
+  schedule: "0 4 * * *"  # 04:00 UTC daily
+  template:
+    # Exclude data volumes — CNPG handles Postgres, Redpanda has tiered storage
+    includedNamespaces:
+      - research
+      - trading
+      - web
+      - agents
+      - platform
+      - argocd
+    excludedResources:
+      - events
+      - events.events.k8s.io
+    snapshotVolumes: false  # Don't snapshot PVs — too expensive, CNPG handles DB
+    storageLocation: default
+    ttl: 720h  # 30 days retention
+    metadata:
+      labels:
+        velero.io/schedule: daily-cluster-state
+---
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: weekly-full-backup
+  namespace: velero
+spec:
+  schedule: "0 2 * * 0"  # Sunday 02:00 UTC
+  template:
+    includedNamespaces:
+      - "*"
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+    excludedResources:
+      - events
+      - events.events.k8s.io
+    snapshotVolumes: false
+    storageLocation: default
+    ttl: 2160h  # 90 days retention
+    metadata:
+      labels:
+        velero.io/schedule: weekly-full-backup
+---
+# Backup storage location
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: aws
+  objectStorage:
+    bucket: astraeus-prod-backups
+    prefix: velero/
+  config:
+    region: us-east-1
+  credential:
+    name: velero-aws-creds
+    key: cloud

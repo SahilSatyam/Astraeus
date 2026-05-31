@@ -1,0 +1,170 @@
+# Kyverno policies — admission control for production safety.
+---
+# Policy: Require signed images in production namespaces
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-signed-images
+  annotations:
+    policies.kyverno.io/title: Require Signed Images
+    policies.kyverno.io/description: >-
+      All container images in production namespaces must be signed with Cosign.
+      Unsigned images are rejected at admission.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: verify-image-signature
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - research
+                - trading
+                - web
+                - agents
+      verifyImages:
+        - imageReferences:
+            - "ghcr.io/astraeus/*"
+          attestors:
+            - entries:
+                - keys:
+                    publicKeys: |-
+                      -----BEGIN PUBLIC KEY-----
+                      # Replace with actual Cosign public key
+                      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE...
+                      -----END PUBLIC KEY-----
+---
+# Policy: Disallow 'latest' tag
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+  annotations:
+    policies.kyverno.io/title: Disallow Latest Tag
+    policies.kyverno.io/description: >-
+      Container images must not use the 'latest' tag. Use explicit version
+      tags or SHA digests.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-image-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Image tag 'latest' is not allowed. Use a specific version or digest."
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"
+            initContainers:
+              - image: "!*:latest"
+---
+# Policy: Require resource limits
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-limits
+  annotations:
+    policies.kyverno.io/title: Require Resource Limits
+    policies.kyverno.io/description: >-
+      All containers must specify resource requests and limits.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-resources
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - research
+                - trading
+                - web
+                - agents
+      validate:
+        message: "All containers must have resource requests and limits defined."
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    cpu: "?*"
+                    memory: "?*"
+                  limits:
+                    cpu: "?*"
+                    memory: "?*"
+---
+# Policy: Disallow privilege escalation
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privilege-escalation
+  annotations:
+    policies.kyverno.io/title: Disallow Privilege Escalation
+    policies.kyverno.io/description: >-
+      Containers must not allow privilege escalation.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: deny-privilege-escalation
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Privilege escalation is not allowed."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  allowPrivilegeEscalation: false
+---
+# Policy: Block kubectl apply from non-ArgoCD sources
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-argocd-managed
+  annotations:
+    policies.kyverno.io/title: Require ArgoCD Management
+    policies.kyverno.io/description: >-
+      In production namespaces, resources must be managed by ArgoCD.
+      Direct kubectl apply is blocked.
+spec:
+  validationFailureAction: Audit  # Start with Audit, move to Enforce
+  background: false
+  rules:
+    - name: check-argocd-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+                - Service
+              namespaces:
+                - research
+                - trading
+                - web
+      exclude:
+        any:
+          - subjects:
+              - kind: ServiceAccount
+                name: argocd-application-controller
+                namespace: argocd
+      validate:
+        message: "Resources in production namespaces must be managed by ArgoCD. Use GitOps."
+        pattern:
+          metadata:
+            labels:
+              app.kubernetes.io/managed-by: "Helm"

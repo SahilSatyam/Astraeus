@@ -1,0 +1,133 @@
+{
+  "annotations": { "list": [] },
+  "description": "OMS SLO dashboard — order latency, error rate, reconciliation drift",
+  "editable": true,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "title": "Order Ack p99 Latency",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "slo:oms_latency:p99_5m",
+          "legendFormat": "p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "thresholdsStyle": { "mode": "line" } },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.2 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Error Rate (5m)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "slo:oms_requests:error_ratio_5m",
+          "legendFormat": "Error Rate"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": { "thresholdsStyle": { "mode": "line" } },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.001 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Reconciliation Drift Events",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "recon_drift_total",
+          "legendFormat": "Drift Events"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Kill Switch Status",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 8 },
+      "targets": [
+        {
+          "expr": "kill_switch_armed",
+          "legendFormat": "Armed"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DISARMED", "color": "green" } } },
+            { "type": "value", "options": { "1": { "text": "ARMED", "color": "red" } } }
+          ]
+        }
+      }
+    },
+    {
+      "title": "Orders Submitted (rate)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(orders_submitted_total{namespace=\"trading\"}[5m]))",
+          "legendFormat": "orders/s"
+        }
+      ]
+    },
+    {
+      "title": "Order State Machine",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "sum by (state) (orders_current_state{namespace=\"trading\"})",
+          "legendFormat": "{{ state }}"
+        }
+      ]
+    },
+    {
+      "title": "Broker Response Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(broker_response_duration_seconds_bucket{namespace=\"trading\"}[5m])) by (le, broker))",
+          "legendFormat": "{{ broker }} p99"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    }
+  ],
+  "schemaVersion": 38,
+  "tags": ["astraeus", "slo", "oms", "trading"],
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "OMS — SLO Dashboard",
+  "uid": "astraeus-oms-slo"
+}
