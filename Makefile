@@ -3,7 +3,7 @@ SHELL := /bin/bash
 COMPOSE := docker compose -f infra/docker/compose.yml -f infra/docker/compose.override.yml
 
 .PHONY: help bootstrap dev down stop clean logs ps fmt lint typecheck test test-int \
-        migrate downgrade revision build smoke env-lint precommit-install \
+        migrate downgrade revision build smoke env-lint precommit-install backup \
         dev-k8s k8s-down k8s-clean helm-lint tf-validate tf-plan
 
 help:  ## Show this help.
@@ -90,6 +90,9 @@ replay:  ## Replay market data: make replay SOURCE=yahoo START=2024-01-01 END=20
 
 precommit-install:  ## Install git hooks via pre-commit.
 	uv run pre-commit install
+
+backup:  ## Run database backup.
+	./scripts/backup-db.sh
 
 # ─── Phase 10: Kubernetes / Production Hardening ─────────────────────────────
 
