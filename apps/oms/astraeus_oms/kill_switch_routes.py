@@ -11,6 +11,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Annotated
 
+from astraeus_auth import Principal
+from astraeus_auth.dependencies import get_current_user, require_kill_switch_permission
 from astraeus_trading.models import KillSwitchStateModel, TradeJournalModel
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -23,7 +25,6 @@ router = APIRouter(prefix="/killswitch", tags=["kill-switch"])
 
 
 class ArmRequest(BaseModel):
-    armed_by: str = "system"
     reason: str = ""
 
 
@@ -40,8 +41,9 @@ async def arm_kill_switch(
     scope: str,
     body: ArmRequest,
     session: Annotated[AsyncSession, Depends(get_session)],
+    user: Annotated[Principal, Depends(require_kill_switch_permission)],
 ) -> KillSwitchResponse:
-    """Arm a kill switch for the given scope."""
+    """Arm a kill switch for the given scope. Requires kill-switch permission."""
     now = datetime.now(UTC)
 
     # Upsert kill switch state
@@ -51,27 +53,28 @@ async def arm_kill_switch(
 
     if ks:
         ks.armed = True
-        ks.armed_by = body.armed_by
+        ks.armed_by = user.subject
         ks.armed_at = now
         ks.reason = body.reason
     else:
         ks = KillSwitchStateModel(
             scope=scope,
             armed=True,
-            armed_by=body.armed_by,
+            armed_by=user.subject,
             armed_at=now,
             reason=body.reason,
         )
         session.add(ks)
 
-    # Journal the flip
+    # Journal the flip with verified identity
     journal = TradeJournalModel(
         account_id=scope,
         kind="kill_switch_flip",
         payload={
             "scope": scope,
             "action": "arm",
-            "armed_by": body.armed_by,
+            "armed_by": user.subject,
+            "role": user.role.value,
             "reason": body.reason,
         },
     )
@@ -92,8 +95,9 @@ async def disarm_kill_switch(
     scope: str,
     body: ArmRequest,
     session: Annotated[AsyncSession, Depends(get_session)],
+    user: Annotated[Principal, Depends(require_kill_switch_permission)],
 ) -> KillSwitchResponse:
-    """Disarm a kill switch for the given scope."""
+    """Disarm a kill switch for the given scope. Requires kill-switch permission."""
     stmt = select(KillSwitchStateModel).where(KillSwitchStateModel.scope == scope)
     result = await session.execute(stmt)
     ks = result.scalars().first()
@@ -103,14 +107,15 @@ async def disarm_kill_switch(
 
     ks.armed = False
 
-    # Journal the flip
+    # Journal the flip with verified identity
     journal = TradeJournalModel(
         account_id=scope,
         kind="kill_switch_flip",
         payload={
             "scope": scope,
             "action": "disarm",
-            "disarmed_by": body.armed_by,
+            "disarmed_by": user.subject,
+            "role": user.role.value,
             "reason": body.reason,
         },
     )

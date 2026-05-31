@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from astraeus_auth import AuthSettings
 from astraeus_config import Settings
 from astraeus_observability import configure_logging, configure_tracing
 from fastapi import FastAPI
@@ -46,6 +47,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         default_response_class=ORJSONResponse,
     )
     app.state.settings = settings
+    app.state.auth_settings = AuthSettings()
 
     app.add_middleware(RequestContextMiddleware)
     register_exception_handlers(app)
