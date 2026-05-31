@@ -154,6 +154,7 @@ def downgrade() -> None:
     op.execute(sa.text("DROP FUNCTION IF EXISTS pit_latest(regclass, text, timestamptz)"))
     op.execute(sa.text("ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM researcher_ro"))
     op.execute(sa.text("REVOKE ALL ON ALL TABLES IN SCHEMA public FROM researcher_ro"))
+    op.execute(sa.text("REVOKE USAGE ON SCHEMA public FROM researcher_ro"))
     op.execute(sa.text("REVOKE CONNECT ON DATABASE astraeus FROM researcher_ro"))
     op.execute(sa.text("DROP ROLE IF EXISTS researcher_ro"))
     op.drop_table("security_alias")

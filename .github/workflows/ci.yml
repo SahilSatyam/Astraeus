@@ -90,6 +90,8 @@ jobs:
       - run: uv python install 3.12
       - run: uv sync --all-packages --frozen
       - run: cd libs/db && uv run alembic upgrade head
+      - run: cd libs/db && uv run alembic downgrade -1
+      - run: cd libs/db && uv run alembic upgrade head
       - run: uv run pytest -m integration || [ $? -eq 5 ]
 
   import-audit:

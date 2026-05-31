@@ -94,7 +94,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S", "PLR2004", "ARG", "PLR0915", "F841"]
 "libs/db/**/migrations/**" = ["E501", "I001", "ERA001"]
-"scripts/**" = ["S603", "S607", "E501"]
+"scripts/**" = ["S603", "S607", "S310", "E501"]
 "libs/marketdata/astraeus_marketdata/models.py" = ["TC003"]
 "libs/marketdata/astraeus_marketdata/adapters/base.py" = ["TC003"]
 "libs/altdata/**" = ["E501"]

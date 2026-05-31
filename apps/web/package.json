@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "generate:api": "openapi-typescript http://localhost:8000/openapi.json --output src/lib/generated/api-types.ts",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build"
   },
