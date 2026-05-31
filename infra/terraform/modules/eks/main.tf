@@ -26,6 +26,12 @@ variable "environment" {
   type        = string
 }
 
+variable "public_access_cidrs" {
+  description = "CIDR blocks allowed to access the EKS public endpoint"
+  type        = list(string)
+  default     = ["10.0.0.0/8"]
+}
+
 variable "node_groups" {
   description = "Map of node group configurations"
   type = map(object({
@@ -78,7 +84,8 @@ resource "aws_eks_cluster" "main" {
   vpc_config {
     subnet_ids              = var.subnet_ids
     endpoint_private_access = true
-    endpoint_public_access  = true # Restrict in prod via security group
+    endpoint_public_access  = true
+    public_access_cidrs     = var.public_access_cidrs
   }
 
   encryption_config {

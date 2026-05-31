@@ -1,10 +1,6 @@
 # Trivy ignore rules for known acceptable findings.
 # Each entry is a Trivy check ID with justification.
 
-# EKS public endpoint — required for CI/CD and developer access.
-# Access is restricted via IAM and security groups in production.
-AVD-AWS-0040
-
 # Security group unrestricted egress — standard pattern for private subnets
 # behind NAT gateway. Ingress is restricted.
 AVD-AWS-0104
@@ -17,3 +13,7 @@ AVD-AWS-0089
 
 # CloudWatch log group not encrypted — using default AWS encryption.
 AVD-AWS-0017
+
+# Public subnets with map_public_ip_on_launch — intentional for ALB/NLB
+# ingress and NAT gateway placement. Workloads run in private subnets.
+AVD-AWS-0164

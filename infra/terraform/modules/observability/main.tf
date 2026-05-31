@@ -56,6 +56,12 @@ resource "aws_cloudwatch_log_group" "audit" {
 }
 
 # S3 bucket for long-term log archival (immutable for audit compliance)
+resource "aws_kms_key" "audit_logs" {
+  description             = "Encryption key for ${var.project}-${var.environment} audit logs"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+}
+
 resource "aws_s3_bucket" "audit_logs" {
   bucket = "${var.project}-${var.environment}-audit-logs"
 
@@ -70,6 +76,18 @@ resource "aws_s3_bucket_versioning" "audit_logs" {
   bucket = aws_s3_bucket.audit_logs.id
   versioning_configuration {
     status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "audit_logs" {
+  bucket = aws_s3_bucket.audit_logs.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.audit_logs.arn
+    }
+    bucket_key_enabled = true
   }
 }
 
