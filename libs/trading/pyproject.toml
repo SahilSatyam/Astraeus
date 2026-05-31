@@ -5,6 +5,8 @@ description = "Order state machine, idempotency, event sourcing, and trade journ
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "pydantic>=2.7",
+    "prometheus-client>=0.20",
+    "redis>=5.0",
     "astraeus-domain",
     "astraeus-db",
 ]
