@@ -4,9 +4,8 @@ COMPOSE := docker compose -f infra/docker/compose.yml -f infra/docker/compose.ov
 
 .PHONY: help bootstrap dev down stop clean logs ps fmt lint typecheck test test-int \
         migrate downgrade revision build smoke env-lint precommit-install backup \
-        dev-k8s k8s-down k8s-clean helm-lint tf-validate tf-plan
-        migrate downgrade revision build smoke env-lint precommit-install \
-        dev-k8s k8s-down k8s-clean helm-lint tf-validate tf-plan \
+        prod prod-logs prod-down backfill backfill-universe replay \
+        dev-k8s k8s-down k8s-clean helm-lint helm-template tf-validate tf-plan \
         load-test generate-client
 
 help:  ## Show this help.

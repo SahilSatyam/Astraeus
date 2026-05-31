@@ -90,3 +90,31 @@ class TestAuthSettings:
         assert settings.enabled is True
         assert "/health" in settings.public_paths
         assert "/metrics" in settings.public_paths
+
+
+class TestAuthSettingsSecretValidation:
+    @pytest.mark.unit
+    def test_default_secret_allowed_in_local(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("ASTRAEUS_ENV", "local")
+        # Should not raise.
+        AuthSettings()
+
+    @pytest.mark.unit
+    def test_default_secret_rejected_in_prod(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("ASTRAEUS_ENV", "prod")
+        monkeypatch.delenv("ASTRAEUS_AUTH_JWT_SECRET", raising=False)
+        with pytest.raises(ValueError, match="default development"):
+            AuthSettings()
+
+    @pytest.mark.unit
+    def test_strong_secret_passes_in_prod(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("ASTRAEUS_ENV", "prod")
+        s = AuthSettings(jwt_secret="a-real-strong-secret-from-vault")
+        assert s.jwt_secret.get_secret_value() == "a-real-strong-secret-from-vault"
+
+    @pytest.mark.unit
+    def test_default_secret_rejected_in_staging(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("ASTRAEUS_ENV", "staging")
+        monkeypatch.delenv("ASTRAEUS_AUTH_JWT_SECRET", raising=False)
+        with pytest.raises(ValueError, match="default development"):
+            AuthSettings()
