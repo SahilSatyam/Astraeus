@@ -7,14 +7,14 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+COPY apps/web/package.json apps/web/package-lock.json ./
+RUN npm ci --ignore-scripts --legacy-peer-deps
 
 # ---------- builder ----------
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY apps/web/ .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
