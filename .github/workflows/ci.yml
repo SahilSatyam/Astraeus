@@ -92,6 +92,17 @@ jobs:
       - run: cd libs/db && uv run alembic upgrade head
       - run: uv run pytest -m integration || [ $? -eq 5 ]
 
+  import-audit:
+    name: Import isolation (LLM ↔ Broker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+      - run: uv python install 3.12
+      - run: uv run python scripts/import_audit.py
+
   env-lint:
     name: .env parity
     runs-on: ubuntu-latest

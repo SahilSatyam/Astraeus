@@ -1,0 +1,19 @@
+[project]
+name = "astraeus-trading"
+version = "0.1.0"
+description = "Order state machine, idempotency, event sourcing, and trade journal for Astraeus OMS."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic>=2.7",
+    "prometheus-client>=0.20",
+    "redis>=5.0",
+    "astraeus-domain",
+    "astraeus-db",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["astraeus_trading"]

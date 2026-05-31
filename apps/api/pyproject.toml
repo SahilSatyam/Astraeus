@@ -19,6 +19,9 @@ dependencies = [
     "astraeus-domain",
     "astraeus-marketdata",
     "astraeus-observability",
+    "astraeus-features",
+    "astraeus-rag",
+    "astraeus-agent-runtime",
 ]
 
 [build-system]
