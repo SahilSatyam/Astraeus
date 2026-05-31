@@ -1,0 +1,35 @@
+# Kind cluster configuration for local development
+# Mirrors production topology: multi-node with port mappings for ingress
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: astraeus-local
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 8080
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 8443
+        protocol: TCP
+      - containerPort: 30000
+        hostPort: 30000
+        protocol: TCP
+  - role: worker
+    labels:
+      astraeus.io/pool: general
+  - role: worker
+    labels:
+      astraeus.io/pool: data
+  - role: worker
+    labels:
+      astraeus.io/pool: trading
+networking:
+  podSubnet: "10.244.0.0/16"
+  serviceSubnet: "10.96.0.0/16"

@@ -3,7 +3,8 @@ SHELL := /bin/bash
 COMPOSE := docker compose -f infra/docker/compose.yml -f infra/docker/compose.override.yml
 
 .PHONY: help bootstrap dev down stop clean logs ps fmt lint typecheck test test-int \
-        migrate downgrade revision build smoke env-lint precommit-install
+        migrate downgrade revision build smoke env-lint precommit-install \
+        dev-k8s k8s-down k8s-clean helm-lint tf-validate tf-plan
 
 help:  ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -89,3 +90,37 @@ replay:  ## Replay market data: make replay SOURCE=yahoo START=2024-01-01 END=20
 
 precommit-install:  ## Install git hooks via pre-commit.
 	uv run pre-commit install
+
+# ─── Phase 10: Kubernetes / Production Hardening ─────────────────────────────
+
+dev-k8s:  ## Spin up full local stack on kind (requires kind, helm, kubectl).
+	bash infra/kind/bootstrap.sh
+
+k8s-down:  ## Delete the local kind cluster.
+	kind delete cluster --name astraeus-local
+
+k8s-clean: k8s-down  ## Delete cluster and prune docker resources.
+	docker system prune -f
+
+helm-lint:  ## Lint all Helm charts.
+	@for chart in apps/*/deploy/chart; do \
+	  echo "==> Linting $$chart"; \
+	  helm lint "$$chart" --strict || exit 1; \
+	done
+
+helm-template:  ## Render all Helm charts (dry-run validation).
+	@for chart in apps/*/deploy/chart; do \
+	  echo "==> Templating $$chart"; \
+	  helm template test "$$chart" > /dev/null || exit 1; \
+	done
+
+tf-validate:  ## Validate all Terraform modules.
+	@for env in infra/terraform/envs/*/; do \
+	  echo "==> Validating $$env"; \
+	  terraform -chdir="$$env" init -backend=false > /dev/null 2>&1; \
+	  terraform -chdir="$$env" validate || exit 1; \
+	done
+
+tf-plan:  ## Run terraform plan against dev (requires AWS creds).
+	terraform -chdir=infra/terraform/envs/dev init
+	terraform -chdir=infra/terraform/envs/dev plan

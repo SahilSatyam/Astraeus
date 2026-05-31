@@ -1,0 +1,105 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "Research API SLO dashboard — availability and latency",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Error Budget Remaining (30d)",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "1 - (sum(increase(http_requests_total{namespace=\"research\", job=\"astraeus-api\", code=~\"5..\"}[30d])) / sum(increase(http_requests_total{namespace=\"research\", job=\"astraeus-api\"}[30d]))) / 0.001",
+          "legendFormat": "Budget Remaining"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 0.25 },
+              { "color": "green", "value": 0.5 }
+            ]
+          },
+          "min": 0,
+          "max": 1,
+          "unit": "percentunit"
+        }
+      }
+    },
+    {
+      "title": "Error Rate (5m window)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 6, "y": 0 },
+      "targets": [
+        {
+          "expr": "slo:api_requests:error_ratio_5m",
+          "legendFormat": "Error Rate"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": {
+            "thresholdsStyle": { "mode": "line" }
+          },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.001 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "p99 Latency",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "slo:api_latency:p99_5m",
+          "legendFormat": "p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "thresholdsStyle": { "mode": "line" }
+          },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.8 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Request Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"research\", job=\"astraeus-api\"}[5m]))",
+          "legendFormat": "req/s"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 38,
+  "tags": ["astraeus", "slo", "api"],
+  "templating": { "list": [] },
+  "time": { "from": "now-24h", "to": "now" },
+  "title": "Research API — SLO Dashboard",
+  "uid": "astraeus-api-slo"
+}

@@ -1,0 +1,24 @@
+# Web domain — Next.js dashboard
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web-dashboard
+  namespace: argocd
+spec:
+  project: web
+  source:
+    repoURL: https://github.com/sahil/Astraeus.git
+    targetRevision: main
+    path: apps/web/deploy/chart
+    helm:
+      valueFiles:
+        - ../../../../gitops/overlays/prod/web-values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: web
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

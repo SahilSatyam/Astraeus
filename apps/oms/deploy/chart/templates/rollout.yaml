@@ -1,0 +1,61 @@
+{{- if .Values.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ include "astraeus-oms.fullname" . }}
+  labels:
+    {{- include "astraeus-oms.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      {{- include "astraeus-oms.selectorLabels" . | nindent 6 }}
+  strategy:
+    blueGreen:
+      activeService: {{ include "astraeus-oms.fullname" . }}
+      previewService: {{ include "astraeus-oms.fullname" . }}-preview
+      autoPromotionEnabled: {{ .Values.rollout.blueGreen.autoPromotionEnabled }}
+      previewReplicaCount: {{ .Values.rollout.blueGreen.previewReplicaCount }}
+      scaleDownDelaySeconds: {{ .Values.rollout.blueGreen.scaleDownDelaySeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "astraeus-oms.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "astraeus-oms.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: oms
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

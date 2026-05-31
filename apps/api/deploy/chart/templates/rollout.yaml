@@ -1,0 +1,75 @@
+{{- if .Values.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ include "astraeus-api.fullname" . }}
+  labels:
+    {{- include "astraeus-api.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      {{- include "astraeus-api.selectorLabels" . | nindent 6 }}
+  strategy:
+    canary:
+      {{- range .Values.rollout.canary.steps }}
+      steps:
+        {{- if .setWeight }}
+        - setWeight: {{ .setWeight }}
+        {{- end }}
+        {{- if .pause }}
+        - pause:
+            duration: {{ .pause.duration }}
+        {{- end }}
+      {{- end }}
+      analysis:
+        templates:
+          - templateName: {{ include "astraeus-api.fullname" . }}-error-rate
+          - templateName: {{ include "astraeus-api.fullname" . }}-p99-latency
+      trafficRouting:
+        nginx:
+          stableIngress: {{ include "astraeus-api.fullname" . }}
+  template:
+    metadata:
+      labels:
+        {{- include "astraeus-api.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "astraeus-api.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -1,0 +1,13 @@
+apiVersion: v2
+name: astraeus-oms
+description: Order Management System for the Astraeus trading platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - astraeus
+  - oms
+  - trading
+  - order-management
+maintainers:
+  - name: Sahil

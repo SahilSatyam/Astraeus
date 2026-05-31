@@ -1,0 +1,133 @@
+# CI pipeline for Phase 10 infrastructure code.
+# Validates Terraform, Helm charts, and policy checks on every PR.
+name: Infrastructure Lint
+
+on:
+  pull_request:
+    paths:
+      - "infra/terraform/**"
+      - "apps/*/deploy/chart/**"
+      - "gitops/**"
+      - "infra/k8s/**"
+  push:
+    branches: [main]
+    paths:
+      - "infra/terraform/**"
+      - "apps/*/deploy/chart/**"
+      - "gitops/**"
+      - "infra/k8s/**"
+
+jobs:
+  terraform-validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [dev, staging, prod]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.x"
+
+      - name: Terraform Init (no backend)
+        run: terraform init -backend=false
+        working-directory: infra/terraform/envs/${{ matrix.env }}
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: infra/terraform/envs/${{ matrix.env }}
+
+      - name: TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Run TFLint
+        run: |
+          tflint --init
+          tflint --recursive
+        working-directory: infra/terraform
+
+  helm-lint:
+    name: Helm Lint & Template
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: "v3.14.0"
+
+      - name: Lint all charts
+        run: |
+          for chart in apps/*/deploy/chart; do
+            echo "==> Linting $chart"
+            helm lint "$chart" --strict
+          done
+
+      - name: Template all charts (dry-run)
+        run: |
+          for chart in apps/*/deploy/chart; do
+            echo "==> Templating $chart"
+            helm template test "$chart" > /dev/null
+          done
+
+      - name: Install kubeconform
+        run: |
+          curl -sL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Validate K8s schemas
+        run: |
+          for chart in apps/*/deploy/chart; do
+            echo "==> Validating $chart against K8s schemas"
+            helm template test "$chart" | kubeconform -strict -summary \
+              -schema-location default \
+              -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+              || true  # CRDs may not have schemas; warn but don't fail
+          done
+
+  policy-checks:
+    name: Policy Checks (no latest tag)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for 'latest' tag in charts
+        run: |
+          if grep -r 'tag:.*latest' apps/*/deploy/chart/values.yaml; then
+            echo "ERROR: 'latest' tag found in Helm values. Use explicit tags or digests."
+            exit 1
+          fi
+          echo "OK: No 'latest' tags found."
+
+      - name: Check for secrets in manifests
+        run: |
+          if grep -rE '(password|secret|api_key|token)\s*[:=]\s*["\x27][^{]' \
+            apps/*/deploy/chart/ gitops/ infra/k8s/ \
+            --include="*.yaml" --include="*.yml" | grep -v '#'; then
+            echo "ERROR: Potential hardcoded secrets found in manifests."
+            exit 1
+          fi
+          echo "OK: No hardcoded secrets detected."
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trivy config scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: 1

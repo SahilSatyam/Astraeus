@@ -1,0 +1,12 @@
+apiVersion: v2
+name: astraeus-api
+description: Research API service for the Astraeus platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - astraeus
+  - api
+  - research
+maintainers:
+  - name: Sahil
