@@ -10,7 +10,6 @@ from astraeus_config import (
     AppSettings,
     DatabaseSettings,
     Environment,
-    KafkaSettings,
     ObservabilitySettings,
     RedisSettings,
     Settings,
@@ -34,7 +33,6 @@ def settings() -> Settings:
             name="astraeus_test",
         ),
         redis=RedisSettings(),
-        kafka=KafkaSettings(),
         observability=ObservabilitySettings(log_format="console", log_level="WARNING"),
     )
 

@@ -1,7 +1,7 @@
 """Dead Letter Queue (DLQ) for failed ingestion records.
 
 When a bar fails validation, deduplication conflict resolution, or
-persistence, it's routed to the DLQ topic for manual inspection and
+persistence, it's routed to the DLQ stream for manual inspection and
 potential replay. The DLQ entry preserves the full context of the failure.
 """
 
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger("astraeus.marketdata.dlq")
 
-# DLQ topic name in Redpanda
+# DLQ stream name
 DLQ_TOPIC = "md.dlq.v1"
 
 
@@ -75,7 +75,7 @@ async def send_to_dlq(
     session: AsyncSession,
     entry: DLQEntry,
 ) -> None:
-    """Write a DLQ entry to the outbox for relay to Redpanda.
+    """Write a DLQ entry to the outbox for relay to Redis Streams.
 
     Uses the same transactional outbox pattern as normal bar events,
     ensuring DLQ entries are never lost even if the relay is down.
