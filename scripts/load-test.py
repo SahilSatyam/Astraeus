@@ -18,15 +18,13 @@ Endpoints tested:
 from __future__ import annotations
 
 import argparse
-import asyncio
 import statistics
-import time
-from dataclasses import dataclass, field
-from urllib.request import Request, urlopen
-from urllib.error import URLError, HTTPError
-import json
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 
 @dataclass
@@ -109,11 +107,11 @@ def run_load_test(
 ) -> dict[str, EndpointResult]:
     """Run load test against all endpoints."""
     results: dict[str, EndpointResult] = {}
-    for method, path in ENDPOINTS:
+    for _method, path in ENDPOINTS:
         results[path] = EndpointResult(endpoint=path)
 
     print(f"\n{'='*60}")
-    print(f"  Astraeus Load Test")
+    print("  Astraeus Load Test")
     print(f"  Target: {base_url}")
     print(f"  Concurrency: {concurrency}")
     print(f"  Duration: {duration_seconds}s")
@@ -172,7 +170,7 @@ def print_results(results: dict[str, EndpointResult]) -> None:
                 print(f"  └─ HTTP {code}: {count} errors")
 
     print(f"{'─'*80}")
-    print(f"  Latencies in milliseconds")
+    print("  Latencies in milliseconds")
     print()
 
     # SLO check

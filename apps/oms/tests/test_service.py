@@ -228,7 +228,15 @@ class TestCancelOrder:
     @pytest.mark.unit
     async def test_cancel_submitted_order(self, mock_session, mock_broker):
         """Cancelling a submitted order transitions to CANCELLED."""
+        from astraeus_brokers.base import BrokerOrderStatus
         from astraeus_trading.models import OrderModel
+
+        # Pre-populate the mock broker with the order
+        mock_broker._orders["BROKER-test-001"] = BrokerOrderStatus(
+            client_order_id="test-001",
+            broker_order_id="BROKER-test-001",
+            state="accepted",
+        )
 
         order = MagicMock(spec=OrderModel)
         order.order_id = "order-123"

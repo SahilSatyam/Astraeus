@@ -53,7 +53,6 @@ class TestBrokerProfile:
         """Custom broker profile works correctly."""
         broker = BrokerProfile("custom", per_share=0.01, min_per_order=1.0, max_pct_of_trade=0.005)
         comm = broker.commission(500, 100.0)
-        assert comm == 2.50  # min(500*0.01, 50000*0.005) = min(5.0, 250) = 5.0... wait
         # 500 * 0.01 = 5.0, max(5.0, 1.0) = 5.0, min(5.0, 50000*0.005=250) = 5.0
         assert comm == 5.0
 

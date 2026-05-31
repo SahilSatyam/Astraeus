@@ -230,7 +230,11 @@ def _probabilistic_sharpe(
     from scipy.stats import norm
 
     # Standard error of SR accounting for non-normality
-    se = math.sqrt((1 - skew * observed_sr + (kurt - 1) / 4 * observed_sr**2) / max(n_obs - 1, 1))
+    inner = (1 - skew * observed_sr + (kurt - 1) / 4 * observed_sr**2) / max(n_obs - 1, 1)
+    if inner <= 0:
+        # Degenerate case: return 1.0 if SR > benchmark, else 0.0
+        return 1.0 if observed_sr > sr_benchmark else 0.0
+    se = math.sqrt(inner)
     if se == 0:
         return 1.0 if observed_sr > sr_benchmark else 0.0
 
