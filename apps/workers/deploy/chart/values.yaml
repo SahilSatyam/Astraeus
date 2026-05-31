@@ -1,0 +1,99 @@
+# Default values for astraeus-workers.
+# Rolling deployment — workers are idempotent, job-based.
+replicaCount: 2
+
+image:
+  repository: ghcr.io/astraeus/workers
+  pullPolicy: IfNotPresent
+  tag: ""
+
+serviceAccount:
+  create: true
+  name: workers
+  annotations: {}
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: "2"
+    memory: 4Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 8
+  # KEDA-style: scale on queue depth
+  targetCPUUtilizationPercentage: 70
+
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 8001
+  initialDelaySeconds: 15
+  periodSeconds: 30
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 8001
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+nodeSelector:
+  astraeus.io/pool: general
+
+tolerations: []
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+rollout:
+  enabled: false  # Standard rolling update for workers
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    path: /metrics
+
+networkPolicy:
+  enabled: true
+  ingress: []  # Workers don't receive inbound traffic
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data
+      ports:
+        - port: 5432
+          protocol: TCP
+        - port: 6379
+          protocol: TCP
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: streaming
+      ports:
+        - port: 9092
+          protocol: TCP
+
+env: []

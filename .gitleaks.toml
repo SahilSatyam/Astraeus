@@ -1,0 +1,11 @@
+# Gitleaks configuration — allowlist for known non-secrets.
+title = "Astraeus Gitleaks Config"
+
+[allowlist]
+  description = "Allowlisted patterns"
+  paths = [
+    '''\.env\.example''',
+    '''libs/auth/tests/.*''',
+    '''libs/config/astraeus_config/base\.py''',
+  ]
+  regexTarget = "match"

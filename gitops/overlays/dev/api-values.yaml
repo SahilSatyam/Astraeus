@@ -1,0 +1,18 @@
+# Dev overrides — minimal resources, no rollout
+replicaCount: 1
+
+autoscaling:
+  enabled: false
+
+rollout:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+nodeSelector: {}

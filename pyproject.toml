@@ -40,6 +40,7 @@ astraeus-agent-runtime = { workspace = true }
 astraeus-recommender = { workspace = true }
 astraeus-regime = { workspace = true }
 astraeus-ensemble = { workspace = true }
+astraeus-auth = { workspace = true }
 astraeus-trading = { workspace = true }
 astraeus-brokers = { workspace = true }
 astraeus-risk = { workspace = true }
@@ -158,6 +159,7 @@ module = [
     "sklearn.*",
     "alpaca.*",
     "ib_insync.*",
+    "jose.*",
 ]
 ignore_missing_imports = true
 

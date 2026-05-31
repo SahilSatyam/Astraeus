@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+from astraeus_auth import AuthSettings
 from astraeus_brokers.alpaca import AlpacaAdapter
 from astraeus_config import Settings
 from astraeus_db import get_engine
@@ -45,6 +46,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
+    app.state.auth_settings = AuthSettings()
+
     app.include_router(router)
     app.include_router(ks_router)
     app.include_router(pos_router)

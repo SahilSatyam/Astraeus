@@ -6,15 +6,20 @@ Endpoints:
 - POST /hitl/items/{id}/approve — approve a claimed item
 - POST /hitl/items/{id}/reject  — reject a claimed item
 - POST /hitl/items/{id}/edit    — edit and approve a claimed item
+
+All endpoints require authentication. Approve/reject/edit require analyst+ role.
 """
 
 from __future__ import annotations
 
 import uuid
-from typing import Any
+from typing import Annotated, Any
 
 from astraeus_agent_runtime.hitl import HITLQueue
-from fastapi import APIRouter, HTTPException, Query
+from astraeus_auth import Principal
+from astraeus_auth.dependencies import get_current_user, require_role
+from astraeus_auth.models import Role
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/hitl", tags=["hitl"])
@@ -64,6 +69,7 @@ class ActionResponse(BaseModel):
 
 @router.get("/items", response_model=list[HITLItemResponse], summary="List pending HITL items")
 async def list_items(
+    user: Annotated[Principal, Depends(get_current_user)],
     status: str = Query(default="pending", description="Filter by status"),
     workflow: str | None = Query(default=None, description="Filter by workflow"),
 ) -> list[HITLItemResponse]:
@@ -93,7 +99,11 @@ async def list_items(
 
 
 @router.post("/items/{item_id}/claim", response_model=ActionResponse, summary="Claim an item")
-async def claim_item(item_id: str, request: ClaimRequest) -> ActionResponse:
+async def claim_item(
+    item_id: str,
+    request: ClaimRequest,
+    user: Annotated[Principal, Depends(require_role(Role.ANALYST, Role.OPERATOR))],
+) -> ActionResponse:
     """Claim a pending HITL item for review."""
     queue = get_hitl_queue()
 
@@ -111,7 +121,10 @@ async def claim_item(item_id: str, request: ClaimRequest) -> ActionResponse:
 
 
 @router.post("/items/{item_id}/approve", response_model=ActionResponse, summary="Approve an item")
-async def approve_item(item_id: str) -> ActionResponse:
+async def approve_item(
+    item_id: str,
+    user: Annotated[Principal, Depends(require_role(Role.ANALYST, Role.OPERATOR))],
+) -> ActionResponse:
     """Approve a claimed HITL item — orchestrator resumes from checkpoint."""
     queue = get_hitl_queue()
 
@@ -129,7 +142,9 @@ async def approve_item(item_id: str) -> ActionResponse:
 
 @router.post("/items/{item_id}/reject", response_model=ActionResponse, summary="Reject an item")
 async def reject_item(
-    item_id: str, reason: str = Query(default="", description="Rejection reason")
+    item_id: str,
+    user: Annotated[Principal, Depends(require_role(Role.ANALYST, Role.OPERATOR))],
+    reason: str = Query(default="", description="Rejection reason"),
 ) -> ActionResponse:
     """Reject a claimed HITL item — run terminates."""
     queue = get_hitl_queue()
@@ -149,7 +164,11 @@ async def reject_item(
 
 
 @router.post("/items/{item_id}/edit", response_model=ActionResponse, summary="Edit and approve")
-async def edit_item(item_id: str, request: EditRequest) -> ActionResponse:
+async def edit_item(
+    item_id: str,
+    request: EditRequest,
+    user: Annotated[Principal, Depends(require_role(Role.ANALYST, Role.OPERATOR))],
+) -> ActionResponse:
     """Edit a claimed HITL item — orchestrator resumes with human-edited output."""
     queue = get_hitl_queue()
 

@@ -1,0 +1,24 @@
+apiVersion: v2
+name: astraeus
+description: Umbrella chart for local development — brings up the full Astraeus stack
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+dependencies:
+  - name: astraeus-api
+    version: "0.1.0"
+    repository: "file://../../apps/api/deploy/chart"
+    condition: api.enabled
+  - name: astraeus-oms
+    version: "0.1.0"
+    repository: "file://../../apps/oms/deploy/chart"
+    condition: oms.enabled
+  - name: astraeus-workers
+    version: "0.1.0"
+    repository: "file://../../apps/workers/deploy/chart"
+    condition: workers.enabled
+  - name: astraeus-web
+    version: "0.1.0"
+    repository: "file://../../apps/web/deploy/chart"
+    condition: web.enabled

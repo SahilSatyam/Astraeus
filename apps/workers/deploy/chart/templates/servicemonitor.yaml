@@ -1,0 +1,16 @@
+{{- if .Values.monitoring.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "astraeus-workers.fullname" . }}
+  labels:
+    {{- include "astraeus-workers.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "astraeus-workers.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: health
+      path: {{ .Values.monitoring.serviceMonitor.path }}
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+{{- end }}

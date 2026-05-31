@@ -1,0 +1,34 @@
+# Production overrides for astraeus-api
+replicaCount: 3
+
+image:
+  pullPolicy: Always
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/astraeus-prod-api
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 8
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
+rollout:
+  enabled: true
+  strategy: canary
+  canary:
+    steps:
+      - setWeight: 10
+      - pause:
+          duration: 5m
+      - setWeight: 50
+      - pause:
+          duration: 10m

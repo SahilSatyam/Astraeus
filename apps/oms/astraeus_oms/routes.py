@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from typing import Annotated
 
+from astraeus_auth import Principal
+from astraeus_auth.dependencies import get_current_user, require_trading_permission
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,8 +32,9 @@ async def submit_order(
     request: SubmitOrderRequest,
     session: Annotated[AsyncSession, Depends(get_session)],
     broker: Annotated[object, Depends(get_broker)],
+    user: Annotated[Principal, Depends(require_trading_permission)],
 ) -> OrderResponse:
-    """Submit a new order. Idempotent on client_order_id."""
+    """Submit a new order. Idempotent on client_order_id. Requires trading permission."""
     svc = OMSService(session=session, broker=broker)
     try:
         return await svc.submit_order(request)
@@ -48,8 +51,9 @@ async def cancel_order(
     body: CancelOrderRequest,
     session: Annotated[AsyncSession, Depends(get_session)],
     broker: Annotated[object, Depends(get_broker)],
+    user: Annotated[Principal, Depends(require_trading_permission)],
 ) -> OrderResponse:
-    """Cancel an order."""
+    """Cancel an order. Requires trading permission."""
     svc = OMSService(session=session, broker=broker)
     try:
         return await svc.cancel_order(order_id, reason=body.reason)
@@ -62,8 +66,9 @@ async def get_order(
     order_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
     broker: Annotated[object, Depends(get_broker)],
+    user: Annotated[Principal, Depends(get_current_user)],
 ) -> OrderResponse:
-    """Get a single order by ID."""
+    """Get a single order by ID. Requires authentication."""
     svc = OMSService(session=session, broker=broker)
     try:
         return await svc.get_order(order_id)
@@ -75,10 +80,11 @@ async def get_order(
 async def list_orders(
     session: Annotated[AsyncSession, Depends(get_session)],
     broker: Annotated[object, Depends(get_broker)],
+    user: Annotated[Principal, Depends(get_current_user)],
     account_id: Annotated[str | None, Query()] = None,
     strategy_id: Annotated[str | None, Query()] = None,
 ) -> list[OrderResponse]:
-    """List orders with optional filters."""
+    """List orders with optional filters. Requires authentication."""
     from astraeus_trading.models import OrderModel
     from sqlalchemy import select
 

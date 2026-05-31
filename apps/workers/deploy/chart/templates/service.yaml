@@ -1,0 +1,17 @@
+# Health/metrics endpoint only — workers don't serve external traffic.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "astraeus-workers.fullname" . }}
+  labels:
+    {{- include "astraeus-workers.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None  # Headless — no load balancing needed for workers
+  ports:
+    - port: 8001
+      targetPort: health
+      protocol: TCP
+      name: health
+  selector:
+    {{- include "astraeus-workers.selectorLabels" . | nindent 4 }}

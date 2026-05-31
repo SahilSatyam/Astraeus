@@ -1,0 +1,43 @@
+{{- if .Values.rollout.enabled }}
+# AnalysisTemplate for canary error-rate check
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: {{ include "astraeus-api.fullname" . }}-error-rate
+  labels:
+    {{- include "astraeus-api.labels" . | nindent 4 }}
+spec:
+  metrics:
+    - name: error-rate
+      interval: 1m
+      count: 5
+      successCondition: result[0] < 0.01
+      failureLimit: 2
+      provider:
+        prometheus:
+          address: http://kube-prometheus-prometheus.observability:9090
+          query: |
+            sum(rate(http_requests_total{namespace="research", job="astraeus-api", code=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total{namespace="research", job="astraeus-api"}[5m]))
+---
+# AnalysisTemplate for canary p99 latency check
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: {{ include "astraeus-api.fullname" . }}-p99-latency
+  labels:
+    {{- include "astraeus-api.labels" . | nindent 4 }}
+spec:
+  metrics:
+    - name: p99-latency
+      interval: 1m
+      count: 5
+      successCondition: result[0] < 0.8
+      failureLimit: 2
+      provider:
+        prometheus:
+          address: http://kube-prometheus-prometheus.observability:9090
+          query: |
+            histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{namespace="research", job="astraeus-api"}[5m])) by (le))
+{{- end }}
