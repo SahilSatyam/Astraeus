@@ -1,0 +1,21 @@
+{$DOMAIN} {
+    # Frontend
+    handle /* {
+        reverse_proxy web:3000
+    }
+
+    # API
+    handle /api/* {
+        reverse_proxy api:8000
+    }
+
+    # WebSocket
+    handle /ws/* {
+        reverse_proxy api:8000
+    }
+
+    # OMS API
+    handle /oms/* {
+        reverse_proxy oms:8001
+    }
+}

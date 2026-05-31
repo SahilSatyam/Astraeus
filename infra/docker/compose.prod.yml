@@ -1,0 +1,157 @@
+name: astraeus
+
+services:
+  api:
+    image: ghcr.io/${GITHUB_OWNER:-astraeus}/astraeus-api:${TAG:-latest}
+    environment:
+      ASTRAEUS_ENV: production
+      ASTRAEUS_DB_HOST: postgres
+      ASTRAEUS_DB_PORT: "5432"
+      ASTRAEUS_DB_USER: ${DB_USER}
+      ASTRAEUS_DB_PASSWORD: ${DB_PASSWORD}
+      ASTRAEUS_DB_NAME: astraeus
+      ASTRAEUS_REDIS_HOST: redis
+      ASTRAEUS_MINIO_ENDPOINT: minio:9000
+      ASTRAEUS_OBS_LOG_FORMAT: json
+    env_file: .env.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  oms:
+    image: ghcr.io/${GITHUB_OWNER:-astraeus}/astraeus-api:${TAG:-latest}
+    command: ["uvicorn", "astraeus_oms.main:app", "--host", "0.0.0.0", "--port", "8001"]
+    environment:
+      ASTRAEUS_ENV: production
+      ASTRAEUS_DB_HOST: postgres
+      ASTRAEUS_DB_PORT: "5432"
+      ASTRAEUS_DB_USER: ${DB_USER}
+      ASTRAEUS_DB_PASSWORD: ${DB_PASSWORD}
+      ASTRAEUS_DB_NAME: astraeus
+      ASTRAEUS_REDIS_HOST: redis
+    env_file: .env.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  workers:
+    image: ghcr.io/${GITHUB_OWNER:-astraeus}/astraeus-workers:${TAG:-latest}
+    environment:
+      ASTRAEUS_ENV: production
+      ASTRAEUS_DB_HOST: postgres
+      ASTRAEUS_DB_PORT: "5432"
+      ASTRAEUS_DB_USER: ${DB_USER}
+      ASTRAEUS_DB_PASSWORD: ${DB_PASSWORD}
+      ASTRAEUS_DB_NAME: astraeus
+      ASTRAEUS_REDIS_HOST: redis
+      ASTRAEUS_MINIO_ENDPOINT: minio:9000
+    env_file: .env.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
+  web:
+    image: ghcr.io/${GITHUB_OWNER:-astraeus}/astraeus-web:${TAG:-latest}
+    environment:
+      API_URL: http://api:8000
+      NEXTAUTH_URL: https://${DOMAIN}
+    env_file: .env.prod
+    depends_on:
+      - api
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  postgres:
+    image: timescale/timescaledb:2.15.0-pg16
+    environment:
+      POSTGRES_DB: astraeus
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+      - ./postgres/timescale.sh:/docker-entrypoint-initdb.d/01-timescale.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d astraeus"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
+  redis:
+    image: redis:7.2-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "512mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9000/minio/health/live || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+    depends_on:
+      - api
+      - web
+    restart: unless-stopped
+
+volumes:
+  pgdata: {}
+  redisdata: {}
+  miniodata: {}
+  caddydata: {}
+  caddyconfig: {}
