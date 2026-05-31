@@ -36,4 +36,10 @@ below apply if and when they are.
 
 ## Setup
 
-See `docs/runbooks/local-dev.md`.
+See the [README](README.md) for full local setup instructions, or the quick
+version:
+
+```bash
+./scripts/bootstrap.sh   # first-time setup
+make dev                 # start the full stack
+```

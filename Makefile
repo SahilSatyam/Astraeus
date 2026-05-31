@@ -5,6 +5,9 @@ COMPOSE := docker compose -f infra/docker/compose.yml -f infra/docker/compose.ov
 .PHONY: help bootstrap dev down stop clean logs ps fmt lint typecheck test test-int \
         migrate downgrade revision build smoke env-lint precommit-install backup \
         dev-k8s k8s-down k8s-clean helm-lint tf-validate tf-plan
+        migrate downgrade revision build smoke env-lint precommit-install \
+        dev-k8s k8s-down k8s-clean helm-lint tf-validate tf-plan \
+        load-test generate-client
 
 help:  ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -136,3 +139,10 @@ tf-validate:  ## Validate all Terraform modules.
 tf-plan:  ## Run terraform plan against dev (requires AWS creds).
 	terraform -chdir=infra/terraform/envs/dev init
 	terraform -chdir=infra/terraform/envs/dev plan
+
+load-test:  ## Run load test against local API: make load-test [DURATION=30] [CONCURRENCY=10]
+	uv run python scripts/load-test.py \
+	  --duration $(or $(DURATION),30) --concurrency $(or $(CONCURRENCY),10)
+
+generate-client:  ## Generate TypeScript API client from OpenAPI spec (requires running API).
+	./scripts/generate-api-client.sh

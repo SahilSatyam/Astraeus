@@ -10,12 +10,15 @@ Monorepo layout, observability primitives, async DB engine, FastAPI app factory,
 
 ## Architecture
 
+See [`docs/architecture.md`](docs/architecture.md) for detailed diagrams (Mermaid).
+
 ```
-apps/        FastAPI services (api, workers, web placeholder)
-libs/        Shared libraries (domain, contracts, config, db, observability)
-infra/       Docker Compose, Prometheus/Grafana configs, k8s placeholders
-docs/        ADRs and runbooks
-scripts/     Bootstrap, smoke test, env-lint
+apps/        FastAPI services (api, oms, workers, recon_worker, web)
+libs/        Shared libraries (domain, contracts, config, db, observability, auth, trading, ...)
+infra/       Docker Compose, Terraform, Kubernetes, Helm charts
+docs/        ADRs, runbooks, architecture diagrams
+scripts/     Bootstrap, backfill, load test, DR verification
+gitops/      ArgoCD app-of-apps manifests
 ```
 
 ### Services (Docker Compose)

@@ -166,3 +166,67 @@ spec:
             summary: "Kill switch is ARMED — all trading halted"
             description: "Kill switch armed at {{ $value }}. Check OMS and reconciliation."
             runbook_url: "https://github.com/sahil/Astraeus/blob/main/infra/runbooks/kill_switch_flip.md"
+
+    # ─── Web Frontend SLOs ───────────────────────────────────────────────
+    - name: slo.web.availability
+      rules:
+        # Recording: error ratio for web service
+        - record: slo:web_requests:error_ratio_5m
+          expr: |
+            sum(rate(http_requests_total{namespace="web", job="astraeus-web", code=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total{namespace="web", job="astraeus-web"}[5m]))
+
+        - record: slo:web_requests:error_ratio_1h
+          expr: |
+            sum(rate(http_requests_total{namespace="web", job="astraeus-web", code=~"5.."}[1h]))
+            /
+            sum(rate(http_requests_total{namespace="web", job="astraeus-web"}[1h]))
+
+        # Alert: Web error rate exceeds budget
+        - alert: WebHighErrorRate
+          expr: |
+            slo:web_requests:error_ratio_5m > (14 * 0.001)
+            and
+            slo:web_requests:error_ratio_1h > (14 * 0.001)
+          for: 2m
+          labels:
+            severity: critical
+            team: web
+          annotations:
+            summary: "Web frontend error rate exceeds SLO budget"
+            description: "5m error ratio: {{ $value | humanizePercentage }}. SLO target: 99.9%."
+            runbook_url: "https://github.com/sahil/Astraeus/blob/main/infra/runbooks/api_error_budget.md"
+
+    - name: slo.web.latency
+      rules:
+        # Recording: p99 latency for web
+        - record: slo:web_latency:p99_5m
+          expr: |
+            histogram_quantile(0.99,
+              sum(rate(http_request_duration_seconds_bucket{namespace="web", job="astraeus-web"}[5m]))
+              by (le)
+            )
+
+        # Alert: Web p99 latency exceeds 2s budget (LCP)
+        - alert: WebHighLatency
+          expr: slo:web_latency:p99_5m > 2.0
+          for: 5m
+          labels:
+            severity: warning
+            team: web
+          annotations:
+            summary: "Web p99 latency exceeds 2s LCP budget"
+            description: "Current p99: {{ $value | humanizeDuration }}. Target: < 2s."
+
+        # Alert: Web Vitals LCP degradation
+        - alert: WebLCPDegraded
+          expr: |
+            avg(web_vital_lcp_seconds{quantile="0.75"}) > 2.5
+          for: 10m
+          labels:
+            severity: warning
+            team: web
+          annotations:
+            summary: "Web Vitals LCP (p75) exceeds 2.5s Good threshold"
+            description: "p75 LCP: {{ $value | humanizeDuration }}. Users experiencing slow loads."
