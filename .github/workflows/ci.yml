@@ -1,5 +1,9 @@
 name: CI
 
+# All third-party actions are pinned by commit SHA per supply-chain hardening
+# (see SECURITY.md). Dependabot is configured to bump these automatically;
+# review the diff before merging the bump PR.
+
 on:
   push:
     branches: [main]
@@ -12,14 +16,18 @@ concurrency:
 
 env:
   UV_VERSION: "0.6.0"
+  # Coverage floor for the unit suite. Set deliberately low for the first
+  # green build; raise it ratchet-style as coverage improves. CI will fail
+  # if coverage drops below this number, which is the whole point.
+  COVERAGE_MIN: "30"
 
 jobs:
   lint:
     name: Lint (ruff)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
       - run: uv python install 3.12
@@ -31,8 +39,8 @@ jobs:
     name: Typecheck (mypy strict)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
       - run: uv python install 3.12
@@ -43,13 +51,17 @@ jobs:
     name: Unit tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
       - run: uv python install 3.12
       - run: uv sync --all-packages --frozen
-      - run: uv run pytest -m unit --cov=libs --cov=apps --cov-report=term-missing
+      - run: >
+          uv run pytest -m unit
+          --cov=libs --cov=apps
+          --cov-report=term-missing
+          --cov-fail-under=${{ env.COVERAGE_MIN }}
 
   test-integration:
     name: Integration tests
@@ -83,8 +95,8 @@ jobs:
       ASTRAEUS_DB_NAME: astraeus
       ASTRAEUS_REDIS_HOST: localhost
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
       - run: uv python install 3.12
@@ -98,8 +110,8 @@ jobs:
     name: Import isolation (LLM ↔ Broker)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
       - run: uv python install 3.12
@@ -109,8 +121,8 @@ jobs:
     name: .env parity
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
       - run: uv python install 3.12

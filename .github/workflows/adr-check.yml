@@ -1,5 +1,7 @@
 name: ADR check
 
+# All third-party actions are pinned by commit SHA. See SECURITY.md.
+
 on:
   pull_request:
     paths:
@@ -10,12 +12,18 @@ jobs:
     name: Validate ADR titles + status
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Each ADR has a status line
         run: |
           set -euo pipefail
+          shopt -s nullglob
+          files=(docs/adr/[0-9]*.md)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No ADR files found — nothing to validate."
+            exit 0
+          fi
           fail=0
-          for f in docs/adr/[0-9]*.md; do
+          for f in "${files[@]}"; do
               if ! grep -E '^\*\*Status\*\*:\s+(proposed|accepted|superseded by [0-9]+|rejected)' "$f" >/dev/null; then
                   echo "::error file=$f::ADR is missing a valid '**Status**:' line"
                   fail=1
