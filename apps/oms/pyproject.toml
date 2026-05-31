@@ -7,6 +7,7 @@ dependencies = [
     "fastapi>=0.111",
     "uvicorn[standard]>=0.30",
     "pydantic>=2.7",
+    "astraeus-auth",
     "astraeus-domain",
     "astraeus-config",
     "astraeus-db",

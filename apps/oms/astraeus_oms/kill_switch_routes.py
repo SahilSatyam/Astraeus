@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 
 from astraeus_auth import Principal
-from astraeus_auth.dependencies import get_current_user, require_kill_switch_permission
+from astraeus_auth.dependencies import require_kill_switch_permission
 from astraeus_trading.models import KillSwitchStateModel, TradeJournalModel
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel

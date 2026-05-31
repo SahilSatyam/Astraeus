@@ -21,7 +21,6 @@ import argparse
 import hashlib
 import io
 import sys
-from datetime import date
 from pathlib import Path
 
 # Add project root to path
@@ -112,9 +111,9 @@ def main() -> None:
     print("=" * 60)
     print("DR VERIFICATION — Canonical Backtest")
     print("=" * 60)
-    print(f"  Symbol:   SPY")
-    print(f"  Period:   2024-01-02 to 2024-01-31")
-    print(f"  Strategy: SMA 10/50 crossover")
+    print("  Symbol:   SPY")
+    print("  Period:   2024-01-02 to 2024-01-31")
+    print("  Strategy: SMA 10/50 crossover")
     print()
 
     print("Running backtest...")
@@ -123,7 +122,7 @@ def main() -> None:
 
     if args.generate_hash:
         print(f"\n  Baseline hash: {actual_hash}")
-        print(f"\n  Store this hash for future DR drills:")
+        print("\n  Store this hash for future DR drills:")
         print(f"    python scripts/dr-verify-backtest.py --expected-hash {actual_hash}")
 
         # Save to file for reference

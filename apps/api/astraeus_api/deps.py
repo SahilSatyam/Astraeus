@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated
 
-from astraeus_auth import AuthSettings, Principal, get_current_user, require_role
+from astraeus_auth import Principal, get_current_user, require_role
 from astraeus_auth.dependencies import require_kill_switch_permission, require_trading_permission
 from astraeus_auth.models import Role
 from astraeus_config import Settings

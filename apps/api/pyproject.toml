@@ -13,6 +13,7 @@ dependencies = [
     "opentelemetry-instrumentation-sqlalchemy>=0.46b0",
     "opentelemetry-instrumentation-asyncpg>=0.46b0",
     "opentelemetry-instrumentation-httpx>=0.46b0",
+    "astraeus-auth",
     "astraeus-config",
     "astraeus-contracts",
     "astraeus-db",

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from astraeus_auth.config import AuthSettings
 from astraeus_auth.models import Principal, Role
 from astraeus_auth.tokens import (

@@ -114,7 +114,10 @@ def require_role(*roles: Role):
             )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Insufficient permissions. Required role: {', '.join(r.value for r in roles)}",
+                detail=(
+                    "Insufficient permissions. Required role: "
+                    f"{', '.join(r.value for r in roles)}"
+                ),
             )
         return user
 

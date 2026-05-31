@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
-from astraeus_auth import AuthSettings, Principal, get_current_user
+from astraeus_auth import Principal, get_current_user
 from astraeus_auth.dependencies import require_kill_switch_permission, require_trading_permission
 from astraeus_auth.models import Role
 from astraeus_brokers.base import BrokerAdapter
