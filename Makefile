@@ -97,6 +97,15 @@ precommit-install:  ## Install git hooks via pre-commit.
 backup:  ## Run database backup.
 	./scripts/backup-db.sh
 
+prod:  ## Deploy production stack (requires .env.prod).
+	docker compose -f infra/docker/compose.prod.yml up -d --remove-orphans
+
+prod-logs:  ## Tail production logs.
+	docker compose -f infra/docker/compose.prod.yml logs -f --tail=100
+
+prod-down:  ## Stop production stack.
+	docker compose -f infra/docker/compose.prod.yml down
+
 # ─── Phase 10: Kubernetes / Production Hardening ─────────────────────────────
 
 dev-k8s:  ## Spin up full local stack on kind (requires kind, helm, kubectl).

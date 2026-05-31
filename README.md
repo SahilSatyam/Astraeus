@@ -29,7 +29,6 @@ gitops/      ArgoCD app-of-apps manifests
 | Workers | astraeus/workers:dev | — |
 | PostgreSQL + TimescaleDB | timescale/timescaledb:2.15.0-pg16 | 5432 |
 | Redis | redis:7.2-alpine | 6379 |
-| Redpanda (Kafka) | redpandadata/redpanda:v24.1.10 | 19092 |
 | MinIO (S3) | minio/minio | 9000, 9001 |
 | Jaeger (tracing) | jaegertracing/all-in-one:1.58 | 16686 |
 | Prometheus | prom/prometheus:v2.53.0 | 9090 |
@@ -231,6 +230,71 @@ docker compose -f infra/docker/compose.yml -f infra/docker/compose.override.yml 
 make clean       # removes all containers and volumes
 make dev         # fresh start
 ```
+
+---
+
+## Production Deployment
+
+Astraeus deploys to a single VPS using Docker Compose with Caddy for automatic HTTPS.
+
+### VPS Setup (one-time)
+
+```bash
+# On a fresh Ubuntu 22.04+ VPS (e.g., Hetzner CX31):
+scp scripts/setup-vps.sh root@your-vps:/tmp/
+ssh root@your-vps 'bash /tmp/setup-vps.sh'
+```
+
+This installs Docker, creates a `deploy` user, configures UFW (ports 22, 80, 443), and sets up fail2ban.
+
+### Deploy
+
+Deployments happen automatically on push to `main` via GitHub Actions (`.github/workflows/deploy.yml`). The workflow builds images, pushes to GHCR, then SSHs into the VPS to pull and restart.
+
+**Manual deploy:**
+
+```bash
+export VPS_HOST=your-vps-ip VPS_USER=deploy
+./scripts/deploy-vps.sh
+```
+
+### Configuration
+
+Copy `infra/docker/.env.prod.example` to `/opt/astraeus/.env.prod` on the VPS and fill in real values. Required secrets:
+
+- `DOMAIN` — your domain (Caddy auto-provisions TLS)
+- `DB_PASSWORD` — strong Postgres password
+- `MINIO_PASSWORD` — strong MinIO password
+- `ASTRAEUS_AUTH_JWT_SECRET` — 64-char random string
+
+### Backups
+
+Database backups run daily at 03:00 UTC via cron, uploading to Hetzner Object Storage:
+
+```bash
+# Add to deploy user's crontab:
+0 3 * * * /opt/astraeus/scripts/backup-db.sh >> /var/log/astraeus-backup.log 2>&1
+```
+
+**Restore from backup:**
+
+```bash
+# Download the dump
+rclone copy hetzner-s3:astraeus-backups/daily/astraeus-YYYYMMDD-HHMMSS.dump /tmp/
+
+# Restore into the running container
+docker cp /tmp/astraeus-YYYYMMDD-HHMMSS.dump astraeus-postgres-1:/tmp/
+docker exec astraeus-postgres-1 pg_restore -U astraeus -d astraeus --clean /tmp/astraeus-YYYYMMDD-HHMMSS.dump
+```
+
+### Monitoring
+
+| UI | URL |
+|----|-----|
+| Grafana | `https://your-domain/grafana` (or separate subdomain) |
+| API Health | `https://your-domain/api/healthz` |
+
+---
 
 ## License
 

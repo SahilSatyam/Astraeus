@@ -1,6 +1,8 @@
-FROM node:20-alpine AS base
+# syntax=docker/dockerfile:1.7
 
-# Install dependencies only when needed
+FROM node:22-alpine AS base
+
+# ---------- deps ----------
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
@@ -8,18 +10,16 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 
-# Rebuild the source code only when needed
+# ---------- builder ----------
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
-
 RUN npm run build
 
-# Production image, copy all the files and run next
+# ---------- runtime ----------
 FROM base AS runner
 WORKDIR /app
 
