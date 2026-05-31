@@ -1,7 +1,7 @@
 """Market data workers — scheduler for Phase 1 background tasks.
 
 Runs the following tasks on configurable schedules:
-- Outbox relay: drains outbox table into Redpanda (every 2s)
+- Outbox relay: drains outbox table into Redis Streams (every 2s)
 - Gap detection: compares calendar vs actual data (nightly)
 - Corporate action adjustment: rebuilds adjusted bars (nightly, after gap detection)
 - Streaming ingestion: WebSocket connection for live bars (continuous)
@@ -22,7 +22,7 @@ from astraeus_db.session import get_sessionmaker
 from astraeus_marketdata.adjustments import adjust_symbol
 from astraeus_marketdata.gaps import detect_gaps
 from astraeus_marketdata.models import CorporateAction, Instrument
-from astraeus_marketdata.outbox_relay import create_kafka_producer, relay_loop
+from astraeus_marketdata.outbox_relay import create_stream_publisher, relay_loop
 from astraeus_observability import configure_logging, configure_tracing
 from sqlalchemy import select
 
@@ -48,16 +48,13 @@ async def _run(settings: Settings) -> None:
 
     session_factory = get_sessionmaker(settings.db)
 
-    # Create Kafka/Redpanda producer (falls back to log-only if unavailable)
-    producer = await create_kafka_producer(
-        bootstrap_servers=settings.kafka.bootstrap_servers,
-        client_id=f"{settings.app.name}-outbox-relay",
-    )
+    # Create Redis Streams publisher (falls back to log-only if unavailable)
+    publisher = await create_stream_publisher(redis_url=settings.redis.url)
 
     # Launch background tasks
     tasks: list[asyncio.Task[None]] = [
         asyncio.create_task(
-            _outbox_relay_task(session_factory, producer, stop_event),
+            _outbox_relay_task(session_factory, publisher, stop_event),
             name="outbox-relay",
         ),
         asyncio.create_task(
@@ -92,26 +89,26 @@ async def _run(settings: Settings) -> None:
 
     await asyncio.gather(*tasks, return_exceptions=True)
 
-    # Cleanup producer
-    if producer is not None:
+    # Cleanup publisher
+    if publisher is not None:
         try:
-            await producer.stop()
+            await publisher.close()
         except Exception:
-            logger.exception("kafka_producer_stop_error")
+            logger.exception("stream_publisher_close_error")
 
     logger.info("worker_stopped")
 
 
 async def _outbox_relay_task(
     session_factory: object,
-    producer: object | None,
+    publisher: object | None,
     stop_event: asyncio.Event,
 ) -> None:
     """Run the outbox relay loop."""
     try:
         await relay_loop(
             session_factory=session_factory,
-            producer=producer,
+            publisher=publisher,
             stop_event=stop_event,
         )
     except asyncio.CancelledError:

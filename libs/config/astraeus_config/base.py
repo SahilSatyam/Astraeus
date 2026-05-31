@@ -88,14 +88,6 @@ class RedisSettings(BaseSettings):
         return f"redis://{auth}{self.host}:{self.port}/{self.db}"
 
 
-class KafkaSettings(BaseSettings):
-    model_config = _config("ASTRAEUS_KAFKA_")
-
-    bootstrap_servers: str = "localhost:9092"
-    client_id: str = "astraeus"
-    schema_registry_url: str = "http://localhost:8081"
-
-
 class ObservabilitySettings(BaseSettings):
     model_config = _config("ASTRAEUS_OBS_")
 
@@ -141,7 +133,6 @@ class Settings(BaseSettings):
     app: AppSettings = Field(default_factory=AppSettings)
     db: DatabaseSettings = Field(default_factory=DatabaseSettings)
     redis: RedisSettings = Field(default_factory=RedisSettings)
-    kafka: KafkaSettings = Field(default_factory=KafkaSettings)
     observability: ObservabilitySettings = Field(default_factory=ObservabilitySettings)
     minio: MinIOSettings = Field(default_factory=MinIOSettings)
     marketdata: MarketDataSettings = Field(default_factory=MarketDataSettings)

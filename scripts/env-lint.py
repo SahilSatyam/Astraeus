@@ -19,7 +19,6 @@ from typing import Any
 from astraeus_config import (
     AppSettings,
     DatabaseSettings,
-    KafkaSettings,
     ObservabilitySettings,
     RedisSettings,
     Settings,
@@ -33,7 +32,6 @@ def _expected_vars() -> set[str]:
         AppSettings,
         DatabaseSettings,
         RedisSettings,
-        KafkaSettings,
         ObservabilitySettings,
     ]
     for model in sub_models:

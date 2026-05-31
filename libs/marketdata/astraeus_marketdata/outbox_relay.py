@@ -1,8 +1,8 @@
-"""Outbox relay — drains the outbox table into Redpanda/Kafka.
+"""Outbox relay — drains the outbox table into Redis Streams.
 
 The relay runs as a background loop (inside the workers service). It:
 1. Polls for unpublished outbox rows (published_at IS NULL)
-2. Publishes each to the designated Redpanda topic
+2. Publishes each to the designated Redis Stream (XADD)
 3. Marks the row as published (sets published_at)
 
 This gives effectively-once semantics: the bar write + outbox insert happen
@@ -29,75 +29,82 @@ _BATCH_SIZE = 100
 _POLL_INTERVAL = 2.0
 
 
-class KafkaProducer(Protocol):
-    """Protocol for Kafka/Redpanda producers (matches aiokafka.AIOKafkaProducer)."""
+class StreamPublisher(Protocol):
+    """Protocol for stream publishers (Redis Streams implementation)."""
 
-    async def send(
+    async def publish(
         self,
-        topic: str,
-        value: bytes | None = None,
-        key: bytes | None = None,
-        headers: list[tuple[str, bytes]] | None = None,
-    ) -> Any: ...
+        stream: str,
+        data: dict[str, str | bytes],
+    ) -> str: ...
 
-    async def start(self) -> None: ...
-
-    async def stop(self) -> None: ...
+    async def close(self) -> None: ...
 
 
-async def create_kafka_producer(
-    bootstrap_servers: str,
-    client_id: str = "astraeus-outbox-relay",
-) -> Any:
-    """Create and start an aiokafka producer.
+class RedisStreamPublisher:
+    """Publishes outbox events to Redis Streams via XADD."""
 
-    Returns None if aiokafka is not installed (falls back to log-only mode).
+    def __init__(self, redis: Any) -> None:
+        self._redis = redis
+
+    async def publish(
+        self,
+        stream: str,
+        data: dict[str, str | bytes],
+    ) -> str:
+        """Publish a message to a Redis Stream. Returns the message ID."""
+        message_id: str = await self._redis.xadd(stream, data)  # type: ignore[assignment]
+        return message_id
+
+    async def close(self) -> None:
+        """Close the underlying Redis connection."""
+        await self._redis.aclose()
+
+
+async def create_stream_publisher(redis_url: str) -> RedisStreamPublisher | None:
+    """Create a Redis Streams publisher.
+
+    Returns None if redis is not available (falls back to log-only mode).
     """
     try:
-        from aiokafka import AIOKafkaProducer
+        from redis.asyncio import from_url
 
-        producer = AIOKafkaProducer(
-            bootstrap_servers=bootstrap_servers,
-            client_id=client_id,
-            acks="all",
-            enable_idempotence=True,
-            max_batch_size=16384,
-            linger_ms=10,
-        )
-        await producer.start()
-        logger.info("kafka_producer_started", bootstrap_servers=bootstrap_servers)
-        return producer
+        redis = from_url(redis_url, decode_responses=False)
+        # Verify connectivity
+        await redis.ping()
+        logger.info("stream_publisher_started", redis_url=redis_url)
+        return RedisStreamPublisher(redis)
     except ImportError:
         logger.warning(
-            "aiokafka_not_installed",
-            msg="Running in log-only mode. Install aiokafka for Redpanda publishing.",
+            "redis_not_installed",
+            msg="Running in log-only mode. Install redis for stream publishing.",
         )
         return None
     except Exception:
-        logger.exception("kafka_producer_connect_failed")
+        logger.exception("stream_publisher_connect_failed")
         return None
 
 
 async def relay_loop(
     session_factory: object,
-    producer: object | None = None,
+    publisher: StreamPublisher | None = None,
     stop_event: asyncio.Event | None = None,
 ) -> None:
     """Main relay loop. Runs until stop_event is set.
 
     Args:
         session_factory: async_sessionmaker for DB access.
-        producer: Kafka/Redpanda producer (None = log-only mode for dev).
+        publisher: Redis Streams publisher (None = log-only mode for dev).
         stop_event: Signal to stop the loop gracefully.
     """
     if stop_event is None:
         stop_event = asyncio.Event()
 
-    logger.info("outbox_relay_started", mode="publish" if producer else "log-only")
+    logger.info("outbox_relay_started", mode="publish" if publisher else "log-only")
 
     while not stop_event.is_set():
         try:
-            published = await _drain_batch(session_factory, producer)
+            published = await _drain_batch(session_factory, publisher)
             if published == 0:
                 # No work — back off
                 try:
@@ -113,7 +120,7 @@ async def relay_loop(
 
 async def _drain_batch(
     session_factory: object,
-    producer: object | None,
+    publisher: StreamPublisher | None,
 ) -> int:
     """Fetch and publish one batch of outbox rows. Returns count published."""
 
@@ -135,21 +142,21 @@ async def _drain_batch(
         now = datetime.now(tz=UTC)
 
         for row in rows:
-            if producer is not None:
-                # Build headers as list of (key, value) tuples for Kafka
-                headers: list[tuple[str, bytes]] | None = None
+            if publisher is not None:
+                # Build the stream message fields
+                data: dict[str, str | bytes] = {
+                    "payload": row.payload,
+                }
+                if row.key:
+                    data["key"] = row.key
                 if row.headers:
-                    headers = [
-                        (k, v.encode() if isinstance(v, str) else str(v).encode())
-                        for k, v in row.headers.items()
-                    ]
+                    for k, v in row.headers.items():
+                        data[f"h:{k}"] = v.encode() if isinstance(v, str) else str(v).encode()
 
                 try:
-                    await producer.send(  # type: ignore[union-attr]
-                        topic=row.topic,
-                        value=row.payload,
-                        key=row.key,
-                        headers=headers,
+                    await publisher.publish(
+                        stream=row.topic,
+                        data=data,
                     )
                 except Exception:
                     logger.exception(

@@ -1,16 +1,16 @@
-"""Redpanda event schemas and topic configuration for portfolio construction.
+"""Event schemas and stream configuration for portfolio construction.
 
 Defines Pydantic models for events produced and consumed by the Phase 4
-portfolio construction pipeline, along with topic name constants and
+portfolio construction pipeline, along with stream name constants and
 consumer configuration.
 
-Output topics:
+Output streams:
   - portfolio.published.v1        (key: strategy_id) — TargetPortfolio
   - portfolio.rejections.v1       (key: strategy_id) — RiskRejection
   - portfolio.determinism_violations.v1 (key: strategy_id) — DeterminismViolation
   - pipeline.task.failed.v1       (key: strategy_id) — TaskFailure
 
-Consumed topics:
+Consumed streams:
   - signals.daily_batch.completed.v1 — SignalBatchCompleted (Phase 3)
   - views.published.v1              — View (Phase 6)
 """
@@ -118,7 +118,7 @@ class SignalBatchCompleted(BaseModel):
 
 
 class TopicConfig(BaseModel):
-    """Configuration for a single Redpanda topic."""
+    """Configuration for a single event stream."""
 
     model_config = {"frozen": True}
 
@@ -183,7 +183,7 @@ OUTPUT_TOPICS: dict[str, dict] = {
 
 
 class ConsumerConfig(BaseModel):
-    """Configuration for consuming an upstream Redpanda topic."""
+    """Configuration for consuming an upstream event stream."""
 
     model_config = {"frozen": True}
 

@@ -138,7 +138,6 @@ module = [
     "exchange_calendars.*",
     "minio.*",
     "websockets.*",
-    "aiokafka.*",
     "scipy.*",
     "optuna.*",
     "ray.*",
