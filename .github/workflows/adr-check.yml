@@ -16,8 +16,14 @@ jobs:
       - name: Each ADR has a status line
         run: |
           set -euo pipefail
+          shopt -s nullglob
+          files=(docs/adr/[0-9]*.md)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No ADR files found — nothing to validate."
+            exit 0
+          fi
           fail=0
-          for f in docs/adr/[0-9]*.md; do
+          for f in "${files[@]}"; do
               if ! grep -E '^\*\*Status\*\*:\s+(proposed|accepted|superseded by [0-9]+|rejected)' "$f" >/dev/null; then
                   echo "::error file=$f::ADR is missing a valid '**Status**:' line"
                   fail=1

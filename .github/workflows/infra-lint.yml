@@ -31,24 +31,36 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
+      - name: Skip if env dir missing
+        id: check
+        run: |
+          if [ ! -d "infra/terraform/envs/${{ matrix.env }}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: hashicorp/setup-terraform@651471c36a6092792c552e8b1bef71e592b462d8 # v3.1.1
+        if: steps.check.outputs.skip != 'true'
         with:
           terraform_version: "1.7.x"
 
       - name: Terraform Init (no backend)
+        if: steps.check.outputs.skip != 'true'
         run: terraform init -backend=false
         working-directory: infra/terraform/envs/${{ matrix.env }}
 
       - name: Terraform Validate
+        if: steps.check.outputs.skip != 'true'
         run: terraform validate
         working-directory: infra/terraform/envs/${{ matrix.env }}
 
       - name: TFLint
+        if: steps.check.outputs.skip != 'true'
         uses: terraform-linters/setup-tflint@90f302c255ef959cbfb4bd10581afecdb7ece3e6 # v4.1.1
         with:
           tflint_version: latest
 
       - name: Run TFLint
+        if: steps.check.outputs.skip != 'true'
         run: |
           tflint --init
           tflint --recursive
@@ -68,14 +80,23 @@ jobs:
 
       - name: Lint all charts
         run: |
-          for chart in apps/*/deploy/chart; do
+          shopt -s nullglob
+          charts=(apps/*/deploy/chart)
+          if [ ${#charts[@]} -eq 0 ]; then
+            echo "No Helm charts found — skipping."
+            exit 0
+          fi
+          for chart in "${charts[@]}"; do
             echo "==> Linting $chart"
             helm lint "$chart" --strict
           done
 
       - name: Template all charts (dry-run)
         run: |
-          for chart in apps/*/deploy/chart; do
+          shopt -s nullglob
+          charts=(apps/*/deploy/chart)
+          [ ${#charts[@]} -eq 0 ] && exit 0
+          for chart in "${charts[@]}"; do
             echo "==> Templating $chart"
             helm template test "$chart" > /dev/null
           done
@@ -87,7 +108,10 @@ jobs:
 
       - name: Validate K8s schemas
         run: |
-          for chart in apps/*/deploy/chart; do
+          shopt -s nullglob
+          charts=(apps/*/deploy/chart)
+          [ ${#charts[@]} -eq 0 ] && exit 0
+          for chart in "${charts[@]}"; do
             echo "==> Validating $chart against K8s schemas"
             helm template test "$chart" | kubeconform -strict -summary \
               -schema-location default \
@@ -103,7 +127,13 @@ jobs:
 
       - name: Check for 'latest' tag in charts
         run: |
-          if grep -r 'tag:.*latest' apps/*/deploy/chart/values.yaml; then
+          shopt -s nullglob
+          files=(apps/*/deploy/chart/values.yaml)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No chart values found — skipping."
+            exit 0
+          fi
+          if grep -r 'tag:.*latest' "${files[@]}"; then
             echo "ERROR: 'latest' tag found in Helm values. Use explicit tags or digests."
             exit 1
           fi
@@ -111,8 +141,17 @@ jobs:
 
       - name: Check for secrets in manifests
         run: |
+          shopt -s nullglob
+          dirs=()
+          [ -d "apps" ] && dirs+=(apps/*/deploy/chart/)
+          [ -d "gitops" ] && dirs+=(gitops/)
+          [ -d "infra/k8s" ] && dirs+=(infra/k8s/)
+          if [ ${#dirs[@]} -eq 0 ]; then
+            echo "No manifest directories found — skipping."
+            exit 0
+          fi
           if grep -rE '(password|secret|api_key|token)\s*[:=]\s*["\x27][^{]' \
-            apps/*/deploy/chart/ gitops/ infra/k8s/ \
+            "${dirs[@]}" \
             --include="*.yaml" --include="*.yml" | grep -v '#'; then
             echo "ERROR: Potential hardcoded secrets found in manifests."
             exit 1
@@ -133,7 +172,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trivy config scan
-        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
         with:
           scan-type: config
           scan-ref: .
