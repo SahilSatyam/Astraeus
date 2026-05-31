@@ -17,16 +17,19 @@ class TestChunkStoreInterface:
     def test_store_chunks_is_async(self) -> None:
         """store_chunks is a coroutine function."""
         import asyncio
+
         assert asyncio.iscoroutinefunction(store_chunks)
 
     def test_get_chunks_for_doc_is_async(self) -> None:
         """get_chunks_for_doc is a coroutine function."""
         import asyncio
+
         assert asyncio.iscoroutinefunction(get_chunks_for_doc)
 
     def test_get_chunk_by_id_is_async(self) -> None:
         """get_chunk_by_id is a coroutine function."""
         import asyncio
+
         assert asyncio.iscoroutinefunction(get_chunk_by_id)
 
 

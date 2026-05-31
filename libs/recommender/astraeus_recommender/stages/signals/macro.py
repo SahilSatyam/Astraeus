@@ -69,8 +69,6 @@ class MacroSignal(SignalGenerator):
 
             confidence = weight_sum / 1.0
 
-            values.append(
-                SignalValue(ticker=symbol, score=score, confidence=confidence)
-            )
+            values.append(SignalValue(ticker=symbol, score=score, confidence=confidence))
 
         return values

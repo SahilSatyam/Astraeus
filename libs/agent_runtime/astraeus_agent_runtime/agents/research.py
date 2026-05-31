@@ -19,10 +19,15 @@ RESEARCH_SPEC = AgentSpec(
     name="research",
     prompt_key="research_agent.system",
     output_schema=ResearchOutput,
-    allowed_tools=frozenset({
-        "search_news", "fetch_filing", "search_filing_chunks",
-        "get_macro_indicator", "get_earnings_calendar",
-    }),
+    allowed_tools=frozenset(
+        {
+            "search_news",
+            "fetch_filing",
+            "search_filing_chunks",
+            "get_macro_indicator",
+            "get_earnings_calendar",
+        }
+    ),
     model_tier="reasoning",
 )
 
@@ -50,17 +55,21 @@ class ResearchAgent(BaseAgent):
         # Step 2: Build retrieval context with sandboxing
         chunks = []
         for item in news_results:
-            chunks.append({
-                "source": item.get("source", "news"),
-                "chunk_id": item.get("chunk_id", ""),
-                "text": item.get("text", ""),
-            })
+            chunks.append(
+                {
+                    "source": item.get("source", "news"),
+                    "chunk_id": item.get("chunk_id", ""),
+                    "text": item.get("text", ""),
+                }
+            )
         for item in filing_results:
-            chunks.append({
-                "source": "edgar",
-                "chunk_id": item.get("chunk_id", ""),
-                "text": item.get("text", ""),
-            })
+            chunks.append(
+                {
+                    "source": "edgar",
+                    "chunk_id": item.get("chunk_id", ""),
+                    "text": item.get("text", ""),
+                }
+            )
 
         sandboxed_context = sandbox_retrieved_content(chunks)
 
@@ -100,7 +109,12 @@ class ResearchAgent(BaseAgent):
             response = await dispatch_tool(
                 agent_name="research",
                 tool_name="search_news",
-                payload={"query": query, "ticker": ticker, "lookback_days": lookback_days, "top_k": 10},
+                payload={
+                    "query": query,
+                    "ticker": ticker,
+                    "lookback_days": lookback_days,
+                    "top_k": 10,
+                },
                 run_id=run_id,
             )
             return response.get("results", [])
@@ -108,9 +122,7 @@ class ResearchAgent(BaseAgent):
             logger.warning("research_news_search_failed", error=str(e))
             return []
 
-    async def _fetch_filings(
-        self, ticker: str, run_id: uuid.UUID | None
-    ) -> list[dict[str, Any]]:
+    async def _fetch_filings(self, ticker: str, run_id: uuid.UUID | None) -> list[dict[str, Any]]:
         """Fetch recent filings via the tool dispatcher."""
         try:
             response = await dispatch_tool(

@@ -63,29 +63,45 @@ TOOL_REGISTRY: dict[str, ToolDefinition] = {}
 # Agent → allowed tool names
 AGENT_TOOL_ALLOWLISTS: dict[str, set[str]] = {
     "research": {
-        "search_news", "fetch_filing", "search_filing_chunks",
-        "get_macro_indicator", "get_earnings_calendar",
+        "search_news",
+        "fetch_filing",
+        "search_filing_chunks",
+        "get_macro_indicator",
+        "get_earnings_calendar",
     },
     "sentiment": {
-        "get_sentiment_features", "search_news", "search_social_posts", "get_event_study",
+        "get_sentiment_features",
+        "search_news",
+        "search_social_posts",
+        "get_event_study",
     },
     "strategy": {
-        "query_strategy_registry", "get_strategy_signal", "get_factor_exposure",
+        "query_strategy_registry",
+        "get_strategy_signal",
+        "get_factor_exposure",
         "get_backtest_metrics",
     },
     "risk": {
-        "get_portfolio_state", "run_risk_check", "run_stress_scenario",
-        "get_correlation_matrix", "get_var_cvar",
+        "get_portfolio_state",
+        "run_risk_check",
+        "run_stress_scenario",
+        "get_correlation_matrix",
+        "get_var_cvar",
     },
     "portfolio": {
-        "get_portfolio_state", "get_exposure_breakdown", "get_factor_attribution",
+        "get_portfolio_state",
+        "get_exposure_breakdown",
+        "get_factor_attribution",
         "get_optimizer_suggestion",
     },
     "execution": {
-        "get_liquidity_metrics", "get_volatility_estimate",
+        "get_liquidity_metrics",
+        "get_volatility_estimate",
     },
     "compliance": {
-        "lookup_restricted_list", "lookup_policy_rule", "write_audit_envelope",
+        "lookup_restricted_list",
+        "lookup_policy_rule",
+        "write_audit_envelope",
     },
 }
 
@@ -150,6 +166,7 @@ async def dispatch_tool(
     start = time.perf_counter()
     try:
         import asyncio
+
         if asyncio.iscoroutinefunction(tool.fn):
             if request:
                 result = await tool.fn(request, **(context or {}))

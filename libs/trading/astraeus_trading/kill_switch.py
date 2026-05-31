@@ -14,7 +14,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -120,7 +120,7 @@ class KillSwitchManager:
         """Publish a kill switch event to Redis."""
         if self._redis is None:
             return
-        payload = {**kwargs, "ts": datetime.now(timezone.utc).isoformat()}
+        payload = {**kwargs, "ts": datetime.now(UTC).isoformat()}
         await self._redis.publish(KILL_SWITCH_CHANNEL, json.dumps(payload))
 
     async def _listen(self) -> None:

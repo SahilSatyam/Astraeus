@@ -57,9 +57,7 @@ class HITLItem:
     claimed_at: datetime | None = None
     resolved_at: datetime | None = None
     resolution: dict[str, Any] | None = None
-    expires_at: datetime = field(
-        default_factory=lambda: datetime.now(tz=UTC) + timedelta(hours=24)
-    )
+    expires_at: datetime = field(default_factory=lambda: datetime.now(tz=UTC) + timedelta(hours=24))
     created_at: datetime = field(default_factory=lambda: datetime.now(tz=UTC))
 
 
@@ -112,10 +110,7 @@ class HITLQueue:
     def list_pending(self, workflow_key: str | None = None) -> list[HITLItem]:
         """List pending items, optionally filtered by workflow."""
         self._expire_stale()
-        items = [
-            item for item in self._items.values()
-            if item.status == HITLStatus.PENDING
-        ]
+        items = [item for item in self._items.values() if item.status == HITLStatus.PENDING]
         if workflow_key:
             items = [i for i in items if i.workflow_key == workflow_key]
         return sorted(items, key=lambda i: (i.priority, i.created_at))

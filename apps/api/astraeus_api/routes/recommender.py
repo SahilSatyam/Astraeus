@@ -164,7 +164,9 @@ async def get_run(
     )
 
 
-@router.get("/recommendations", response_model=list[RecommendationResponse], summary="List recommendations")
+@router.get(
+    "/recommendations", response_model=list[RecommendationResponse], summary="List recommendations"
+)
 async def list_recommendations(
     run_id: str = Query(..., description="Filter by run_id"),
     state: str | None = Query(default=None, description="Filter by state"),
@@ -210,7 +212,11 @@ async def list_recommendations(
     ]
 
 
-@router.post("/recommendations/{rec_id}/decide", response_model=DecideResponse, summary="Decide on a recommendation")
+@router.post(
+    "/recommendations/{rec_id}/decide",
+    response_model=DecideResponse,
+    summary="Decide on a recommendation",
+)
 async def decide_recommendation(
     rec_id: str,
     request: DecideRequest,
@@ -230,7 +236,9 @@ async def decide_recommendation(
         )
 
     if request.decision == "override" and request.override_weight is None:
-        raise HTTPException(status_code=400, detail="override_weight required for override decision")
+        raise HTTPException(
+            status_code=400, detail="override_weight required for override decision"
+        )
 
     # Check recommendation exists and is in proposed state
     result = await session.execute(
@@ -241,7 +249,9 @@ async def decide_recommendation(
     if row is None:
         raise HTTPException(status_code=404, detail=f"Recommendation {rec_id} not found")
     if row[0] != "proposed":
-        raise HTTPException(status_code=409, detail=f"Recommendation is in state '{row[0]}', not 'proposed'")
+        raise HTTPException(
+            status_code=409, detail=f"Recommendation is in state '{row[0]}', not 'proposed'"
+        )
 
     # Map decision to new state
     state_map = {"approve": "approved", "reject": "rejected", "override": "overridden"}
@@ -312,7 +322,9 @@ async def get_regime(
     )
 
 
-@router.post("/replay", response_model=ReplayResponse, status_code=202, summary="Trigger pipeline replay")
+@router.post(
+    "/replay", response_model=ReplayResponse, status_code=202, summary="Trigger pipeline replay"
+)
 async def trigger_replay(
     request: ReplayRequest,
     session: Any = Depends(get_db_session),

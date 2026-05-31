@@ -9,7 +9,7 @@ instantiation time with a clear error message.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -73,9 +73,7 @@ class IBKRAdapter(BrokerAdapter):
         if order.order_type == OrderType.MARKET:
             ib_order = MarketOrder(action, float(order.qty))
         else:
-            ib_order = LimitOrder(
-                action, float(order.qty), float(order.limit_price or 0)
-            )
+            ib_order = LimitOrder(action, float(order.qty), float(order.limit_price or 0))
 
         # Set client order ID for idempotency
         ib_order.orderRef = order.client_order_id
@@ -88,13 +86,15 @@ class IBKRAdapter(BrokerAdapter):
             client_order_id=order.client_order_id,
             broker_order_id=str(trade.order.orderId),
             state=trade.orderStatus.status if trade.orderStatus else "Submitted",
-            filled_qty=Decimal(str(trade.orderStatus.filled)) if trade.orderStatus else Decimal("0"),
+            filled_qty=Decimal(str(trade.orderStatus.filled))
+            if trade.orderStatus
+            else Decimal("0"),
             avg_fill_price=(
                 Decimal(str(trade.orderStatus.avgFillPrice))
                 if trade.orderStatus and trade.orderStatus.avgFillPrice
                 else None
             ),
-            submitted_at=datetime.now(timezone.utc),
+            submitted_at=datetime.now(UTC),
         )
 
     async def cancel_order(self, broker_order_id: str) -> BrokerOrderStatus:
@@ -180,7 +180,7 @@ class IBKRAdapter(BrokerAdapter):
         fills: list[BrokerFill] = []
         for trade in self._ib.trades():
             for fill in trade.fills:
-                fill_time = fill.time if hasattr(fill, "time") else datetime.now(timezone.utc)
+                fill_time = fill.time if hasattr(fill, "time") else datetime.now(UTC)
                 if since and fill_time < since:
                     continue
                 fills.append(
@@ -189,11 +189,7 @@ class IBKRAdapter(BrokerAdapter):
                         broker_order_id=str(trade.order.orderId),
                         client_order_id=trade.order.orderRef or "",
                         symbol=fill.contract.symbol,
-                        side=(
-                            OrderSide.BUY
-                            if fill.execution.side == "BOT"
-                            else OrderSide.SELL
-                        ),
+                        side=(OrderSide.BUY if fill.execution.side == "BOT" else OrderSide.SELL),
                         qty=Decimal(str(fill.execution.shares)),
                         price=Decimal(str(fill.execution.price)),
                         fees=Decimal(str(fill.commissionReport.commission))

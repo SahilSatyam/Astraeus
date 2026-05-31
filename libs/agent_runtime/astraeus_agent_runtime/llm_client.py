@@ -21,8 +21,18 @@ logger = structlog.get_logger("astraeus.agent_runtime.llm_client")
 
 # Cost per 1M tokens (approximate, updated periodically)
 _COST_TABLE: dict[str, dict[str, float]] = {
-    "claude-sonnet-4-20250514": {"input": 3.0, "output": 15.0, "cache_read": 0.30, "cache_write": 3.75},
-    "claude-haiku-3-5-20241022": {"input": 0.80, "output": 4.0, "cache_read": 0.08, "cache_write": 1.0},
+    "claude-sonnet-4-20250514": {
+        "input": 3.0,
+        "output": 15.0,
+        "cache_read": 0.30,
+        "cache_write": 3.75,
+    },
+    "claude-haiku-3-5-20241022": {
+        "input": 0.80,
+        "output": 4.0,
+        "cache_read": 0.08,
+        "cache_write": 1.0,
+    },
     "gpt-4o-mini": {"input": 0.15, "output": 0.60, "cache_read": 0.075, "cache_write": 0.15},
 }
 
@@ -211,6 +221,7 @@ class LLMClient:
                         wait_s=wait,
                     )
                     import asyncio
+
                     await asyncio.sleep(wait)
 
         latency_ms = (time.perf_counter() - start) * 1000
@@ -229,7 +240,9 @@ class LLMClient:
                 error_class=type(last_error).__name__ if last_error else "Unknown",
             )
             self._call_records.append(record)
-            raise RuntimeError(f"LLM call failed after {self._max_retries + 1} attempts: {last_error}")
+            raise RuntimeError(
+                f"LLM call failed after {self._max_retries + 1} attempts: {last_error}"
+            )
 
         # Record for cost ledger
         record = LLMCallRecord(
@@ -378,6 +391,7 @@ class LLMClient:
         structured_output = None
         if response_schema and content:
             import json
+
             try:
                 structured_output = json.loads(content)
             except json.JSONDecodeError:

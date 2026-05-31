@@ -11,12 +11,11 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Annotated
 
+from astraeus_trading.models import PositionModel
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from astraeus_trading.models import PositionModel
 
 from astraeus_oms.dependencies import get_session
 

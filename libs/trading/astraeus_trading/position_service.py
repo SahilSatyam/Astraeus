@@ -45,9 +45,7 @@ class PositionService:
             new_qty = current_qty + fill_qty
             if new_qty != Decimal("0"):
                 # Weighted average cost
-                new_avg = (
-                    (current_qty * current_avg) + (fill_qty * fill_price)
-                ) / new_qty
+                new_avg = ((current_qty * current_avg) + (fill_qty * fill_price)) / new_qty
             else:
                 new_avg = Decimal("0")
         else:  # sell
@@ -88,9 +86,7 @@ class PositionService:
             if side == "buy":
                 new_qty = current_qty + fill_qty
                 if new_qty != Decimal("0"):
-                    new_avg = (
-                        (current_qty * current_avg) + (fill_qty * fill_price)
-                    ) / new_qty
+                    new_avg = ((current_qty * current_avg) + (fill_qty * fill_price)) / new_qty
                 else:
                     new_avg = Decimal("0")
             else:

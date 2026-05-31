@@ -72,9 +72,7 @@ class TestPositionCalculation:
         assert qty == Decimal("10")
         assert avg == Decimal("100")
 
-        qty, avg = _compute_position_after_fill(
-            qty, avg, "buy", Decimal("20"), Decimal("130")
-        )
+        qty, avg = _compute_position_after_fill(qty, avg, "buy", Decimal("20"), Decimal("130"))
         assert qty == Decimal("30")
         # (10*100 + 20*130) / 30 = (1000 + 2600) / 30 = 120
         assert avg == Decimal("120")

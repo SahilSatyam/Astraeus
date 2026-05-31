@@ -67,8 +67,6 @@ class MLXGBSignal(SignalGenerator):
             # Confidence decreases with missing data
             confidence = 1.0 - (missing_count / max(len(self._feature_columns), 1))
 
-            values.append(
-                SignalValue(ticker=symbol, score=prediction, confidence=confidence)
-            )
+            values.append(SignalValue(ticker=symbol, score=prediction, confidence=confidence))
 
         return values

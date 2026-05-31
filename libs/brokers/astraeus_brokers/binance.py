@@ -11,7 +11,7 @@ at the submitted price (no slippage simulation in this phase).
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from astraeus_brokers.base import (
@@ -58,7 +58,7 @@ class BinancePaperAdapter(BrokerAdapter):
                 )
 
         broker_order_id = f"binance-paper-{uuid.uuid4().hex[:12]}"
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         paper_order = _PaperOrder(
             broker_order_id=broker_order_id,
@@ -175,9 +175,7 @@ class BinancePaperAdapter(BrokerAdapter):
             return [f for f in self._fills if f.occurred_at >= since]
         return list(self._fills)
 
-    def _update_position(
-        self, symbol: str, side: OrderSide, qty: Decimal, price: Decimal
-    ) -> None:
+    def _update_position(self, symbol: str, side: OrderSide, qty: Decimal, price: Decimal) -> None:
         """Update in-memory position tracking."""
         pos = self._positions.get(symbol)
         if pos is None:
@@ -197,17 +195,17 @@ class _PaperOrder:
     """Internal paper order state."""
 
     __slots__ = (
+        "avg_fill_price",
         "broker_order_id",
         "client_order_id",
-        "symbol",
-        "side",
-        "qty",
-        "order_type",
-        "limit_price",
-        "state",
         "filled_qty",
-        "avg_fill_price",
+        "limit_price",
+        "order_type",
+        "qty",
+        "side",
+        "state",
         "submitted_at",
+        "symbol",
     )
 
     def __init__(
@@ -237,7 +235,7 @@ class _PaperOrder:
 class _PaperPosition:
     """Internal paper position state."""
 
-    __slots__ = ("symbol", "qty", "avg_cost")
+    __slots__ = ("avg_cost", "qty", "symbol")
 
     def __init__(self, symbol: str, qty: Decimal, avg_cost: Decimal) -> None:
         self.symbol = symbol

@@ -15,9 +15,7 @@ class TestRegimeWeightMatrix:
             assert abs(w - expected) < 1e-6
 
     def test_unknown_regime_returns_flat(self):
-        matrix = RegimeWeightMatrix(
-            signals=["a", "b"], regimes=["risk_on"]
-        )
+        matrix = RegimeWeightMatrix(signals=["a", "b"], regimes=["risk_on"])
         weights = matrix.get_weights("unknown_regime")
         assert abs(weights["a"] - 0.5) < 1e-6
         assert abs(weights["b"] - 0.5) < 1e-6

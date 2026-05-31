@@ -70,8 +70,7 @@ class RiskRule(ABC):
 
     @property
     @abstractmethod
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
     @abstractmethod
     def evaluate(self, ctx: OrderRiskContext) -> RiskCheckResult:
@@ -119,9 +118,7 @@ class ExposureCapRule(RiskRule):
             return RiskCheckResult(
                 rule_name=self.name,
                 verdict=RiskVerdict.REJECT,
-                reason=(
-                    f"Projected exposure {projected} exceeds cap {self._max_exposure}"
-                ),
+                reason=(f"Projected exposure {projected} exceeds cap {self._max_exposure}"),
                 details={
                     "current_exposure": str(ctx.total_exposure),
                     "order_notional": str(ctx.notional),
@@ -182,8 +179,7 @@ class AIConfidenceRule(RiskRule):
                 rule_name=self.name,
                 verdict=RiskVerdict.REJECT,
                 reason=(
-                    f"AI confidence {ctx.ai_confidence:.3f} below "
-                    f"threshold {self._min_confidence}"
+                    f"AI confidence {ctx.ai_confidence:.3f} below threshold {self._min_confidence}"
                 ),
                 details={
                     "confidence": str(ctx.ai_confidence),

@@ -9,12 +9,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Annotated, Any
 
+from astraeus_trading.models import ReconciliationDiffModel
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from astraeus_trading.models import ReconciliationDiffModel
 
 from astraeus_oms.dependencies import get_session
 

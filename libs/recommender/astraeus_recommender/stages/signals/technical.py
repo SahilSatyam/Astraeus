@@ -63,8 +63,6 @@ class TechnicalSignal(SignalGenerator):
             # Confidence based on data completeness
             confidence = weight_sum / 1.0  # max possible weight_sum is 1.0
 
-            values.append(
-                SignalValue(ticker=symbol, score=score, confidence=confidence)
-            )
+            values.append(SignalValue(ticker=symbol, score=score, confidence=confidence))
 
         return values

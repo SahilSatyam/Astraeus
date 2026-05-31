@@ -82,9 +82,7 @@ class ThesisStage:
             ]
 
         # Generate theses concurrently with semaphore for cost control
-        tasks = [
-            self._generate_one(run_id, alloc) for alloc in allocations
-        ]
+        tasks = [self._generate_one(run_id, alloc) for alloc in allocations]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         outputs: list[ThesisOutput] = []
@@ -121,9 +119,7 @@ class ThesisStage:
 
         return outputs
 
-    async def _generate_one(
-        self, run_id: UUID, alloc: PortfolioAllocation
-    ) -> ThesisOutput:
+    async def _generate_one(self, run_id: UUID, alloc: PortfolioAllocation) -> ThesisOutput:
         """Generate thesis for a single allocation with concurrency control."""
         async with self._semaphore:
             # Call Phase 6 agent runtime

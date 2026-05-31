@@ -17,9 +17,13 @@ COMPLIANCE_SPEC = AgentSpec(
     name="compliance",
     prompt_key="compliance_agent.system",
     output_schema=ComplianceResult,
-    allowed_tools=frozenset({
-        "lookup_restricted_list", "lookup_policy_rule", "write_audit_envelope",
-    }),
+    allowed_tools=frozenset(
+        {
+            "lookup_restricted_list",
+            "lookup_policy_rule",
+            "write_audit_envelope",
+        }
+    ),
     model_tier="classification",
 )
 

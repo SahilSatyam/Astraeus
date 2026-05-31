@@ -18,11 +18,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from astraeus_brokers.base import BrokerAdapter
 from astraeus_trading.models import (
@@ -33,6 +30,8 @@ from astraeus_trading.models import (
     TradeJournalModel,
 )
 from astraeus_trading.statemachine import TERMINAL_STATES
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 logger = logging.getLogger(__name__)
 
@@ -109,9 +108,7 @@ class ReconciliationWorker:
         broker_map = {p.symbol: p for p in broker_positions}
 
         # Fetch local positions
-        stmt = select(PositionModel).where(
-            PositionModel.account_id == self._account_id
-        )
+        stmt = select(PositionModel).where(PositionModel.account_id == self._account_id)
         result = await session.execute(stmt)
         local_positions = {p.symbol: p for p in result.scalars().all()}
 
@@ -174,18 +171,13 @@ class ReconciliationWorker:
 
         # Fetch local non-terminal orders
         terminal_states = [s.value for s in TERMINAL_STATES]
-        stmt = (
-            select(OrderModel)
-            .where(
-                OrderModel.account_id == self._account_id,
-                OrderModel.state.notin_(terminal_states),
-            )
+        stmt = select(OrderModel).where(
+            OrderModel.account_id == self._account_id,
+            OrderModel.state.notin_(terminal_states),
         )
         result = await session.execute(stmt)
         local_orders = result.scalars().all()
-        local_broker_ids = {
-            o.broker_order_id for o in local_orders if o.broker_order_id
-        }
+        local_broker_ids = {o.broker_order_id for o in local_orders if o.broker_order_id}
 
         drift_count = 0
 
@@ -201,9 +193,7 @@ class ReconciliationWorker:
 
         # Orders in local but not broker (might have been filled/cancelled)
         for bid in local_broker_ids - broker_ids:
-            order = next(
-                (o for o in local_orders if o.broker_order_id == bid), None
-            )
+            order = next((o for o in local_orders if o.broker_order_id == bid), None)
             if order:
                 await self._record_drift(
                     session,
@@ -248,18 +238,14 @@ class ReconciliationWorker:
         )
         session.add(journal)
 
-    async def _pause_submissions(
-        self, session: AsyncSession, drift_count: int
-    ) -> None:
+    async def _pause_submissions(self, session: AsyncSession, drift_count: int) -> None:
         """Arm kill switch for the account to pause new submissions."""
         scope = f"account:{self._account_id}"
-        stmt = select(KillSwitchStateModel).where(
-            KillSwitchStateModel.scope == scope
-        )
+        stmt = select(KillSwitchStateModel).where(KillSwitchStateModel.scope == scope)
         result = await session.execute(stmt)
         ks = result.scalars().first()
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if ks:
             if not ks.armed:
                 ks.armed = True

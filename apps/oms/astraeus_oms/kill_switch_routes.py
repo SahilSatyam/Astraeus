@@ -8,15 +8,14 @@ Endpoints:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated
 
+from astraeus_trading.models import KillSwitchStateModel, TradeJournalModel
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from astraeus_trading.models import KillSwitchStateModel, TradeJournalModel
 
 from astraeus_oms.dependencies import get_session
 
@@ -43,7 +42,7 @@ async def arm_kill_switch(
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> KillSwitchResponse:
     """Arm a kill switch for the given scope."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # Upsert kill switch state
     stmt = select(KillSwitchStateModel).where(KillSwitchStateModel.scope == scope)

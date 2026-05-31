@@ -103,9 +103,7 @@ class RegimeStage:
 
         return detection
 
-    def _extract_macro_features(
-        self, snapshot: DailyInputSnapshot
-    ) -> dict[str, list[float]]:
+    def _extract_macro_features(self, snapshot: DailyInputSnapshot) -> dict[str, list[float]]:
         """Extract macro/vol features from the snapshot for regime detection.
 
         Returns a dict of feature_name -> list of values across symbols.

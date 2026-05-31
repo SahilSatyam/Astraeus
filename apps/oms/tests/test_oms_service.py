@@ -2,16 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-from unittest.mock import AsyncMock
 
 import pytest
-
-from astraeus_brokers.base import BrokerAdapter, BrokerOrder, BrokerOrderStatus
+from astraeus_brokers.base import BrokerOrder, BrokerOrderStatus
 from astraeus_oms.schemas import SubmitOrderRequest
-from astraeus_oms.service import KillSwitchActive, OMSService, OrderAlreadyExists
-from astraeus_trading.statemachine import OrderState
 
 
 class MockBrokerAdapter:
@@ -33,7 +29,7 @@ class MockBrokerAdapter:
             broker_order_id=broker_id,
             state="accepted",
             filled_qty=Decimal("0"),
-            submitted_at=datetime.now(timezone.utc),
+            submitted_at=datetime.now(UTC),
         )
         self._orders[broker_id] = status
         return status
@@ -55,9 +51,7 @@ class MockBrokerAdapter:
     async def get_order_status(self, broker_order_id: str) -> BrokerOrderStatus:
         return self._orders.get(
             broker_order_id,
-            BrokerOrderStatus(
-                client_order_id="", broker_order_id=broker_order_id, state="unknown"
-            ),
+            BrokerOrderStatus(client_order_id="", broker_order_id=broker_order_id, state="unknown"),
         )
 
     async def get_orders(self, status=None):

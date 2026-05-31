@@ -7,7 +7,7 @@ numbers per account and is protected at the DB level (REVOKE UPDATE, DELETE).
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -38,6 +38,6 @@ class JournalEntry(BaseModel):
     account_id: str
     kind: JournalKind
     payload: dict[str, Any]
-    written_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    written_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     model_config = {"frozen": True}

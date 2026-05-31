@@ -94,7 +94,7 @@ class EnsembleStage:
 
             # Apply correlation penalty via the engine
             penalty = await self._engine.correlation_penalty(ticker, attributions)
-            composite *= (1.0 - penalty)
+            composite *= 1.0 - penalty
 
             candidates.append(
                 EnsembleCandidate(

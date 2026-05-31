@@ -22,9 +22,12 @@ EXECUTION_SPEC = AgentSpec(
     name="execution",
     prompt_key="execution_agent.system",
     output_schema=ExecutionAdvice,
-    allowed_tools=frozenset({
-        "get_liquidity_metrics", "get_volatility_estimate",
-    }),
+    allowed_tools=frozenset(
+        {
+            "get_liquidity_metrics",
+            "get_volatility_estimate",
+        }
+    ),
     model_tier="classification",
     max_retries=1,  # Simple output, fewer retries needed
 )

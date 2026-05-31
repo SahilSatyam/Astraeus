@@ -74,7 +74,9 @@ class RunTrace(BaseModel):
 # --- Endpoints ---
 
 
-@router.post("/runs", response_model=StartRunResponse, status_code=202, summary="Start a workflow run")
+@router.post(
+    "/runs", response_model=StartRunResponse, status_code=202, summary="Start a workflow run"
+)
 async def start_run(
     request: StartRunRequest,
     session: Annotated[AsyncSession, Depends(get_db_session)],

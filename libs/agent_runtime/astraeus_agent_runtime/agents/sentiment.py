@@ -19,9 +19,14 @@ SENTIMENT_SPEC = AgentSpec(
     name="sentiment",
     prompt_key="sentiment_agent.system",
     output_schema=SentimentNarrative,
-    allowed_tools=frozenset({
-        "get_sentiment_features", "search_news", "search_social_posts", "get_event_study",
-    }),
+    allowed_tools=frozenset(
+        {
+            "get_sentiment_features",
+            "search_news",
+            "search_social_posts",
+            "get_event_study",
+        }
+    ),
     model_tier="synthesis",
 )
 
@@ -50,7 +55,11 @@ class SentimentAgent(BaseAgent):
 
         # Step 3: Build context
         chunks = [
-            {"source": item.get("source", "news"), "chunk_id": item.get("chunk_id", ""), "text": item.get("text", "")}
+            {
+                "source": item.get("source", "news"),
+                "chunk_id": item.get("chunk_id", ""),
+                "text": item.get("text", ""),
+            }
             for item in news_results
         ]
         sandboxed_context = sandbox_retrieved_content(chunks) if chunks else ""
@@ -95,7 +104,11 @@ class SentimentAgent(BaseAgent):
             return await dispatch_tool(
                 agent_name="sentiment",
                 tool_name="get_sentiment_features",
-                payload={"ticker": ticker, "as_of": as_of.isoformat(), "lookback_days": lookback_days},
+                payload={
+                    "ticker": ticker,
+                    "as_of": as_of.isoformat(),
+                    "lookback_days": lookback_days,
+                },
                 run_id=run_id,
             )
         except Exception as e:
@@ -109,7 +122,12 @@ class SentimentAgent(BaseAgent):
             response = await dispatch_tool(
                 agent_name="sentiment",
                 tool_name="search_news",
-                payload={"query": ticker, "ticker": ticker, "lookback_days": lookback_days, "top_k": 8},
+                payload={
+                    "query": ticker,
+                    "ticker": ticker,
+                    "lookback_days": lookback_days,
+                    "top_k": 8,
+                },
                 run_id=run_id,
             )
             return response.get("results", [])

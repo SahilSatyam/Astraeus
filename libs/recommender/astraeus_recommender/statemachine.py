@@ -43,9 +43,7 @@ class InvalidTransitionError(Exception):
         super().__init__(f"Cannot transition from {current} to {target}")
 
 
-def transition(
-    current: RecommendationState, decision: DecisionType
-) -> RecommendationState:
+def transition(current: RecommendationState, decision: DecisionType) -> RecommendationState:
     """Apply a decision to the current state, returning the new state.
 
     Raises InvalidTransitionError if the transition is not allowed.

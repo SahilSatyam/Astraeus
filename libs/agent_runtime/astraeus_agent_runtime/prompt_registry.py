@@ -80,9 +80,7 @@ class PromptRegistry:
         ]
         if not candidates:
             # Fallback to any status
-            candidates = [
-                entry for (k, _v), entry in self._entries.items() if k == key
-            ]
+            candidates = [entry for (k, _v), entry in self._entries.items() if k == key]
 
         if not candidates:
             return None

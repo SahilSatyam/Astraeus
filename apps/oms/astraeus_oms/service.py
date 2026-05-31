@@ -10,16 +10,13 @@ Architectural rule: NO LLM/agent imports here. This is enforced at CI.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from astraeus_brokers.base import BrokerAdapter, BrokerOrder, OrderSide, OrderType, TimeInForce
-from astraeus_trading.events import EventType, OrderEvent
-from astraeus_trading.journal import JournalEntry, JournalKind
+from astraeus_trading.events import EventType
+from astraeus_trading.journal import JournalKind
 from astraeus_trading.models import (
     FillModel,
     KillSwitchStateModel,
@@ -28,6 +25,8 @@ from astraeus_trading.models import (
     TradeJournalModel,
 )
 from astraeus_trading.statemachine import OrderState, OrderStateMachine
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from astraeus_oms.schemas import OrderResponse, SubmitOrderRequest
 
@@ -85,7 +84,7 @@ class OMSService:
             raise OrderAlreadyExists(self._to_response(existing))
 
         # 3. Create order
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         order_id = str(uuid.uuid4())
         order = OrderModel(
             order_id=order_id,
@@ -114,7 +113,7 @@ class OMSService:
         sm = OrderStateMachine(OrderState.NEW)
         sm.transition(OrderState.PENDING_NEW)
         order.state = sm.state
-        order.updated_at = datetime.now(timezone.utc)
+        order.updated_at = datetime.now(UTC)
         await self._record_event(order_id, EventType.PENDING_NEW, {}, order.updated_at)
 
         # 6. Submit to broker
@@ -134,7 +133,7 @@ class OMSService:
             # Broker submission failed — mark as REJECTED
             sm.transition(OrderState.REJECTED)
             order.state = sm.state
-            order.updated_at = datetime.now(timezone.utc)
+            order.updated_at = datetime.now(UTC)
             await self._record_event(
                 order_id,
                 EventType.REJECTED,
@@ -153,7 +152,7 @@ class OMSService:
         sm.transition(OrderState.SUBMITTED)
         order.state = sm.state
         order.broker_order_id = status.broker_order_id
-        order.updated_at = datetime.now(timezone.utc)
+        order.updated_at = datetime.now(UTC)
         await self._record_event(
             order_id,
             EventType.SUBMITTED,
@@ -194,7 +193,7 @@ class OMSService:
 
         sm.transition(OrderState.CANCELLED)
         order.state = sm.state
-        order.updated_at = datetime.now(timezone.utc)
+        order.updated_at = datetime.now(UTC)
 
         await self._record_event(
             order_id,
@@ -229,7 +228,7 @@ class OMSService:
         """Apply a fill to an order, transitioning state as needed."""
         order = await self._get_order(order_id)
         sm = OrderStateMachine(OrderState(order.state))
-        fill_time = occurred_at or datetime.now(timezone.utc)
+        fill_time = occurred_at or datetime.now(UTC)
 
         # Determine if this is a partial or full fill
         filled_so_far = await self._total_filled_qty(order_id)
@@ -245,7 +244,7 @@ class OMSService:
 
         sm.transition(target_state)
         order.state = sm.state
-        order.updated_at = datetime.now(timezone.utc)
+        order.updated_at = datetime.now(UTC)
 
         # Record fill
         fill = FillModel(

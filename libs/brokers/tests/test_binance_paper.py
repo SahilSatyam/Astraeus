@@ -5,7 +5,6 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-
 from astraeus_brokers.base import BrokerOrder, OrderSide, OrderType, TimeInForce
 from astraeus_brokers.binance import BinancePaperAdapter
 

@@ -58,6 +58,7 @@ class CrossEncoderReranker:
             device = self._device
             if device is None:
                 import torch
+
                 device = "cuda" if torch.cuda.is_available() else "cpu"
 
             self._model = CrossEncoder(self._model_name, device=device)

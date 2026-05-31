@@ -110,23 +110,27 @@ class TestAIConfidenceRule:
 
 class TestPreTradeRiskGateway:
     def test_all_pass(self) -> None:
-        gateway = PreTradeRiskGateway([
-            DailyLossRule(Decimal("1000")),
-            ExposureCapRule(Decimal("100000")),
-            PositionLimitRule(Decimal("1000")),
-            AIConfidenceRule(0.6),
-        ])
+        gateway = PreTradeRiskGateway(
+            [
+                DailyLossRule(Decimal("1000")),
+                ExposureCapRule(Decimal("100000")),
+                PositionLimitRule(Decimal("1000")),
+                AIConfidenceRule(0.6),
+            ]
+        )
         results = gateway.check(_ctx())
         assert gateway.all_passed(results)
         assert gateway.rejections(results) == []
 
     def test_mixed_results(self) -> None:
-        gateway = PreTradeRiskGateway([
-            DailyLossRule(Decimal("1000")),
-            ExposureCapRule(Decimal("100000")),
-            PositionLimitRule(Decimal("1000")),
-            AIConfidenceRule(0.6),
-        ])
+        gateway = PreTradeRiskGateway(
+            [
+                DailyLossRule(Decimal("1000")),
+                ExposureCapRule(Decimal("100000")),
+                PositionLimitRule(Decimal("1000")),
+                AIConfidenceRule(0.6),
+            ]
+        )
         # Fail on daily loss and AI confidence
         results = gateway.check(_ctx(daily_pnl=Decimal("-2000"), ai_confidence=0.3))
         assert not gateway.all_passed(results)

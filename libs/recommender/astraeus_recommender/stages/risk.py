@@ -156,16 +156,12 @@ class RiskStage:
 
         return results
 
-    def _validate_portfolio(
-        self, allocations: list[PortfolioAllocation]
-    ) -> list[RiskCheckResult]:
+    def _validate_portfolio(self, allocations: list[PortfolioAllocation]) -> list[RiskCheckResult]:
         """Run portfolio-level risk checks."""
         results: list[RiskCheckResult] = []
 
         # Check: total short exposure
-        total_short = sum(
-            abs(a.target_weight) for a in allocations if a.target_weight < 0
-        )
+        total_short = sum(abs(a.target_weight) for a in allocations if a.target_weight < 0)
         max_short = self._limits["max_total_short"]
         results.append(
             RiskCheckResult(

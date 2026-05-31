@@ -18,10 +18,14 @@ PORTFOLIO_SPEC = AgentSpec(
     name="portfolio",
     prompt_key="portfolio_agent.system",
     output_schema=PortfolioCommentary,
-    allowed_tools=frozenset({
-        "get_portfolio_state", "get_exposure_breakdown", "get_factor_attribution",
-        "get_optimizer_suggestion",
-    }),
+    allowed_tools=frozenset(
+        {
+            "get_portfolio_state",
+            "get_exposure_breakdown",
+            "get_factor_attribution",
+            "get_optimizer_suggestion",
+        }
+    ),
     model_tier="synthesis",
 )
 
@@ -71,9 +75,7 @@ class PortfolioAgent(BaseAgent):
 
         return result
 
-    async def _get_state(
-        self, portfolio_id: str, run_id: uuid.UUID | None
-    ) -> dict[str, Any]:
+    async def _get_state(self, portfolio_id: str, run_id: uuid.UUID | None) -> dict[str, Any]:
         try:
             return await dispatch_tool(
                 agent_name="portfolio",
@@ -85,9 +87,7 @@ class PortfolioAgent(BaseAgent):
             logger.warning("portfolio_state_failed", error=str(e))
             return {}
 
-    async def _get_exposures(
-        self, portfolio_id: str, run_id: uuid.UUID | None
-    ) -> dict[str, Any]:
+    async def _get_exposures(self, portfolio_id: str, run_id: uuid.UUID | None) -> dict[str, Any]:
         try:
             return await dispatch_tool(
                 agent_name="portfolio",
@@ -107,7 +107,9 @@ def _format_portfolio(data: dict[str, Any]) -> str:
     positions = data.get("positions", [])
     lines = [f"Total value: ${total:,.2f}", f"Positions: {len(positions)}"]
     for p in positions[:10]:
-        lines.append(f"  - {p.get('ticker', '?')}: {p.get('weight', 0):.1%} (${p.get('market_value', 0):,.0f})")
+        lines.append(
+            f"  - {p.get('ticker', '?')}: {p.get('weight', 0):.1%} (${p.get('market_value', 0):,.0f})"
+        )
     return "\n".join(lines)
 
 

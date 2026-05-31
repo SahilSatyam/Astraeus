@@ -53,8 +53,12 @@ class TestHITLQueue:
 
     def test_list_pending_filtered_by_workflow(self) -> None:
         queue = HITLQueue()
-        queue.submit(run_id=uuid.uuid4(), workflow_key="trade_thesis", triggered_by="test", reason={})
-        queue.submit(run_id=uuid.uuid4(), workflow_key="daily_brief", triggered_by="test", reason={})
+        queue.submit(
+            run_id=uuid.uuid4(), workflow_key="trade_thesis", triggered_by="test", reason={}
+        )
+        queue.submit(
+            run_id=uuid.uuid4(), workflow_key="daily_brief", triggered_by="test", reason={}
+        )
         pending = queue.list_pending(workflow_key="trade_thesis")
         assert len(pending) == 1
 

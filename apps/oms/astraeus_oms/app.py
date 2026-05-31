@@ -2,20 +2,19 @@
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
-
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
 
 from astraeus_brokers.alpaca import AlpacaAdapter
 from astraeus_config import Settings
 from astraeus_db import get_engine
+from fastapi import FastAPI
 
 from astraeus_oms import dependencies
-from astraeus_oms.routes import router
 from astraeus_oms.kill_switch_routes import router as ks_router
 from astraeus_oms.position_routes import router as pos_router
 from astraeus_oms.recon_routes import router as recon_router
+from astraeus_oms.routes import router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:

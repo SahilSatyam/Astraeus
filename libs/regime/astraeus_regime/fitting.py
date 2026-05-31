@@ -87,9 +87,7 @@ async def fit_regime_models(
 
     for day_offset in range(0, lookback_days, step):
         sample_date = as_of_date - timedelta(days=day_offset)
-        as_of_ts = datetime(
-            sample_date.year, sample_date.month, sample_date.day, 16, 0, tzinfo=UTC
-        )
+        as_of_ts = datetime(sample_date.year, sample_date.month, sample_date.day, 16, 0, tzinfo=UTC)
 
         try:
             feature_matrix = await get(

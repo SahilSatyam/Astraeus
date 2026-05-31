@@ -8,7 +8,7 @@ replay.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -46,7 +46,7 @@ class OrderEvent(BaseModel):
     event_type: EventType
     payload: dict[str, Any] = Field(default_factory=dict)
     occurred_at: datetime
-    received_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    received_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     source: str = "oms"
 
     model_config = {"frozen": True}

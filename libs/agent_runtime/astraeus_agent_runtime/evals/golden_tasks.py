@@ -44,7 +44,9 @@ GOLDEN_TASKS: list[GoldenTask] = [
         inputs={"ticker": "AAPL", "lookback_days": 30, "focus": "services growth"},
         assertions=[
             GoldenTaskAssertion(name="schema_valid", check="schema_valid"),
-            GoldenTaskAssertion(name="has_findings", check="field_present", threshold="research.findings"),
+            GoldenTaskAssertion(
+                name="has_findings", check="field_present", threshold="research.findings"
+            ),
             GoldenTaskAssertion(name="min_3_findings", check="min_count", threshold="3"),
             GoldenTaskAssertion(name="has_citations", check="has_citations"),
             GoldenTaskAssertion(name="cost_under_50c", check="cost_under", threshold=0.50),

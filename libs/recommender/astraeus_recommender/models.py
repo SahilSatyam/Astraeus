@@ -40,9 +40,7 @@ class RecommenderRun(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    status: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="queued"
-    )
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="queued")
     input_snapshot_hash: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     code_commit: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -56,9 +56,7 @@ class AggregateStage:
         start = time.perf_counter()
 
         if as_of_ts is None:
-            as_of_ts = datetime(
-                run_date.year, run_date.month, run_date.day, 10, 30, tzinfo=UTC
-            )
+            as_of_ts = datetime(run_date.year, run_date.month, run_date.day, 10, 30, tzinfo=UTC)
 
         logger.info(
             "stage1_aggregate_start",

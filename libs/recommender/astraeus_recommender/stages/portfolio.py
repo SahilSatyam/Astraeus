@@ -105,9 +105,7 @@ class PortfolioStage:
                 continue
 
             side = Side.LONG if weight > 0 else Side.SHORT
-            allocations.append(
-                PortfolioAllocation(ticker=symbol, side=side, target_weight=weight)
-            )
+            allocations.append(PortfolioAllocation(ticker=symbol, side=side, target_weight=weight))
 
         elapsed_ms = (time.perf_counter() - start) * 1000
 

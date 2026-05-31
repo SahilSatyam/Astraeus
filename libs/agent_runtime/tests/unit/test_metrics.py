@@ -20,12 +20,14 @@ class TestMetricsRecording:
     """
 
     def test_record_run_complete(self) -> None:
-        record_run_complete({
-            "workflow_key": "trade_thesis",
-            "status": "completed",
-            "cost_usd": 0.25,
-            "duration_ms": 5000,
-        })
+        record_run_complete(
+            {
+                "workflow_key": "trade_thesis",
+                "status": "completed",
+                "cost_usd": 0.25,
+                "duration_ms": 5000,
+            }
+        )
 
     def test_record_step_complete(self) -> None:
         record_step_complete("research", 2500.0)

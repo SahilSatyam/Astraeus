@@ -125,12 +125,14 @@ class WorkflowOrchestrator:
                 step_duration = (time.perf_counter() - step_start) * 1000
 
                 # Record step
-                state["steps"].append({
-                    "step_id": str(step_id),
-                    "agent_name": step_name,
-                    "status": "error" if "error" in step_output else "completed",
-                    "duration_ms": round(step_duration, 1),
-                })
+                state["steps"].append(
+                    {
+                        "step_id": str(step_id),
+                        "agent_name": step_name,
+                        "status": "error" if "error" in step_output else "completed",
+                        "duration_ms": round(step_duration, 1),
+                    }
+                )
 
                 # Store output in state
                 state[f"{step_name}_output"] = step_output  # type: ignore[literal-required]
@@ -141,7 +143,9 @@ class WorkflowOrchestrator:
                 # Check for HITL trigger
                 if step_output.get("hitl_required"):
                     state["hitl_required"] = True
-                    state["hitl_reason"] = step_output.get("hitl_reason", f"{step_name} triggered HITL")
+                    state["hitl_reason"] = step_output.get(
+                        "hitl_reason", f"{step_name} triggered HITL"
+                    )
 
                     # Submit to HITL queue
                     self._hitl.submit(
@@ -164,7 +168,8 @@ class WorkflowOrchestrator:
 
                 # Cost tracking
                 step_cost = sum(
-                    r.cost_usd for r in self._llm.call_records
+                    r.cost_usd
+                    for r in self._llm.call_records
                     if r.run_id == run_id and r.step_id == step_id
                 )
                 state["total_cost_usd"] += step_cost
@@ -172,7 +177,9 @@ class WorkflowOrchestrator:
                 # Budget check
                 if state["total_cost_usd"] > metadata.max_cost_usd:
                     state["status"] = "failed"
-                    state["error"] = f"Cost overrun: ${state['total_cost_usd']:.4f} > ${metadata.max_cost_usd}"
+                    state["error"] = (
+                        f"Cost overrun: ${state['total_cost_usd']:.4f} > ${metadata.max_cost_usd}"
+                    )
                     break
 
             # Finalize
@@ -261,8 +268,15 @@ class WorkflowOrchestrator:
         }
 
         # Include all agent outputs
-        for key in ("research_output", "sentiment_output", "strategy_output",
-                    "risk_output", "portfolio_output", "execution_output", "compliance_output"):
+        for key in (
+            "research_output",
+            "sentiment_output",
+            "strategy_output",
+            "risk_output",
+            "portfolio_output",
+            "execution_output",
+            "compliance_output",
+        ):
             value = state.get(key)  # type: ignore[literal-required]
             if value:
                 output[key.replace("_output", "")] = value

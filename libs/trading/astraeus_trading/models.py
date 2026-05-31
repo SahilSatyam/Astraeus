@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from astraeus_db import Base
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -15,7 +16,6 @@ from sqlalchemy import (
     DateTime,
     Index,
     Numeric,
-    String,
     Text,
     UniqueConstraint,
     func,
@@ -23,17 +23,13 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from astraeus_db import Base
-
 
 class OrderModel(Base):
     """Persistent order record. State is mirrored from the latest event."""
 
     __tablename__ = "order_t"
 
-    order_id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False), primary_key=True
-    )
+    order_id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True)
     client_order_id: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     account_id: Mapped[str] = mapped_column(Text, nullable=False)
     strategy_id: Mapped[str] = mapped_column(Text, nullable=False)
@@ -76,9 +72,7 @@ class OrderEventModel(Base):
     )
     source: Mapped[str] = mapped_column(Text, nullable=False)
 
-    __table_args__ = (
-        Index("ix_order_event_order_seq", "order_id", "event_seq"),
-    )
+    __table_args__ = (Index("ix_order_event_order_seq", "order_id", "event_seq"),)
 
 
 class FillModel(Base):
@@ -98,9 +92,7 @@ class FillModel(Base):
         DateTime(timezone=True), nullable=True, server_default=func.now()
     )
 
-    __table_args__ = (
-        UniqueConstraint("order_id", "broker_fill_id", name="uq_fill_order_broker"),
-    )
+    __table_args__ = (UniqueConstraint("order_id", "broker_fill_id", name="uq_fill_order_broker"),)
 
 
 class PositionModel(Base):
@@ -159,6 +151,4 @@ class TradeJournalModel(Base):
         DateTime(timezone=True), nullable=True, server_default=func.now()
     )
 
-    __table_args__ = (
-        Index("ix_trade_journal_account", "account_id"),
-    )
+    __table_args__ = (Index("ix_trade_journal_account", "account_id"),)

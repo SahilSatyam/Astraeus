@@ -47,7 +47,7 @@ class CorrelationPenalty:
             return
 
         # Build score matrix: (n_tickers, n_signals)
-        all_tickers = set()
+        all_tickers: set[str] = set()
         for scores in signal_scores.values():
             all_tickers.update(scores.keys())
         tickers = sorted(all_tickers)
@@ -66,8 +66,9 @@ class CorrelationPenalty:
         for i, sig_i in enumerate(signals):
             for j, sig_j in enumerate(signals):
                 if i < j:
-                    self._correlation_matrix[(sig_i, sig_j)] = float(corr[i, j])
-                    self._correlation_matrix[(sig_j, sig_i)] = float(corr[i, j])
+                    corr_val = float(corr[i, j]) if corr.ndim == 2 else float(corr)
+                    self._correlation_matrix[(sig_i, sig_j)] = corr_val
+                    self._correlation_matrix[(sig_j, sig_i)] = corr_val
 
         logger.debug(
             "correlations_updated",
@@ -91,7 +92,7 @@ class CorrelationPenalty:
         # Find max pairwise correlation among active signals
         max_corr = 0.0
         for i, sig_i in enumerate(active_signals):
-            for sig_j in active_signals[i + 1:]:
+            for sig_j in active_signals[i + 1 :]:
                 corr = abs(self._correlation_matrix.get((sig_i, sig_j), 0.0))
                 max_corr = max(max_corr, corr)
 

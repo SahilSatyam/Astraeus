@@ -77,11 +77,18 @@ class TestFaithfulness:
             "findings": [
                 {
                     "claim": "Apple revenue grew significantly in services",
-                    "citations": [{"chunk_id": "c1", "quoted_text": "Apple reported significant revenue growth in services segment"}],
+                    "citations": [
+                        {
+                            "chunk_id": "c1",
+                            "quoted_text": "Apple reported significant revenue growth in services segment",
+                        }
+                    ],
                 }
             ]
         }
-        chunk_lookup = {"c1": "Apple reported significant revenue growth in services segment reaching $20B"}
+        chunk_lookup = {
+            "c1": "Apple reported significant revenue growth in services segment reaching $20B"
+        }
         result = evaluate_faithfulness(output, chunk_lookup)
         assert result.total_claims == 1
         assert result.entailed >= 1

@@ -117,7 +117,9 @@ class HMMRegimeModel:
 
         # Most likely state
         state_idx = int(np.argmax(state_probs))
-        label = self._state_labels[state_idx] if state_idx < len(self._state_labels) else "uncertain"
+        label = (
+            self._state_labels[state_idx] if state_idx < len(self._state_labels) else "uncertain"
+        )
         probability = float(state_probs[state_idx])
 
         state_probabilities = {
@@ -180,8 +182,7 @@ class HMMRegimeModel:
         # Reassign labels: lowest vol → risk_on, highest → vol_spike
         base_labels = ["risk_on", "trending", "mean_reversion", "risk_off", "vol_spike"]
         self._state_labels = [
-            base_labels[i] if i < len(base_labels) else f"state_{i}"
-            for i in range(self._n_states)
+            base_labels[i] if i < len(base_labels) else f"state_{i}" for i in range(self._n_states)
         ]
         # Reorder based on volatility sorting
         reordered = [""] * self._n_states

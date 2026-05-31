@@ -110,9 +110,7 @@ class RegimeDetection(BaseModel):
     hmm_state_probs: dict[str, float] = Field(
         default_factory=dict, description="All state probabilities from HMM"
     )
-    gmm_cluster: str | None = Field(
-        default=None, description="GMM cross-validation cluster label"
-    )
+    gmm_cluster: str | None = Field(default=None, description="GMM cross-validation cluster label")
     detected_at: datetime = Field(default_factory=lambda: datetime.now().astimezone())
 
 

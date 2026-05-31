@@ -146,7 +146,7 @@ class DecayTracker:
             health.decay_factor *= self._decay_rate
         else:
             # One failing — moderate decay
-            health.decay_factor *= (1.0 - self._decay_rate * 0.5)
+            health.decay_factor *= 1.0 - self._decay_rate * 0.5
 
         # Floor at a small positive value (never fully zero — allows recovery)
         health.decay_factor = max(0.05, health.decay_factor)

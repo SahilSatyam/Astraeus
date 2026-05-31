@@ -348,7 +348,9 @@ class QueryStrategyRegistryResponse(BaseModel):
     total: int
 
 
-async def query_strategy_registry(request: QueryStrategyRegistryRequest, **kwargs: Any) -> QueryStrategyRegistryResponse:
+async def query_strategy_registry(
+    request: QueryStrategyRegistryRequest, **kwargs: Any
+) -> QueryStrategyRegistryResponse:
     """Query the strategy registry for relevant strategies."""
     # Stub — in production reads from Phase 3 strategy registry
     return QueryStrategyRegistryResponse(strategies=[], total=0)
@@ -365,7 +367,9 @@ class GetStrategySignalResponse(BaseModel):
     decay_score: float | None = None
 
 
-async def get_strategy_signal(request: GetStrategySignalRequest, **kwargs: Any) -> GetStrategySignalResponse:
+async def get_strategy_signal(
+    request: GetStrategySignalRequest, **kwargs: Any
+) -> GetStrategySignalResponse:
     """Get current signal for a strategy."""
     return GetStrategySignalResponse(strategy_id=request.strategy_id)
 
@@ -380,7 +384,9 @@ class GetFactorExposureResponse(BaseModel):
     exposures: dict[str, float] = Field(default_factory=dict)
 
 
-async def get_factor_exposure(request: GetFactorExposureRequest, **kwargs: Any) -> GetFactorExposureResponse:
+async def get_factor_exposure(
+    request: GetFactorExposureRequest, **kwargs: Any
+) -> GetFactorExposureResponse:
     """Get factor exposures for a portfolio."""
     return GetFactorExposureResponse(portfolio_id=request.portfolio_id)
 
@@ -397,7 +403,9 @@ class GetBacktestMetricsResponse(BaseModel):
     cagr: float | None = None
 
 
-async def get_backtest_metrics(request: GetBacktestMetricsRequest, **kwargs: Any) -> GetBacktestMetricsResponse:
+async def get_backtest_metrics(
+    request: GetBacktestMetricsRequest, **kwargs: Any
+) -> GetBacktestMetricsResponse:
     """Get backtest metrics for a strategy."""
     return GetBacktestMetricsResponse(strategy_id=request.strategy_id)
 
@@ -416,7 +424,9 @@ class GetLiquidityMetricsResponse(BaseModel):
     depth_at_touch: float | None = None
 
 
-async def get_liquidity_metrics(request: GetLiquidityMetricsRequest, **kwargs: Any) -> GetLiquidityMetricsResponse:
+async def get_liquidity_metrics(
+    request: GetLiquidityMetricsRequest, **kwargs: Any
+) -> GetLiquidityMetricsResponse:
     """Get liquidity metrics for a ticker."""
     return GetLiquidityMetricsResponse(ticker=request.ticker)
 
@@ -431,7 +441,9 @@ class GetVolatilityEstimateResponse(BaseModel):
     implied_vol: float | None = None
 
 
-async def get_volatility_estimate(request: GetVolatilityEstimateRequest, **kwargs: Any) -> GetVolatilityEstimateResponse:
+async def get_volatility_estimate(
+    request: GetVolatilityEstimateRequest, **kwargs: Any
+) -> GetVolatilityEstimateResponse:
     """Get volatility estimate for a ticker."""
     return GetVolatilityEstimateResponse(ticker=request.ticker)
 
@@ -450,7 +462,9 @@ class GetExposureBreakdownResponse(BaseModel):
     market_cap: dict[str, float] = Field(default_factory=dict)
 
 
-async def get_exposure_breakdown(request: GetExposureBreakdownRequest, **kwargs: Any) -> GetExposureBreakdownResponse:
+async def get_exposure_breakdown(
+    request: GetExposureBreakdownRequest, **kwargs: Any
+) -> GetExposureBreakdownResponse:
     """Get exposure breakdown by sector, geography, market cap."""
     return GetExposureBreakdownResponse(portfolio_id=request.portfolio_id)
 
@@ -467,7 +481,9 @@ class GetFactorAttributionResponse(BaseModel):
     residual: float | None = None
 
 
-async def get_factor_attribution(request: GetFactorAttributionRequest, **kwargs: Any) -> GetFactorAttributionResponse:
+async def get_factor_attribution(
+    request: GetFactorAttributionRequest, **kwargs: Any
+) -> GetFactorAttributionResponse:
     """Get factor attribution for portfolio returns."""
     return GetFactorAttributionResponse(portfolio_id=request.portfolio_id)
 
@@ -482,7 +498,9 @@ class GetOptimizerSuggestionResponse(BaseModel):
     objective: str = ""
 
 
-async def get_optimizer_suggestion(request: GetOptimizerSuggestionRequest, **kwargs: Any) -> GetOptimizerSuggestionResponse:
+async def get_optimizer_suggestion(
+    request: GetOptimizerSuggestionRequest, **kwargs: Any
+) -> GetOptimizerSuggestionResponse:
     """Get optimizer-suggested rebalance trades."""
     return GetOptimizerSuggestionResponse(portfolio_id=request.portfolio_id)
 
@@ -500,7 +518,9 @@ class LookupRestrictedListResponse(BaseModel):
     reason: str = ""
 
 
-async def lookup_restricted_list(request: LookupRestrictedListRequest, **kwargs: Any) -> LookupRestrictedListResponse:
+async def lookup_restricted_list(
+    request: LookupRestrictedListRequest, **kwargs: Any
+) -> LookupRestrictedListResponse:
     """Check if a ticker is on the restricted list."""
     return LookupRestrictedListResponse(ticker=request.ticker, restricted=False)
 
@@ -516,7 +536,9 @@ class LookupPolicyRuleResponse(BaseModel):
     description: str = ""
 
 
-async def lookup_policy_rule(request: LookupPolicyRuleRequest, **kwargs: Any) -> LookupPolicyRuleResponse:
+async def lookup_policy_rule(
+    request: LookupPolicyRuleRequest, **kwargs: Any
+) -> LookupPolicyRuleResponse:
     """Look up a compliance policy rule."""
     return LookupPolicyRuleResponse(rule_id=request.rule_id)
 
@@ -533,9 +555,12 @@ class WriteAuditEnvelopeResponse(BaseModel):
     status: str = "written"
 
 
-async def write_audit_envelope(request: WriteAuditEnvelopeRequest, **kwargs: Any) -> WriteAuditEnvelopeResponse:
+async def write_audit_envelope(
+    request: WriteAuditEnvelopeRequest, **kwargs: Any
+) -> WriteAuditEnvelopeResponse:
     """Write an audit envelope for compliance tracking."""
     import uuid as uuid_mod
+
     return WriteAuditEnvelopeResponse(envelope_id=str(uuid_mod.uuid4()))
 
 
@@ -554,7 +579,9 @@ class GetMacroIndicatorResponse(BaseModel):
     trend: str = ""
 
 
-async def get_macro_indicator(request: GetMacroIndicatorRequest, **kwargs: Any) -> GetMacroIndicatorResponse:
+async def get_macro_indicator(
+    request: GetMacroIndicatorRequest, **kwargs: Any
+) -> GetMacroIndicatorResponse:
     """Get a macro economic indicator."""
     return GetMacroIndicatorResponse(indicator=request.indicator)
 
@@ -568,7 +595,9 @@ class GetEarningsCalendarResponse(BaseModel):
     events: list[dict[str, Any]] = Field(default_factory=list)
 
 
-async def get_earnings_calendar(request: GetEarningsCalendarRequest, **kwargs: Any) -> GetEarningsCalendarResponse:
+async def get_earnings_calendar(
+    request: GetEarningsCalendarRequest, **kwargs: Any
+) -> GetEarningsCalendarResponse:
     """Get upcoming earnings calendar events."""
     return GetEarningsCalendarResponse(events=[])
 
@@ -587,7 +616,9 @@ class SearchSocialPostsResponse(BaseModel):
     total: int = 0
 
 
-async def search_social_posts(request: SearchSocialPostsRequest, **kwargs: Any) -> SearchSocialPostsResponse:
+async def search_social_posts(
+    request: SearchSocialPostsRequest, **kwargs: Any
+) -> SearchSocialPostsResponse:
     """Search social media posts (Reddit, etc.)."""
     return SearchSocialPostsResponse()
 
@@ -617,35 +648,196 @@ def register_all_tools() -> None:
     from astraeus_agent_runtime.tools.registry import ToolDefinition, register_tool
 
     tools = [
-        ToolDefinition(name="get_feature", description="Query the feature store.", version="1.0.0", request_model=GetFeatureRequest, response_model=GetFeatureResponse, fn=get_feature),
-        ToolDefinition(name="search_news", description="Search news corpus via hybrid retrieval.", version="1.0.0", request_model=SearchNewsRequest, response_model=SearchNewsResponse, fn=search_news),
-        ToolDefinition(name="fetch_filing", description="Fetch SEC filing chunks.", version="1.0.0", request_model=FetchFilingRequest, response_model=FetchFilingResponse, fn=fetch_filing),
-        ToolDefinition(name="search_filing_chunks", description="Search filing chunks.", version="1.0.0", request_model=FetchFilingRequest, response_model=FetchFilingResponse, fn=fetch_filing),
-        ToolDefinition(name="get_sentiment_features", description="Get pre-computed sentiment features.", version="1.0.0", request_model=GetSentimentFeaturesRequest, response_model=SentimentFeatureSet, fn=get_sentiment_features),
-        ToolDefinition(name="run_risk_check", description="Run risk checks against portfolio.", version="1.0.0", request_model=RunRiskCheckRequest, response_model=RunRiskCheckResponse, fn=run_risk_check),
-        ToolDefinition(name="get_portfolio_state", description="Get current portfolio state.", version="1.0.0", request_model=GetPortfolioStateRequest, response_model=GetPortfolioStateResponse, fn=get_portfolio_state),
+        ToolDefinition(
+            name="get_feature",
+            description="Query the feature store.",
+            version="1.0.0",
+            request_model=GetFeatureRequest,
+            response_model=GetFeatureResponse,
+            fn=get_feature,
+        ),
+        ToolDefinition(
+            name="search_news",
+            description="Search news corpus via hybrid retrieval.",
+            version="1.0.0",
+            request_model=SearchNewsRequest,
+            response_model=SearchNewsResponse,
+            fn=search_news,
+        ),
+        ToolDefinition(
+            name="fetch_filing",
+            description="Fetch SEC filing chunks.",
+            version="1.0.0",
+            request_model=FetchFilingRequest,
+            response_model=FetchFilingResponse,
+            fn=fetch_filing,
+        ),
+        ToolDefinition(
+            name="search_filing_chunks",
+            description="Search filing chunks.",
+            version="1.0.0",
+            request_model=FetchFilingRequest,
+            response_model=FetchFilingResponse,
+            fn=fetch_filing,
+        ),
+        ToolDefinition(
+            name="get_sentiment_features",
+            description="Get pre-computed sentiment features.",
+            version="1.0.0",
+            request_model=GetSentimentFeaturesRequest,
+            response_model=SentimentFeatureSet,
+            fn=get_sentiment_features,
+        ),
+        ToolDefinition(
+            name="run_risk_check",
+            description="Run risk checks against portfolio.",
+            version="1.0.0",
+            request_model=RunRiskCheckRequest,
+            response_model=RunRiskCheckResponse,
+            fn=run_risk_check,
+        ),
+        ToolDefinition(
+            name="get_portfolio_state",
+            description="Get current portfolio state.",
+            version="1.0.0",
+            request_model=GetPortfolioStateRequest,
+            response_model=GetPortfolioStateResponse,
+            fn=get_portfolio_state,
+        ),
         # Strategy tools
-        ToolDefinition(name="query_strategy_registry", description="Query strategy registry.", version="1.0.0", request_model=QueryStrategyRegistryRequest, response_model=QueryStrategyRegistryResponse, fn=query_strategy_registry),
-        ToolDefinition(name="get_strategy_signal", description="Get current signal for a strategy.", version="1.0.0", request_model=GetStrategySignalRequest, response_model=GetStrategySignalResponse, fn=get_strategy_signal),
-        ToolDefinition(name="get_factor_exposure", description="Get factor exposures.", version="1.0.0", request_model=GetFactorExposureRequest, response_model=GetFactorExposureResponse, fn=get_factor_exposure),
-        ToolDefinition(name="get_backtest_metrics", description="Get backtest metrics.", version="1.0.0", request_model=GetBacktestMetricsRequest, response_model=GetBacktestMetricsResponse, fn=get_backtest_metrics),
+        ToolDefinition(
+            name="query_strategy_registry",
+            description="Query strategy registry.",
+            version="1.0.0",
+            request_model=QueryStrategyRegistryRequest,
+            response_model=QueryStrategyRegistryResponse,
+            fn=query_strategy_registry,
+        ),
+        ToolDefinition(
+            name="get_strategy_signal",
+            description="Get current signal for a strategy.",
+            version="1.0.0",
+            request_model=GetStrategySignalRequest,
+            response_model=GetStrategySignalResponse,
+            fn=get_strategy_signal,
+        ),
+        ToolDefinition(
+            name="get_factor_exposure",
+            description="Get factor exposures.",
+            version="1.0.0",
+            request_model=GetFactorExposureRequest,
+            response_model=GetFactorExposureResponse,
+            fn=get_factor_exposure,
+        ),
+        ToolDefinition(
+            name="get_backtest_metrics",
+            description="Get backtest metrics.",
+            version="1.0.0",
+            request_model=GetBacktestMetricsRequest,
+            response_model=GetBacktestMetricsResponse,
+            fn=get_backtest_metrics,
+        ),
         # Execution tools
-        ToolDefinition(name="get_liquidity_metrics", description="Get liquidity metrics.", version="1.0.0", request_model=GetLiquidityMetricsRequest, response_model=GetLiquidityMetricsResponse, fn=get_liquidity_metrics),
-        ToolDefinition(name="get_volatility_estimate", description="Get volatility estimate.", version="1.0.0", request_model=GetVolatilityEstimateRequest, response_model=GetVolatilityEstimateResponse, fn=get_volatility_estimate),
+        ToolDefinition(
+            name="get_liquidity_metrics",
+            description="Get liquidity metrics.",
+            version="1.0.0",
+            request_model=GetLiquidityMetricsRequest,
+            response_model=GetLiquidityMetricsResponse,
+            fn=get_liquidity_metrics,
+        ),
+        ToolDefinition(
+            name="get_volatility_estimate",
+            description="Get volatility estimate.",
+            version="1.0.0",
+            request_model=GetVolatilityEstimateRequest,
+            response_model=GetVolatilityEstimateResponse,
+            fn=get_volatility_estimate,
+        ),
         # Portfolio extended tools
-        ToolDefinition(name="get_exposure_breakdown", description="Get exposure breakdown.", version="1.0.0", request_model=GetExposureBreakdownRequest, response_model=GetExposureBreakdownResponse, fn=get_exposure_breakdown),
-        ToolDefinition(name="get_factor_attribution", description="Get factor attribution.", version="1.0.0", request_model=GetFactorAttributionRequest, response_model=GetFactorAttributionResponse, fn=get_factor_attribution),
-        ToolDefinition(name="get_optimizer_suggestion", description="Get optimizer suggestions.", version="1.0.0", request_model=GetOptimizerSuggestionRequest, response_model=GetOptimizerSuggestionResponse, fn=get_optimizer_suggestion),
+        ToolDefinition(
+            name="get_exposure_breakdown",
+            description="Get exposure breakdown.",
+            version="1.0.0",
+            request_model=GetExposureBreakdownRequest,
+            response_model=GetExposureBreakdownResponse,
+            fn=get_exposure_breakdown,
+        ),
+        ToolDefinition(
+            name="get_factor_attribution",
+            description="Get factor attribution.",
+            version="1.0.0",
+            request_model=GetFactorAttributionRequest,
+            response_model=GetFactorAttributionResponse,
+            fn=get_factor_attribution,
+        ),
+        ToolDefinition(
+            name="get_optimizer_suggestion",
+            description="Get optimizer suggestions.",
+            version="1.0.0",
+            request_model=GetOptimizerSuggestionRequest,
+            response_model=GetOptimizerSuggestionResponse,
+            fn=get_optimizer_suggestion,
+        ),
         # Compliance tools
-        ToolDefinition(name="lookup_restricted_list", description="Check restricted list.", version="1.0.0", request_model=LookupRestrictedListRequest, response_model=LookupRestrictedListResponse, fn=lookup_restricted_list),
-        ToolDefinition(name="lookup_policy_rule", description="Look up policy rule.", version="1.0.0", request_model=LookupPolicyRuleRequest, response_model=LookupPolicyRuleResponse, fn=lookup_policy_rule),
-        ToolDefinition(name="write_audit_envelope", description="Write audit envelope.", version="1.0.0", request_model=WriteAuditEnvelopeRequest, response_model=WriteAuditEnvelopeResponse, fn=write_audit_envelope),
+        ToolDefinition(
+            name="lookup_restricted_list",
+            description="Check restricted list.",
+            version="1.0.0",
+            request_model=LookupRestrictedListRequest,
+            response_model=LookupRestrictedListResponse,
+            fn=lookup_restricted_list,
+        ),
+        ToolDefinition(
+            name="lookup_policy_rule",
+            description="Look up policy rule.",
+            version="1.0.0",
+            request_model=LookupPolicyRuleRequest,
+            response_model=LookupPolicyRuleResponse,
+            fn=lookup_policy_rule,
+        ),
+        ToolDefinition(
+            name="write_audit_envelope",
+            description="Write audit envelope.",
+            version="1.0.0",
+            request_model=WriteAuditEnvelopeRequest,
+            response_model=WriteAuditEnvelopeResponse,
+            fn=write_audit_envelope,
+        ),
         # Research extended tools
-        ToolDefinition(name="get_macro_indicator", description="Get macro indicator.", version="1.0.0", request_model=GetMacroIndicatorRequest, response_model=GetMacroIndicatorResponse, fn=get_macro_indicator),
-        ToolDefinition(name="get_earnings_calendar", description="Get earnings calendar.", version="1.0.0", request_model=GetEarningsCalendarRequest, response_model=GetEarningsCalendarResponse, fn=get_earnings_calendar),
+        ToolDefinition(
+            name="get_macro_indicator",
+            description="Get macro indicator.",
+            version="1.0.0",
+            request_model=GetMacroIndicatorRequest,
+            response_model=GetMacroIndicatorResponse,
+            fn=get_macro_indicator,
+        ),
+        ToolDefinition(
+            name="get_earnings_calendar",
+            description="Get earnings calendar.",
+            version="1.0.0",
+            request_model=GetEarningsCalendarRequest,
+            response_model=GetEarningsCalendarResponse,
+            fn=get_earnings_calendar,
+        ),
         # Sentiment extended tools
-        ToolDefinition(name="search_social_posts", description="Search social posts.", version="1.0.0", request_model=SearchSocialPostsRequest, response_model=SearchSocialPostsResponse, fn=search_social_posts),
-        ToolDefinition(name="get_event_study", description="Get event study results.", version="1.0.0", request_model=GetEventStudyRequest, response_model=GetEventStudyResponse, fn=get_event_study),
+        ToolDefinition(
+            name="search_social_posts",
+            description="Search social posts.",
+            version="1.0.0",
+            request_model=SearchSocialPostsRequest,
+            response_model=SearchSocialPostsResponse,
+            fn=search_social_posts,
+        ),
+        ToolDefinition(
+            name="get_event_study",
+            description="Get event study results.",
+            version="1.0.0",
+            request_model=GetEventStudyRequest,
+            response_model=GetEventStudyResponse,
+            fn=get_event_study,
+        ),
     ]
 
     for tool in tools:

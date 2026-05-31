@@ -106,19 +106,23 @@ class RiskGateAdapter:
 
         # Max single position
         max_pos = self._limits["max_single_position"]
-        results.append(RiskCheckResult(
-            rule="max_single_position",
-            passed=abs(alloc.target_weight) <= max_pos,
-            detail={"ticker": alloc.ticker, "weight": alloc.target_weight, "limit": max_pos},
-        ))
+        results.append(
+            RiskCheckResult(
+                rule="max_single_position",
+                passed=abs(alloc.target_weight) <= max_pos,
+                detail={"ticker": alloc.ticker, "weight": alloc.target_weight, "limit": max_pos},
+            )
+        )
 
         # Min position size
         min_pos = self._limits["min_position_size"]
-        results.append(RiskCheckResult(
-            rule="min_position_size",
-            passed=abs(alloc.target_weight) >= min_pos,
-            detail={"ticker": alloc.ticker, "weight": alloc.target_weight, "limit": min_pos},
-        ))
+        results.append(
+            RiskCheckResult(
+                rule="min_position_size",
+                passed=abs(alloc.target_weight) >= min_pos,
+                detail={"ticker": alloc.ticker, "weight": alloc.target_weight, "limit": min_pos},
+            )
+        )
 
         return results
 
@@ -129,19 +133,23 @@ class RiskGateAdapter:
         # Total short exposure
         total_short = sum(abs(a.target_weight) for a in allocations if a.target_weight < 0)
         max_short = self._limits["max_total_short"]
-        results.append(RiskCheckResult(
-            rule="max_total_short",
-            passed=total_short <= max_short,
-            detail={"total_short": total_short, "limit": max_short},
-        ))
+        results.append(
+            RiskCheckResult(
+                rule="max_total_short",
+                passed=total_short <= max_short,
+                detail={"total_short": total_short, "limit": max_short},
+            )
+        )
 
         # Gross exposure
         total_gross = sum(abs(a.target_weight) for a in allocations)
         max_gross = self._limits["max_gross_exposure"]
-        results.append(RiskCheckResult(
-            rule="max_gross_exposure",
-            passed=total_gross <= max_gross,
-            detail={"total_gross": total_gross, "limit": max_gross},
-        ))
+        results.append(
+            RiskCheckResult(
+                rule="max_gross_exposure",
+                passed=total_gross <= max_gross,
+                detail={"total_gross": total_gross, "limit": max_gross},
+            )
+        )
 
         return results

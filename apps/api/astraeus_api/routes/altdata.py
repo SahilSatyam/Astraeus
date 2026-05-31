@@ -63,7 +63,9 @@ class TopicModelRunItem(BaseModel):
 
 
 class IngestManualRequest(BaseModel):
-    source: str = Field(..., description="Source to backfill: reddit, rss, edgar, transcript, gdelt")
+    source: str = Field(
+        ..., description="Source to backfill: reddit, rss, edgar, transcript, gdelt"
+    )
     from_date: str | None = Field(default=None, description="Start date (ISO format)")
     to_date: str | None = Field(default=None, description="End date (ISO format)")
 

@@ -6,13 +6,12 @@ in the constructor (which controls the base URL).
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
 from alpaca.trading.client import TradingClient
 from alpaca.trading.enums import OrderSide as AlpacaSide
-from alpaca.trading.enums import OrderStatus as AlpacaStatus
 from alpaca.trading.enums import TimeInForce as AlpacaTIF
 from alpaca.trading.requests import (
     GetOrdersRequest,
@@ -111,9 +110,7 @@ class AlpacaAdapter(BrokerAdapter):
                 qty=Decimal(str(p.qty)),
                 avg_cost=Decimal(str(p.avg_entry_price)),
                 market_value=Decimal(str(p.market_value)) if p.market_value else None,
-                unrealized_pnl=(
-                    Decimal(str(p.unrealized_pl)) if p.unrealized_pl else None
-                ),
+                unrealized_pnl=(Decimal(str(p.unrealized_pl)) if p.unrealized_pl else None),
             )
             for p in positions
         ]
@@ -141,7 +138,7 @@ class AlpacaAdapter(BrokerAdapter):
                         qty=Decimal(str(o.filled_qty)),
                         price=Decimal(str(o.filled_avg_price)),
                         fees=Decimal("0"),
-                        occurred_at=o.filled_at or datetime.now(timezone.utc),
+                        occurred_at=o.filled_at or datetime.now(UTC),
                     )
                 )
         return fills

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from astraeus_trading.events import EventType, OrderEvent
 
@@ -14,7 +14,7 @@ class TestOrderEvent:
         event = OrderEvent(
             order_id="order-123",
             event_type=EventType.NEW,
-            occurred_at=datetime.now(timezone.utc),
+            occurred_at=datetime.now(UTC),
         )
         assert event.order_id == "order-123"
         assert event.event_type == EventType.NEW
@@ -25,12 +25,12 @@ class TestOrderEvent:
         event = OrderEvent(
             order_id="order-123",
             event_type=EventType.SUBMITTED,
-            occurred_at=datetime.now(timezone.utc),
+            occurred_at=datetime.now(UTC),
         )
         # Pydantic frozen model should raise on mutation
         try:
             event.order_id = "other"  # type: ignore[misc]
-            assert False, "Should have raised"
+            raise AssertionError("Should have raised")
         except Exception:
             pass
 
@@ -39,7 +39,7 @@ class TestOrderEvent:
             order_id="order-123",
             event_type=EventType.PARTIAL_FILL,
             payload={"qty": "50", "price": "150.25"},
-            occurred_at=datetime.now(timezone.utc),
+            occurred_at=datetime.now(UTC),
             source="broker",
         )
         assert event.payload["qty"] == "50"
@@ -49,11 +49,11 @@ class TestOrderEvent:
         e1 = OrderEvent(
             order_id="o1",
             event_type=EventType.NEW,
-            occurred_at=datetime.now(timezone.utc),
+            occurred_at=datetime.now(UTC),
         )
         e2 = OrderEvent(
             order_id="o1",
             event_type=EventType.NEW,
-            occurred_at=datetime.now(timezone.utc),
+            occurred_at=datetime.now(UTC),
         )
         assert e1.event_id != e2.event_id

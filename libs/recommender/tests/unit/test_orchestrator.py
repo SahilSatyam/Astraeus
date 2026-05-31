@@ -77,11 +77,15 @@ def _make_ensemble(run_id):
         regime=RegimeLabel.RISK_ON,
         candidates=[
             EnsembleCandidate(
-                ticker="AAPL", composite_score=0.8, rank=1,
+                ticker="AAPL",
+                composite_score=0.8,
+                rank=1,
                 component_attribution={"technical": 0.8},
             ),
             EnsembleCandidate(
-                ticker="MSFT", composite_score=0.5, rank=2,
+                ticker="MSFT",
+                composite_score=0.5,
+                rank=2,
                 component_attribution={"technical": 0.5},
             ),
         ],
@@ -139,7 +143,9 @@ def _build_orchestrator(
     signals.run = AsyncMock(side_effect=lambda rid, snap: signals_output or _make_signals(rid))
 
     ensemble = MagicMock(spec=EnsembleStage)
-    ensemble.run = AsyncMock(side_effect=lambda rid, reg, sigs: ensemble_output or _make_ensemble(rid))
+    ensemble.run = AsyncMock(
+        side_effect=lambda rid, reg, sigs: ensemble_output or _make_ensemble(rid)
+    )
 
     portfolio = MagicMock(spec=PortfolioStage)
     portfolio.run = AsyncMock(side_effect=lambda rid, ens: portfolio_output or _make_portfolio(rid))

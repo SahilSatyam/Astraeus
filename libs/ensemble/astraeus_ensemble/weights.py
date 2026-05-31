@@ -46,8 +46,7 @@ class RegimeWeightMatrix:
         # Initialize with equal weights
         flat_weight = 1.0 / self._n_signals
         self._matrix: dict[str, dict[str, float]] = {
-            regime: dict.fromkeys(signals, flat_weight)
-            for regime in regimes
+            regime: dict.fromkeys(signals, flat_weight) for regime in regimes
         }
 
     def get_weights(self, regime: str) -> dict[str, float]:
@@ -95,14 +94,11 @@ class RegimeWeightMatrix:
         # Apply shrinkage toward flat weights
         flat = 1.0 / self._n_signals
         shrinkage = self._config.shrinkage_factor
-        shrunk_weights = [
-            shrinkage * flat + (1.0 - shrinkage) * w for w in raw_weights
-        ]
+        shrunk_weights = [shrinkage * flat + (1.0 - shrinkage) * w for w in raw_weights]
 
         # Clip to bounds
         clipped = [
-            max(self._config.min_weight, min(self._config.max_weight, w))
-            for w in shrunk_weights
+            max(self._config.min_weight, min(self._config.max_weight, w)) for w in shrunk_weights
         ]
 
         # Renormalize

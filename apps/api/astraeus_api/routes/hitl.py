@@ -48,7 +48,9 @@ class ClaimRequest(BaseModel):
 
 
 class EditRequest(BaseModel):
-    edited_output: dict[str, Any] = Field(..., description="Human-edited output to replace candidate")
+    edited_output: dict[str, Any] = Field(
+        ..., description="Human-edited output to replace candidate"
+    )
 
 
 class ActionResponse(BaseModel):
@@ -72,10 +74,7 @@ async def list_items(
         items = queue.list_pending(workflow_key=workflow)
     else:
         # Return all items matching status
-        items = [
-            item for item in queue._items.values()
-            if item.status.value == status
-        ]
+        items = [item for item in queue._items.values() if item.status.value == status]
 
     return [
         HITLItemResponse(
@@ -129,7 +128,9 @@ async def approve_item(item_id: str) -> ActionResponse:
 
 
 @router.post("/items/{item_id}/reject", response_model=ActionResponse, summary="Reject an item")
-async def reject_item(item_id: str, reason: str = Query(default="", description="Rejection reason")) -> ActionResponse:
+async def reject_item(
+    item_id: str, reason: str = Query(default="", description="Rejection reason")
+) -> ActionResponse:
     """Reject a claimed HITL item — run terminates."""
     queue = get_hitl_queue()
 
@@ -140,7 +141,9 @@ async def reject_item(item_id: str, reason: str = Query(default="", description=
 
     success = queue.reject(iid, reason=reason)
     if not success:
-        raise HTTPException(status_code=409, detail="Item not available for rejection (not claimed)")
+        raise HTTPException(
+            status_code=409, detail="Item not available for rejection (not claimed)"
+        )
 
     return ActionResponse(id=item_id, status="rejected", message="Item rejected, run terminated")
 
@@ -159,4 +162,6 @@ async def edit_item(item_id: str, request: EditRequest) -> ActionResponse:
     if not success:
         raise HTTPException(status_code=409, detail="Item not available for editing (not claimed)")
 
-    return ActionResponse(id=item_id, status="edited", message="Item edited, run will resume with changes")
+    return ActionResponse(
+        id=item_id, status="edited", message="Item edited, run will resume with changes"
+    )

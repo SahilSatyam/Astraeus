@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import pytest
-
 from astraeus_trading.statemachine import (
+    TERMINAL_STATES,
     InvalidTransitionError,
     OrderState,
     OrderStateMachine,
-    TERMINAL_STATES,
 )
 
 

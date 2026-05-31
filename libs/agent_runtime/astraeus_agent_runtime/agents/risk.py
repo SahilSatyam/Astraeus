@@ -18,10 +18,15 @@ RISK_SPEC = AgentSpec(
     name="risk",
     prompt_key="risk_agent.system",
     output_schema=RiskAssessment,
-    allowed_tools=frozenset({
-        "get_portfolio_state", "run_risk_check", "run_stress_scenario",
-        "get_correlation_matrix", "get_var_cvar",
-    }),
+    allowed_tools=frozenset(
+        {
+            "get_portfolio_state",
+            "run_risk_check",
+            "run_stress_scenario",
+            "get_correlation_matrix",
+            "get_var_cvar",
+        }
+    ),
     model_tier="reasoning",
 )
 
@@ -68,9 +73,7 @@ class RiskAgent(BaseAgent):
 
         return result
 
-    async def _run_checks(
-        self, portfolio_id: str, run_id: uuid.UUID | None
-    ) -> dict[str, Any]:
+    async def _run_checks(self, portfolio_id: str, run_id: uuid.UUID | None) -> dict[str, Any]:
         try:
             return await dispatch_tool(
                 agent_name="risk",

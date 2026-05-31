@@ -86,9 +86,7 @@ class EnsembleEngine:
 
         return effective
 
-    async def correlation_penalty(
-        self, ticker: str, attributions: dict[str, float]
-    ) -> float:
+    async def correlation_penalty(self, ticker: str, attributions: dict[str, float]) -> float:
         """Compute correlation penalty for a ticker's signal attributions.
 
         Args:
@@ -100,9 +98,7 @@ class EnsembleEngine:
         """
         return self._correlation.compute_penalty(attributions)
 
-    def update_signal_correlations(
-        self, signal_scores: dict[str, dict[str, float]]
-    ) -> None:
+    def update_signal_correlations(self, signal_scores: dict[str, dict[str, float]]) -> None:
         """Update inter-signal correlation estimates.
 
         Args:

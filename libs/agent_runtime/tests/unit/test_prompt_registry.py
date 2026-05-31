@@ -27,8 +27,12 @@ class TestPromptRegistry:
 
     def test_get_by_version(self) -> None:
         registry = PromptRegistry()
-        registry.register(PromptEntry(prompt_key="agent.sys", version="v1.0", body="v1 body", status="promoted"))
-        registry.register(PromptEntry(prompt_key="agent.sys", version="v2.0", body="v2 body", status="candidate"))
+        registry.register(
+            PromptEntry(prompt_key="agent.sys", version="v1.0", body="v1 body", status="promoted")
+        )
+        registry.register(
+            PromptEntry(prompt_key="agent.sys", version="v2.0", body="v2 body", status="candidate")
+        )
 
         v1 = registry.get("agent.sys", version="v1.0")
         assert v1 is not None
@@ -40,8 +44,14 @@ class TestPromptRegistry:
 
     def test_get_by_channel(self) -> None:
         registry = PromptRegistry()
-        registry.register(PromptEntry(prompt_key="agent.sys", version="v1.0", body="promoted", status="promoted"))
-        registry.register(PromptEntry(prompt_key="agent.sys", version="v2.0", body="candidate", status="candidate"))
+        registry.register(
+            PromptEntry(prompt_key="agent.sys", version="v1.0", body="promoted", status="promoted")
+        )
+        registry.register(
+            PromptEntry(
+                prompt_key="agent.sys", version="v2.0", body="candidate", status="candidate"
+            )
+        )
 
         promoted = registry.get("agent.sys", channel="promoted")
         assert promoted is not None
@@ -57,8 +67,12 @@ class TestPromptRegistry:
 
     def test_promote(self) -> None:
         registry = PromptRegistry()
-        registry.register(PromptEntry(prompt_key="a.sys", version="v1.0", body="old", status="promoted"))
-        registry.register(PromptEntry(prompt_key="a.sys", version="v2.0", body="new", status="candidate"))
+        registry.register(
+            PromptEntry(prompt_key="a.sys", version="v1.0", body="old", status="promoted")
+        )
+        registry.register(
+            PromptEntry(prompt_key="a.sys", version="v2.0", body="new", status="candidate")
+        )
 
         success = registry.promote("a.sys", "v2.0")
         assert success is True

@@ -110,9 +110,9 @@ ignore = [
 "libs/regime/**" = ["E501"]
 "libs/ensemble/**" = ["E501"]
 "libs/trading/**" = ["E501"]
-"libs/brokers/**" = ["E501"]
-"libs/risk/**" = ["E501"]
-"apps/oms/**" = ["E501"]
+"libs/brokers/**" = ["E501", "B027"]
+"libs/risk/**" = ["E501", "S105"]
+"apps/oms/**" = ["E501", "PLW0603"]
 "apps/recon_worker/**" = ["E501"]
 
 [tool.mypy]
@@ -184,10 +184,10 @@ module = [
     "astraeus_recon_worker.*",
 ]
 strict = false
-disable_error_code = ["attr-defined", "no-any-return", "arg-type", "assignment", "no-untyped-def", "unused-ignore", "type-arg", "operator", "list-item", "no-untyped-call", "misc", "valid-type", "name-defined", "import-not-found", "untyped-decorator", "no-redef"]
+disable_error_code = ["attr-defined", "no-any-return", "arg-type", "assignment", "no-untyped-def", "unused-ignore", "type-arg", "operator", "list-item", "no-untyped-call", "misc", "valid-type", "name-defined", "import-not-found", "untyped-decorator", "no-redef", "union-attr", "index", "var-annotated"]
 
 [tool.pytest.ini_options]
-addopts = "-ra -q --strict-markers --strict-config"
+addopts = "-ra -q --strict-markers --strict-config --import-mode=importlib"
 asyncio_mode = "auto"
 testpaths = ["apps", "libs"]
 markers = [

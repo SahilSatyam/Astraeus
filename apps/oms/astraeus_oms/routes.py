@@ -79,9 +79,8 @@ async def list_orders(
     strategy_id: Annotated[str | None, Query()] = None,
 ) -> list[OrderResponse]:
     """List orders with optional filters."""
-    from sqlalchemy import select
-
     from astraeus_trading.models import OrderModel
+    from sqlalchemy import select
 
     stmt = select(OrderModel)
     if account_id:

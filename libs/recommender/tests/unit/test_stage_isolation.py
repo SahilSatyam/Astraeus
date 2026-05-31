@@ -70,7 +70,9 @@ ENSEMBLE = EnsembleOutput(
     regime=RegimeLabel.RISK_ON,
     candidates=[
         EnsembleCandidate(
-            ticker="AAPL", composite_score=0.7, rank=1,
+            ticker="AAPL",
+            composite_score=0.7,
+            rank=1,
             component_attribution={"technical": 0.7},
         ),
     ],
@@ -215,7 +217,9 @@ class TestStageIsolation:
             regime=RegimeLabel.TRENDING,
             candidates=[
                 EnsembleCandidate(
-                    ticker="STUB_TICKER", composite_score=99.0, rank=1,
+                    ticker="STUB_TICKER",
+                    composite_score=99.0,
+                    rank=1,
                     component_attribution={"stub": 99.0},
                 ),
             ],
@@ -247,8 +251,10 @@ class TestStageIsolation:
         """Stub thesis output is used in HITL assembly."""
         stub_theses = [
             ThesisOutput(
-                run_id=uuid4(), ticker="AAPL",
-                summary="STUB THESIS TEXT", generated=True,
+                run_id=uuid4(),
+                ticker="AAPL",
+                summary="STUB THESIS TEXT",
+                generated=True,
             ),
         ]
         orchestrator = _build_orchestrator_with_stub("thesis", stub_theses)

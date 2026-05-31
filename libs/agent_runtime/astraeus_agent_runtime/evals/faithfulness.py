@@ -92,10 +92,15 @@ def evaluate_faithfulness(
             if not chunk_text:
                 # Can't verify without chunk text — mark neutral
                 result.neutral += 1
-                result.scores.append(FaithfulnessScore(
-                    claim=claim, chunk_id=chunk_id, chunk_text="",
-                    label="neutral", confidence=0.5,
-                ))
+                result.scores.append(
+                    FaithfulnessScore(
+                        claim=claim,
+                        chunk_id=chunk_id,
+                        chunk_text="",
+                        label="neutral",
+                        confidence=0.5,
+                    )
+                )
                 continue
 
             # Simple heuristic: check keyword overlap
@@ -107,10 +112,15 @@ def evaluate_faithfulness(
             else:
                 result.neutral += 1
 
-            result.scores.append(FaithfulnessScore(
-                claim=claim, chunk_id=chunk_id, chunk_text=chunk_text[:200],
-                label=label, confidence=0.7,
-            ))
+            result.scores.append(
+                FaithfulnessScore(
+                    claim=claim,
+                    chunk_id=chunk_id,
+                    chunk_text=chunk_text[:200],
+                    label=label,
+                    confidence=0.7,
+                )
+            )
 
     return result
 

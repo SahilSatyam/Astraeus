@@ -57,9 +57,8 @@ def get_imports(filepath: Path) -> list[str]:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 imports.append(alias.name)
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                imports.append(node.module)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imports.append(node.module)
     return imports
 
 
@@ -80,9 +79,7 @@ def check_rule(
             for prefix in forbidden_prefixes:
                 if imp == prefix or imp.startswith(f"{prefix}."):
                     rel = filepath.relative_to(root)
-                    violations.append(
-                        f"  VIOLATION: {rel} imports '{imp}' ({description})"
-                    )
+                    violations.append(f"  VIOLATION: {rel} imports '{imp}' ({description})")
     return violations
 
 
@@ -108,9 +105,8 @@ def main() -> int:
     if all_violations:
         print(f"FAILED: {len(all_violations)} violation(s) found.")
         return 1
-    else:
-        print("PASSED: No import isolation violations.")
-        return 0
+    print("PASSED: No import isolation violations.")
+    return 0
 
 
 if __name__ == "__main__":

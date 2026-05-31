@@ -183,4 +183,5 @@ def _json_dumps(obj: Any) -> str | None:
     if obj is None:
         return None
     import json
+
     return json.dumps(obj, default=str)

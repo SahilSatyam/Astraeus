@@ -103,12 +103,16 @@ class ExecutionManagementSystem:
 
         return await adapter.submit_order(order)
 
-    async def cancel_order(self, broker_order_id: str, broker: str | None = None) -> BrokerOrderStatus:
+    async def cancel_order(
+        self, broker_order_id: str, broker: str | None = None
+    ) -> BrokerOrderStatus:
         """Cancel an order via the specified broker."""
         adapter = self.get_adapter(broker)
         return await adapter.cancel_order(broker_order_id)
 
-    async def get_order_status(self, broker_order_id: str, broker: str | None = None) -> BrokerOrderStatus:
+    async def get_order_status(
+        self, broker_order_id: str, broker: str | None = None
+    ) -> BrokerOrderStatus:
         """Get order status from the specified broker."""
         adapter = self.get_adapter(broker)
         return await adapter.get_order_status(broker_order_id)

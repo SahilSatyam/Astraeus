@@ -18,10 +18,14 @@ STRATEGY_SPEC = AgentSpec(
     name="strategy",
     prompt_key="strategy_agent.system",
     output_schema=StrategyOutput,
-    allowed_tools=frozenset({
-        "query_strategy_registry", "get_strategy_signal", "get_factor_exposure",
-        "get_backtest_metrics",
-    }),
+    allowed_tools=frozenset(
+        {
+            "query_strategy_registry",
+            "get_strategy_signal",
+            "get_factor_exposure",
+            "get_backtest_metrics",
+        }
+    ),
     model_tier="reasoning",
 )
 
@@ -99,7 +103,9 @@ class StrategyAgent(BaseAgent):
                 )
                 signals.append(response)
             except Exception as e:
-                logger.warning("strategy_signal_failed", strategy=strat.get("strategy_id"), error=str(e))
+                logger.warning(
+                    "strategy_signal_failed", strategy=strat.get("strategy_id"), error=str(e)
+                )
         return signals
 
 
@@ -108,7 +114,9 @@ def _format_strategies(strategies: list[dict[str, Any]]) -> str:
         return "No strategies matched."
     lines = []
     for s in strategies:
-        lines.append(f"- {s.get('strategy_id', 'unknown')} v{s.get('version', '?')}: {s.get('description', '')}")
+        lines.append(
+            f"- {s.get('strategy_id', 'unknown')} v{s.get('version', '?')}: {s.get('description', '')}"
+        )
     return "\n".join(lines)
 
 
@@ -117,5 +125,7 @@ def _format_signals(signals: list[dict[str, Any]]) -> str:
         return "No signals available."
     lines = []
     for s in signals:
-        lines.append(f"- {s.get('strategy_id', '?')}: signal={s.get('signal', 'N/A')}, as_of={s.get('as_of', '?')}")
+        lines.append(
+            f"- {s.get('strategy_id', '?')}: signal={s.get('signal', 'N/A')}, as_of={s.get('as_of', '?')}"
+        )
     return "\n".join(lines)
