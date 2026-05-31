@@ -1,0 +1,33 @@
+[project]
+name = "astraeus-recommender"
+version = "0.1.0"
+description = "Daily recommendation engine — 8-stage pipeline with regime-conditional ensemble."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic>=2.6",
+    "structlog>=24.1",
+    "sqlalchemy[asyncio]>=2.0",
+    "numpy>=1.26",
+    "astraeus-config",
+    "astraeus-db",
+    "astraeus-domain",
+    "astraeus-contracts",
+    "astraeus-observability",
+    "astraeus-features",
+    "astraeus-portfolio",
+    "astraeus-agent-runtime",
+    "astraeus-regime",
+    "astraeus-ensemble",
+]
+
+[project.optional-dependencies]
+dev = [
+    "hypothesis>=6.100",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["astraeus_recommender"]

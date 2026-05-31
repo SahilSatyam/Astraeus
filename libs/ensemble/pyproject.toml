@@ -1,0 +1,20 @@
+[project]
+name = "astraeus-ensemble"
+version = "0.1.0"
+description = "Regime-conditional signal ensemble with correlation penalty and decay tracking."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic>=2.6",
+    "structlog>=24.1",
+    "numpy>=1.26",
+    "scipy>=1.12",
+    "astraeus-config",
+    "astraeus-observability",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["astraeus_ensemble"]
