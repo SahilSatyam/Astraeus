@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* Utility classes for finance UI */
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-positive {
+    color: var(--color-positive);
+  }
+
+  .text-negative {
+    color: var(--color-negative);
+  }
+
+  .text-muted {
+    color: var(--color-text-muted);
+  }
+
+  .font-mono-finance {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Scrollbar styling for dense UIs */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Focus styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--color-status-info);
+  outline-offset: 2px;
+}
