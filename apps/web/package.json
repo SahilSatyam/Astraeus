@@ -46,7 +46,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.6",
+    "eslint-config-next": "16.2.7",
     "jsdom": "^29.1.1",
     "playwright": "^1.60.0",
     "storybook": "^8.6.18",
