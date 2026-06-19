@@ -24,6 +24,7 @@ from astraeus_agent_runtime.metrics import record_run_complete, record_step_comp
 from astraeus_agent_runtime.prompt_registry import PromptRegistry, create_default_registry
 from astraeus_agent_runtime.state import AgentState, RunMetadata
 from astraeus_agent_runtime.tools.implementations import register_all_tools
+from langgraph.graph import StateGraph, END
 
 logger = structlog.get_logger("astraeus.agent_runtime.orchestrator")
 
@@ -112,75 +113,29 @@ class WorkflowOrchestrator:
             # Get workflow steps
             steps = self._get_workflow_steps(workflow)
 
-            # Execute each step
+            # Build StateGraph
+            workflow_graph = StateGraph(AgentState)
+
+            # Add nodes
             for step_name in steps:
-                step_start = time.perf_counter()
-                step_id = uuid.uuid4()
+                workflow_graph.add_node(step_name, self._create_node(step_name, run_id, workflow))
 
-                logger.info("step_start", run_id=str(run_id), step=step_name)
+            # Add edges
+            for i in range(len(steps) - 1):
+                # If HITL triggered, route to END instead of next node
+                def _route(state: AgentState) -> str:
+                    if state.get("hitl_required") or state.get("status") == "failed":
+                        return END
+                    return steps[i + 1]
 
-                agent = self._create_agent(step_name)
-                step_output = await agent.execute(state, run_id=run_id)
+                workflow_graph.add_conditional_edges(steps[i], _route)
 
-                step_duration = (time.perf_counter() - step_start) * 1000
+            workflow_graph.set_entry_point(steps[0])
+            app = workflow_graph.compile()
 
-                # Record step
-                state["steps"].append(
-                    {
-                        "step_id": str(step_id),
-                        "agent_name": step_name,
-                        "status": "error" if "error" in step_output else "completed",
-                        "duration_ms": round(step_duration, 1),
-                    }
-                )
-
-                # Store output in state
-                state[f"{step_name}_output"] = step_output  # type: ignore[literal-required]
-
-                # Emit step metric
-                record_step_complete(step_name, step_duration)
-
-                # Check for HITL trigger
-                if step_output.get("hitl_required"):
-                    state["hitl_required"] = True
-                    state["hitl_reason"] = step_output.get(
-                        "hitl_reason", f"{step_name} triggered HITL"
-                    )
-
-                    # Submit to HITL queue
-                    self._hitl.submit(
-                        run_id=run_id,
-                        workflow_key=workflow,
-                        triggered_by=HITLTrigger.RISK_BREACH,
-                        reason={"agent": step_name, "detail": state["hitl_reason"]},
-                        agent_state=dict(state),
-                        candidate_output=step_output,
-                    )
-
-                    # In production, this would pause via LangGraph interrupt.
-                    # For MVP, we continue but mark the run.
-                    logger.warning(
-                        "hitl_triggered",
-                        run_id=str(run_id),
-                        agent=step_name,
-                        reason=state["hitl_reason"],
-                    )
-
-                # Cost tracking
-                step_cost = sum(
-                    r.cost_usd
-                    for r in self._llm.call_records
-                    if r.run_id == run_id and r.step_id == step_id
-                )
-                state["total_cost_usd"] += step_cost
-
-                # Budget check
-                if state["total_cost_usd"] > metadata.max_cost_usd:
-                    state["status"] = "failed"
-                    state["error"] = (
-                        f"Cost overrun: ${state['total_cost_usd']:.4f} > ${metadata.max_cost_usd}"
-                    )
-                    break
+            # Execute graph
+            final_state = await app.ainvoke(state)
+            state.update(final_state)
 
             # Finalize
             duration_ms = (time.perf_counter() - start) * 1000
@@ -229,6 +184,68 @@ class WorkflowOrchestrator:
         if steps is None:
             raise ValueError(f"Unknown workflow: {workflow!r}. Available: {list(workflows.keys())}")
         return steps
+
+    def _create_node(self, step_name: str, run_id: uuid.UUID, workflow: str) -> Any:
+        """Create a LangGraph node function for a specific step."""
+        async def node(state: AgentState) -> dict[str, Any]:
+            step_start = time.perf_counter()
+            step_id = uuid.uuid4()
+            logger.info("step_start", run_id=str(run_id), step=step_name)
+
+            agent = self._create_agent(step_name)
+            step_output = await agent.execute(state, run_id=run_id)
+
+            step_duration = (time.perf_counter() - step_start) * 1000
+            
+            updates: dict[str, Any] = {}
+            steps_list = state.get("steps", []).copy()
+            steps_list.append(
+                {
+                    "step_id": str(step_id),
+                    "agent_name": step_name,
+                    "status": "error" if "error" in step_output else "completed",
+                    "duration_ms": round(step_duration, 1),
+                }
+            )
+            updates["steps"] = steps_list
+            updates[f"{step_name}_output"] = step_output
+
+            record_step_complete(step_name, step_duration)
+
+            if step_output.get("hitl_required"):
+                updates["hitl_required"] = True
+                updates["hitl_reason"] = step_output.get("hitl_reason", f"{step_name} triggered HITL")
+                
+                self._hitl.submit(
+                    run_id=run_id,
+                    workflow_key=workflow,
+                    triggered_by=HITLTrigger.RISK_BREACH,
+                    reason={"agent": step_name, "detail": updates["hitl_reason"]},
+                    agent_state=dict(state),
+                    candidate_output=step_output,
+                )
+                logger.warning(
+                    "hitl_triggered",
+                    run_id=str(run_id),
+                    agent=step_name,
+                    reason=updates["hitl_reason"],
+                )
+
+            metadata = RunMetadata(**state.get("metadata", {}))
+            step_cost = sum(
+                r.cost_usd
+                for r in self._llm.call_records
+                if r.run_id == run_id and r.step_id == step_id
+            )
+            updates["total_cost_usd"] = state.get("total_cost_usd", 0.0) + step_cost
+
+            if updates["total_cost_usd"] > metadata.max_cost_usd:
+                updates["status"] = "failed"
+                updates["error"] = f"Cost overrun: ${updates['total_cost_usd']:.4f} > ${metadata.max_cost_usd}"
+
+            return updates
+
+        return node
 
     def _create_agent(self, agent_name: str) -> Any:
         """Create an agent instance by name."""
