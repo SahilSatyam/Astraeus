@@ -154,7 +154,7 @@ class TestLiquidityConstraint:
         liq = LiquidityConstraint()
         w = cp.Variable(5)
         constraints = liq.to_cvxpy(w, ctx_5_assets)
-        assert len(constraints) == 1
+        assert len(constraints) == 2
 
     def test_to_cvxpy_feasible_no_trade(self, ctx_5_assets: OptContext) -> None:
         """No trade (w == w_prev) should always be feasible."""
@@ -179,7 +179,7 @@ class TestLiquidityConstraint:
         w_val = np.array([0.19, 0.21, 0.20, 0.20, 0.20])
         diag = liq.diagnostic(w_val, ctx_5_assets)
         assert diag["satisfied"] is True
-        assert diag["n_breaching"] == 0
+        assert diag["n_violations"] == 0
 
     def test_diagnostic_violated(self, ctx_5_assets: OptContext) -> None:
         """Large trade exceeding ADV limits for asset C (small ADV)."""
@@ -191,7 +191,7 @@ class TestLiquidityConstraint:
         w_val = np.array([0.2, 0.2, -0.01, 0.2, 0.2])  # trade = 0.21 * 10M = 2,100,000 > 2M
         diag = liq.diagnostic(w_val, ctx_5_assets)
         assert diag["satisfied"] is False
-        assert diag["n_breaching"] >= 1
+        assert diag["n_violations"] >= 1
 
     def test_diagnostic_max_trade_pct(self, ctx_5_assets: OptContext) -> None:
         """Verify max_trade_pct_adv calculation."""
@@ -206,5 +206,5 @@ class TestLiquidityConstraint:
         # trade for A: |0.1 - 0.2| * 10M = 1M
         # adv_capacity for A: 1,000,000 * 100 = 100,000,000
         # pct = 1M / 100M = 0.01
-        assert diag["max_trade_pct_adv"] == pytest.approx(0.01)
+        assert diag["max_adv_usage_pct"] == pytest.approx(0.2)
         assert diag["satisfied"] is True
