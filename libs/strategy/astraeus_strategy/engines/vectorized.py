@@ -205,10 +205,7 @@ class VectorizedEngine:
             row[0]: (row[1], row[2], row[3], row[4])  # close, high, low, volume
             for row in curr_prices.select(["symbol", "close", "high", "low", "volume"]).iter_rows()
         }
-        next_dict = {
-            row[0]: row[1]
-            for row in next_prices.select(["symbol", "close"]).iter_rows()
-        }
+        next_dict = {row[0]: row[1] for row in next_prices.select(["symbol", "close"]).iter_rows()}
 
         for symbol, weight in targets.items():
             curr_row = curr_dict.get(symbol)
