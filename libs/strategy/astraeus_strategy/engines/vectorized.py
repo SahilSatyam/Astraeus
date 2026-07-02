@@ -201,16 +201,23 @@ class VectorizedEngine:
         portfolio_return = 0.0
         total_cost_pct = 0.0
 
-        for symbol, weight in targets.items():
-            # Get return for this symbol
-            curr_row = curr_prices.filter(pl.col("symbol") == symbol)
-            next_row = next_prices.filter(pl.col("symbol") == symbol)
+        curr_dict = {
+            row[0]: (row[1], row[2], row[3], row[4])  # close, high, low, volume
+            for row in curr_prices.select(["symbol", "close", "high", "low", "volume"]).iter_rows()
+        }
+        next_dict = {
+            row[0]: row[1]
+            for row in next_prices.select(["symbol", "close"]).iter_rows()
+        }
 
-            if curr_row.is_empty() or next_row.is_empty():
+        for symbol, weight in targets.items():
+            curr_row = curr_dict.get(symbol)
+            next_close = next_dict.get(symbol)
+
+            if curr_row is None or next_close is None:
                 continue
 
-            curr_close = curr_row.select("close").item()
-            next_close = next_row.select("close").item()
+            curr_close, curr_high, curr_low, curr_volume = curr_row
 
             if curr_close <= 0:
                 continue
@@ -223,14 +230,14 @@ class VectorizedEngine:
 
             if weight_change > 0.001:  # Threshold to avoid noise
                 # Simplified cost: use average cost in bps
-                adv = curr_row.select("volume").item() or 1_000_000
+                adv = curr_volume or 1_000_000
                 cost = self._cost_model.compute(
                     shares=int(weight_change * 1_000_000 / max(curr_close, 1)),
                     price=curr_close,
                     adv=adv,
                     sigma_daily=0.02,  # default; could be computed from data
-                    high=curr_row.select("high").item(),
-                    low=curr_row.select("low").item(),
+                    high=curr_high,
+                    low=curr_low,
                 )
                 total_cost_pct += cost.total / max(abs(weight) * 1_000_000, 1)
 
