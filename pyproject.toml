@@ -15,7 +15,7 @@ dev = [
     "pytest-cov>=5.0",
     "hypothesis>=6.100",
     "pyyaml>=6.0",
-    "types-pyyaml>=6.0",
+    "types-pyyaml>=6.0.12.20260724",
 ]
 
 [tool.uv.workspace]
