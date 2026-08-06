@@ -17,7 +17,7 @@ class TestTickerDictionary:
             symbol="TEST",
             company_name="Test Company",
             aliases=("Tester", "Testing"),
-            sector="Technology"
+            sector="Technology",
         )
         d.add(entry)
 
