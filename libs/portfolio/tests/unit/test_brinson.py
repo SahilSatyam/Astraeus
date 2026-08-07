@@ -1,6 +1,7 @@
 """Unit tests for Brinson-Fachler sector attribution."""
 
 from datetime import datetime
+from decimal import Decimal
 from uuid import uuid4
 
 import pytest
@@ -8,8 +9,25 @@ from astraeus_portfolio.attribution.brinson import (
     UNCLASSIFIED_SECTOR,
     BrinsonAttributionError,
     BrinsonResult,
+    SectorEffect,
     run_brinson,
 )
+
+
+class TestSectorEffect:
+    """Tests for the SectorEffect dataclass."""
+
+    def test_total_bps(self):
+        """Test that total_bps correctly sums allocation, selection, and interaction."""
+        effect = SectorEffect(
+            sector="Information Technology",
+            allocation_bps=Decimal("15.5"),
+            selection_bps=Decimal("-5.0"),
+            interaction_bps=Decimal("2.2"),
+        )
+
+        # 15.5 + (-5.0) + 2.2 = 12.7
+        assert effect.total_bps == Decimal("12.7")
 
 
 @pytest.fixture
