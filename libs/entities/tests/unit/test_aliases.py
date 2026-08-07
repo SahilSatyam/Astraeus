@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from astraeus_entities.aliases import extract_cashtags, AliasMatch
+from astraeus_entities.aliases import extract_cashtags
 
 
 @pytest.mark.unit
