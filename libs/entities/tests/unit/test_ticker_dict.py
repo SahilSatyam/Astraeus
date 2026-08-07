@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 from astraeus_entities.aliases import extract_cashtags, normalize_company_name
-from astraeus_entities.ticker_dict import build_default_dictionary
+from astraeus_entities.ticker_dict import TickerDictionary, build_default_dictionary
 
 
 @pytest.mark.unit
@@ -61,6 +61,11 @@ class TestTickerDictionary:
     def test_size(self) -> None:
         d = build_default_dictionary()
         assert d.size >= 10  # At least the defaults
+
+    def test_build_default_dictionary(self) -> None:
+        d = build_default_dictionary()
+        assert isinstance(d, TickerDictionary)
+        assert d.size == 14
 
 
 @pytest.mark.unit
