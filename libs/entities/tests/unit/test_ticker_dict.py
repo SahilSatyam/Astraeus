@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 from astraeus_entities.aliases import extract_cashtags, normalize_company_name
-from astraeus_entities.ticker_dict import build_default_dictionary
+from astraeus_entities.ticker_dict import TickerDictionary, TickerEntry, build_default_dictionary
 
 
 @pytest.mark.unit
@@ -29,6 +29,14 @@ class TestTickerDictionary:
         entry = d.lookup_name("Apple Inc.")
         assert entry is not None
         assert entry.symbol == "AAPL"
+
+    def test_lookup_name_case_insensitive(self) -> None:
+        d = TickerDictionary()
+        d.add(TickerEntry("TEST", "Test Company Corp.", (), "Technology"))
+
+        entry = d.lookup_name("test COMPANY corp.")
+        assert entry is not None
+        assert entry.symbol == "TEST"
 
     def test_lookup_alias(self) -> None:
         d = build_default_dictionary()
