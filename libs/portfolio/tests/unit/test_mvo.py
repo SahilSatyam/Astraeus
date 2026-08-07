@@ -29,6 +29,8 @@ from astraeus_portfolio.optimizers.mvo import (
 
 def _make_psd_covariance(n: int, seed: int = 42) -> np.ndarray:
     """Generate a random PSD covariance matrix of size n×n."""
+    if n == 1:
+        return np.array([[0.04]])
     rng = np.random.default_rng(seed)
     A = rng.standard_normal((n, n))
     cov = A @ A.T / n
@@ -153,30 +155,6 @@ class TestMVOInputValidation:
         """Universe with 1 asset raises MVOValidationError."""
         opt = MeanVarianceOptimizer()
         ctx = _make_opt_context(n_assets=1)
-        # Need to fix the covariance for 1 asset
-        ctx = OptContext(
-            strategy_id="test",
-            as_of_ts=datetime(2024, 1, 15),
-            n_assets=1,
-            symbols=["A"],
-            expected_returns=np.array([0.1]),
-            covariance=np.array([[0.04]]),
-            current_weights=np.array([1.0]),
-            prices=np.array([100.0]),
-            adv=np.array([1_000_000.0]),
-            sector_map={"A": "Tech"},
-            beta=np.array([1.0]),
-            factor_loadings=None,
-            views=None,
-            scenarios=None,
-            regime_label=None,
-            constraints=[],
-            risk_aversion=5.0,
-            solver_chain=["CLARABEL"],
-            fully_invested=True,
-            nav=Decimal("1000000"),
-            seed=42,
-        )
         with pytest.raises(MVOValidationError) as exc_info:
             opt.run(ctx)
         assert exc_info.value.reason == "insufficient_assets"
