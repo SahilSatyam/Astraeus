@@ -4,12 +4,32 @@ from __future__ import annotations
 
 import pytest
 from astraeus_entities.aliases import extract_cashtags, normalize_company_name
-from astraeus_entities.ticker_dict import build_default_dictionary
+from astraeus_entities.ticker_dict import TickerDictionary, TickerEntry, build_default_dictionary
 
 
 @pytest.mark.unit
 class TestTickerDictionary:
     """Tests for TickerDictionary lookups."""
+
+    def test_add_and_lookup_symbol(self) -> None:
+        d = TickerDictionary()
+        entry = TickerEntry("MiXeDcAsE", "Mixed Case Inc.")
+        d.add(entry)
+
+        # Look up by exact symbol
+        lookup = d.lookup_symbol("MiXeDcAsE")
+        assert lookup is not None
+        assert lookup.symbol == "MiXeDcAsE"
+
+        # Look up by lower case symbol
+        lookup = d.lookup_symbol("mixedcase")
+        assert lookup is not None
+        assert lookup.symbol == "MiXeDcAsE"
+
+        # Look up by upper case symbol
+        lookup = d.lookup_symbol("MIXEDCASE")
+        assert lookup is not None
+        assert lookup.symbol == "MiXeDcAsE"
 
     def test_lookup_symbol_exact(self) -> None:
         d = build_default_dictionary()
