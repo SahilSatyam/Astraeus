@@ -54,6 +54,20 @@ class TestTickerDictionary:
         assert d.is_ambiguous_symbol("V")
         assert not d.is_ambiguous_symbol("AAPL")
 
+    def test_is_ambiguous_symbol_comprehensive(self) -> None:
+        d = build_default_dictionary()
+        # Test all ambiguous symbols
+        for symbol in d._AMBIGUOUS_SYMBOLS:
+            assert d.is_ambiguous_symbol(symbol)
+            # Test case insensitivity
+            assert d.is_ambiguous_symbol(symbol.lower())
+
+        # Test non-ambiguous symbols
+        non_ambiguous = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"]
+        for symbol in non_ambiguous:
+            assert not d.is_ambiguous_symbol(symbol)
+            assert not d.is_ambiguous_symbol(symbol.lower())
+
     def test_unknown_symbol_returns_none(self) -> None:
         d = build_default_dictionary()
         assert d.lookup_symbol("ZZZZ") is None
