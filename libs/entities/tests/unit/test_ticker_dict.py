@@ -80,8 +80,38 @@ class TestAliases:
         assert len(matches) == 1
         assert matches[0].normalized == "BRK.B"
 
-    def test_normalize_company_name(self) -> None:
-        assert normalize_company_name("Apple Inc.") == "Apple"
-        assert normalize_company_name("Microsoft Corporation") == "Microsoft"
-        assert normalize_company_name("Tesla") == "Tesla"
-        assert normalize_company_name("JPMorgan Chase & Co.") == "JPMorgan Chase &"
+    @pytest.mark.parametrize(
+        ("dirty_name", "expected_clean"),
+        [
+            # Standard suffixes
+            ("Apple Inc.", "Apple"),
+            ("Microsoft Corporation", "Microsoft"),
+            ("Tesla", "Tesla"),
+            ("JPMorgan Chase & Co.", "JPMorgan Chase &"),
+            ("Sony Corp", "Sony"),
+            ("Sony Corp.", "Sony"),
+            ("Acme Co", "Acme"),
+            ("Acme Co.", "Acme"),
+            # International suffixes
+            ("Bayer AG", "Bayer"),
+            ("Shell PLC", "Shell"),
+            ("Airbus SE", "Airbus"),
+            ("Spotify NV", "Spotify"),
+            ("Danone SA", "Danone"),
+            # Case variations
+            ("apple inc", "apple"),
+            ("MICROSOFT CORPORATION", "MICROSOFT"),
+            ("Tesla LTD", "Tesla"),
+            ("Alphabet LIMITED", "Alphabet"),
+            # Edge cases (spacing)
+            ("Apple  Inc.", "Apple"),
+            ("Apple Inc.  ", "Apple"),
+            # Suffix-like words inside the name should not be stripped
+            ("Company Inc.", "Company"),
+            ("The Corp Limited", "The Corp"),
+            ("Incognito Systems", "Incognito Systems"),
+            ("Agilent Technologies", "Agilent Technologies"),
+        ],
+    )
+    def test_normalize_company_name(self, dirty_name: str, expected_clean: str) -> None:
+        assert normalize_company_name(dirty_name) == expected_clean
