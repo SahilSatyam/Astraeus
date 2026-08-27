@@ -55,13 +55,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # Trust X-Forwarded-For/-Proto from the reverse proxy so that
     # request.client.host reflects the real client IP (used for rate-limit
-    # keys and audit logging). The trusted-hosts CIDR is configurable; default
-    # to "*" which matches uvicorn's CLI default and is appropriate when the
-    # process only listens on a private network behind Caddy.
+    # keys and audit logging). The trusted-hosts CIDR is configurable; defaults
+    # to "127.0.0.1" for security to prevent spoofing. It can be changed to "*"
+    # in production if behind a trusted reverse proxy like Caddy.
     # CORS is intentionally not configured here: the Next.js frontend is
     # served same-origin via Caddy in prod. If a cross-origin client is added,
     # wire CORSMiddleware with an explicit allow-list of origins.
-    forwarded_trusted = os.environ.get("ASTRAEUS_API_FORWARDED_ALLOW_IPS", "*").strip()
+    forwarded_trusted = os.environ.get("ASTRAEUS_API_FORWARDED_ALLOW_IPS", "127.0.0.1").strip()
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=forwarded_trusted)
 
     app.add_middleware(RequestContextMiddleware)
