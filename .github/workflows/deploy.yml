@@ -76,6 +76,6 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /opt/astraeus
-            docker compose -f compose.prod.yml pull
-            docker compose -f compose.prod.yml up -d --remove-orphans
+            docker compose -f infra/docker/compose.prod.yml pull
+            docker compose -f infra/docker/compose.prod.yml up -d --remove-orphans
             docker image prune -f
