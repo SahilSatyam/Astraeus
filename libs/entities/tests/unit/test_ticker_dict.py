@@ -11,25 +11,29 @@ from astraeus_entities.ticker_dict import TickerDictionary, TickerEntry, build_d
 class TestTickerDictionary:
     """Tests for TickerDictionary lookups."""
 
-    def test_add_and_lookup_symbol(self) -> None:
+    def test_add(self) -> None:
         d = TickerDictionary()
-        entry = TickerEntry("MiXeDcAsE", "Mixed Case Inc.")
+        entry = TickerEntry(
+            symbol="TEST",
+            company_name="Test Company",
+            aliases=("Tester", "Testing"),
+            sector="Technology",
+        )
         d.add(entry)
 
-        # Look up by exact symbol
-        lookup = d.lookup_symbol("MiXeDcAsE")
-        assert lookup is not None
-        assert lookup.symbol == "MiXeDcAsE"
+        # Check by symbol
+        assert "TEST" in d._by_symbol
+        assert d._by_symbol["TEST"] == entry
 
-        # Look up by lower case symbol
-        lookup = d.lookup_symbol("mixedcase")
-        assert lookup is not None
-        assert lookup.symbol == "MiXeDcAsE"
+        # Check by name
+        assert "test company" in d._by_name
+        assert d._by_name["test company"] == entry
 
-        # Look up by upper case symbol
-        lookup = d.lookup_symbol("MIXEDCASE")
-        assert lookup is not None
-        assert lookup.symbol == "MiXeDcAsE"
+        # Check by aliases
+        assert "tester" in d._by_alias
+        assert entry in d._by_alias["tester"]
+        assert "testing" in d._by_alias
+        assert entry in d._by_alias["testing"]
 
     def test_lookup_symbol_exact(self) -> None:
         d = build_default_dictionary()
@@ -50,11 +54,31 @@ class TestTickerDictionary:
         assert entry is not None
         assert entry.symbol == "AAPL"
 
+    def test_lookup_name_case_insensitive(self) -> None:
+        d = TickerDictionary()
+        d.add(TickerEntry("TEST", "Test Company Corp.", (), "Technology"))
+
+        entry = d.lookup_name("test COMPANY corp.")
+        assert entry is not None
+        assert entry.symbol == "TEST"
+
     def test_lookup_alias(self) -> None:
         d = build_default_dictionary()
         entries = d.lookup_alias("iPhone-maker")
         assert len(entries) == 1
         assert entries[0].symbol == "AAPL"
+
+    def test_lookup_alias_multiple_matches(self) -> None:
+        d = TickerDictionary()
+        entry1 = TickerEntry(symbol="TEST1", company_name="Test 1", aliases=("overlapping",))
+        entry2 = TickerEntry(symbol="TEST2", company_name="Test 2", aliases=("overlapping",))
+        d.add(entry1)
+        d.add(entry2)
+
+        entries = d.lookup_alias("overlapping")
+        assert len(entries) == 2
+        assert entry1 in entries
+        assert entry2 in entries
 
     def test_resolve_symbol(self) -> None:
         d = build_default_dictionary()
@@ -81,6 +105,11 @@ class TestTickerDictionary:
     def test_size(self) -> None:
         d = build_default_dictionary()
         assert d.size >= 10  # At least the defaults
+
+    def test_build_default_dictionary(self) -> None:
+        d = build_default_dictionary()
+        assert isinstance(d, TickerDictionary)
+        assert d.size == 14
 
 
 @pytest.mark.unit

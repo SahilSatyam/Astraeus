@@ -1,5 +1,5 @@
-## YYYY-MM-DD - Rolling Beta Recalculation Bottleneck
+## Streaming Optimization (Astraeus Monorepo)
 
-**Learning:** Rolling betas for assets vs market (SPY) were computed via a python list comprehension and sequential `np.sum()`, creating a slow $O(N)$ overhead loop in the `task_estimate_betas` function.
-
-**Action:** Replaced the list comprehension with vectorized `np.mean(axis=0)` and matrix dot product `(assets_demean.T @ market_demean)`, reducing operation time substantially without changing precision.
+-   **Optimization implemented:** Resolved N+1 lookup during idempotency checks when saving streamed `MarketBarRaw` data by switching to a batched `INSERT ... ON CONFLICT DO NOTHING RETURNING` statement.
+-   **Why:** Eliminates individual database `select` queries on a hot path, batching network operations into a single execution.
+-   **Measured Performance Improvment:** N+1 queries drop from N+1 database roundtrips to exactly 1 bulk UPSERT query per batch. We also properly ensured we only issue Outbox entries for records actually inserted by taking advantage of the `RETURNING` properties.
