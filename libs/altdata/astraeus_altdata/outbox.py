@@ -36,18 +36,16 @@ async def emit_document_ingested(
 
     The NLP pipeline worker consumes these events to trigger processing.
     """
-    payload = json.dumps(
-        {
-            "doc_id": str(doc.doc_id),
-            "source": doc.source.value,
-            "source_doc_id": doc.source_doc_id,
-            "title": doc.title,
-            "body_uri": body_uri,
-            "publish_ts": doc.publish_ts.isoformat(),
-            "event_ts": doc.event_ts.isoformat() if doc.event_ts else None,
-            "run_id": str(run_id),
-        }
-    ).encode()
+    payload = json.dumps({
+        "doc_id": str(doc.doc_id),
+        "source": doc.source.value,
+        "source_doc_id": doc.source_doc_id,
+        "title": doc.title,
+        "body_uri": body_uri,
+        "publish_ts": doc.publish_ts.isoformat(),
+        "event_ts": doc.event_ts.isoformat() if doc.event_ts else None,
+        "run_id": str(run_id),
+    }).encode()
 
     session.add(
         Outbox(
@@ -73,16 +71,14 @@ async def emit_dlq_entry(
     run_id: uuid.UUID,
 ) -> None:
     """Write a DLQ entry for a failed document ingestion."""
-    payload = json.dumps(
-        {
-            "dlq_id": str(uuid.uuid4()),
-            "source": source,
-            "source_doc_id": source_doc_id,
-            "error": {"type": error_type, "message": error_message},
-            "run_id": str(run_id),
-            "failed_at": datetime.now(tz=UTC).isoformat(),
-        }
-    ).encode()
+    payload = json.dumps({
+        "dlq_id": str(uuid.uuid4()),
+        "source": source,
+        "source_doc_id": source_doc_id,
+        "error": {"type": error_type, "message": error_message},
+        "run_id": str(run_id),
+        "failed_at": datetime.now(tz=UTC).isoformat(),
+    }).encode()
 
     session.add(
         Outbox(

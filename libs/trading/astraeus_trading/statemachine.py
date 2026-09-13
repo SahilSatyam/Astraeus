@@ -66,9 +66,12 @@ _TRANSITIONS: dict[OrderState, set[OrderState]] = {
     OrderState.EXPIRED: set(),
 }
 
-TERMINAL_STATES: frozenset[OrderState] = frozenset(
-    {OrderState.FILLED, OrderState.CANCELLED, OrderState.REJECTED, OrderState.EXPIRED}
-)
+TERMINAL_STATES: frozenset[OrderState] = frozenset({
+    OrderState.FILLED,
+    OrderState.CANCELLED,
+    OrderState.REJECTED,
+    OrderState.EXPIRED,
+})
 
 
 class OrderStateMachine:

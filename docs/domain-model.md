@@ -14,11 +14,11 @@ Astraeus models the quantitative trading domain with the following bounded conte
 
 ```python
 # From astraeus-domain
-Symbol = NewType("Symbol", str)       # e.g., "AAPL", "SPY"
-OrderId = NewType("OrderId", UUID)    # Unique order identifier
-AccountId = NewType("AccountId", str) # Trading account
-StrategyId = NewType("StrategyId", str) # Strategy identifier
-RunId = NewType("RunId", UUID)        # AI workflow run
+Symbol = NewType("Symbol", str)  # e.g., "AAPL", "SPY"
+OrderId = NewType("OrderId", UUID)  # Unique order identifier
+AccountId = NewType("AccountId", str)  # Trading account
+StrategyId = NewType("StrategyId", str)  # Strategy identifier
+RunId = NewType("RunId", UUID)  # AI workflow run
 ```
 
 ## Entity Relationship Diagram

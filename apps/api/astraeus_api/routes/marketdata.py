@@ -451,21 +451,19 @@ async def replay(
 
     rows_replayed = 0
     for row in rows:
-        outbox_payload = _json.dumps(
-            {
-                "symbol": row.symbol,
-                "ts": row.ts.isoformat(),
-                "resolution": row.resolution,
-                "open": str(row.open),
-                "high": str(row.high),
-                "low": str(row.low),
-                "close": str(row.close),
-                "volume": row.volume,
-                "source": row.source,
-                "run_id": str(row.ingest_run_id),
-                "replay": True,
-            }
-        ).encode()
+        outbox_payload = _json.dumps({
+            "symbol": row.symbol,
+            "ts": row.ts.isoformat(),
+            "resolution": row.resolution,
+            "open": str(row.open),
+            "high": str(row.high),
+            "low": str(row.low),
+            "close": str(row.close),
+            "volume": row.volume,
+            "source": row.source,
+            "run_id": str(row.ingest_run_id),
+            "replay": True,
+        }).encode()
 
         session.add(
             _Outbox(

@@ -160,12 +160,10 @@ def st_constraint_diag(draw: st.DrawFn) -> ConstraintDiag:
         shadow_price=draw(st.one_of(st.none(), st.floats(allow_nan=False, allow_infinity=False))),
         slack=draw(st.one_of(st.none(), st.floats(allow_nan=False, allow_infinity=False))),
         diagnostic=draw(
-            st.fixed_dictionaries(
-                {
-                    "status": st_short_string,
-                    "value": st.floats(allow_nan=False, allow_infinity=False),
-                }
-            )
+            st.fixed_dictionaries({
+                "status": st_short_string,
+                "value": st.floats(allow_nan=False, allow_infinity=False),
+            })
         ),
     )
 

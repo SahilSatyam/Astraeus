@@ -18,15 +18,13 @@ RISK_SPEC = AgentSpec(
     name="risk",
     prompt_key="risk_agent.system",
     output_schema=RiskAssessment,
-    allowed_tools=frozenset(
-        {
-            "get_portfolio_state",
-            "run_risk_check",
-            "run_stress_scenario",
-            "get_correlation_matrix",
-            "get_var_cvar",
-        }
-    ),
+    allowed_tools=frozenset({
+        "get_portfolio_state",
+        "run_risk_check",
+        "run_stress_scenario",
+        "get_correlation_matrix",
+        "get_var_cvar",
+    }),
     model_tier="reasoning",
 )
 

@@ -16,9 +16,15 @@ class Redactor:
     substrings is replaced with ``"***REDACTED***"`` (case-insensitive).
     """
 
-    DEFAULT_KEYS: ClassVar[frozenset[str]] = frozenset(
-        {"password", "passwd", "secret", "token", "api_key", "apikey", "authorization"}
-    )
+    DEFAULT_KEYS: ClassVar[frozenset[str]] = frozenset({
+        "password",
+        "passwd",
+        "secret",
+        "token",
+        "api_key",
+        "apikey",
+        "authorization",
+    })
 
     def __init__(self, *, keys: frozenset[str] | None = None) -> None:
         self._keys = keys or self.DEFAULT_KEYS

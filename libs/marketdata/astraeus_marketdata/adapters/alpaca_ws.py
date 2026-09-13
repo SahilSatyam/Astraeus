@@ -152,13 +152,11 @@ class AlpacaStreamClient:
 
     async def _authenticate(self, ws: Any) -> None:
         """Send authentication message."""
-        auth_msg = json.dumps(
-            {
-                "action": "auth",
-                "key": self._api_key,
-                "secret": self._api_secret,
-            }
-        )
+        auth_msg = json.dumps({
+            "action": "auth",
+            "key": self._api_key,
+            "secret": self._api_secret,
+        })
         await ws.send(auth_msg)
 
         # Wait for auth response
@@ -180,12 +178,10 @@ class AlpacaStreamClient:
         if self._ws is None:
             return
 
-        sub_msg = json.dumps(
-            {
-                "action": "subscribe",
-                "bars": self._subscribed_bars,
-            }
-        )
+        sub_msg = json.dumps({
+            "action": "subscribe",
+            "bars": self._subscribed_bars,
+        })
         await self._ws.send(sub_msg)
         logger.info("alpaca_ws_subscribed", symbols=self._subscribed_bars)
 

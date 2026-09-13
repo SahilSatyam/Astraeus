@@ -121,12 +121,9 @@ def opt_context(
 
     # Betas
     market_var = np.var(market_returns, ddof=1)
-    betas = np.array(
-        [
-            np.cov(synthetic_returns[:, i], market_returns)[0, 1] / market_var
-            for i in range(N_ASSETS)
-        ]
-    )
+    betas = np.array([
+        np.cov(synthetic_returns[:, i], market_returns)[0, 1] / market_var for i in range(N_ASSETS)
+    ])
 
     constraints: list[Constraint] = [
         BoxConstraint(w_max=0.15),

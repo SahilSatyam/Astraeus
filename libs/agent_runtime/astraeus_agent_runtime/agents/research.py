@@ -19,15 +19,13 @@ RESEARCH_SPEC = AgentSpec(
     name="research",
     prompt_key="research_agent.system",
     output_schema=ResearchOutput,
-    allowed_tools=frozenset(
-        {
-            "search_news",
-            "fetch_filing",
-            "search_filing_chunks",
-            "get_macro_indicator",
-            "get_earnings_calendar",
-        }
-    ),
+    allowed_tools=frozenset({
+        "search_news",
+        "fetch_filing",
+        "search_filing_chunks",
+        "get_macro_indicator",
+        "get_earnings_calendar",
+    }),
     model_tier="reasoning",
 )
 
@@ -55,21 +53,17 @@ class ResearchAgent(BaseAgent):
         # Step 2: Build retrieval context with sandboxing
         chunks = []
         for item in news_results:
-            chunks.append(
-                {
-                    "source": item.get("source", "news"),
-                    "chunk_id": item.get("chunk_id", ""),
-                    "text": item.get("text", ""),
-                }
-            )
+            chunks.append({
+                "source": item.get("source", "news"),
+                "chunk_id": item.get("chunk_id", ""),
+                "text": item.get("text", ""),
+            })
         for item in filing_results:
-            chunks.append(
-                {
-                    "source": "edgar",
-                    "chunk_id": item.get("chunk_id", ""),
-                    "text": item.get("text", ""),
-                }
-            )
+            chunks.append({
+                "source": "edgar",
+                "chunk_id": item.get("chunk_id", ""),
+                "text": item.get("text", ""),
+            })
 
         sandboxed_context = sandbox_retrieved_content(chunks)
 

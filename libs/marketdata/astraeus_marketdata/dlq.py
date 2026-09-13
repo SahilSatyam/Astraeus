@@ -53,22 +53,20 @@ class DLQEntry:
 
     def to_outbox_payload(self) -> bytes:
         """Serialize the DLQ entry for the outbox table."""
-        return json.dumps(
-            {
-                "dlq_id": str(self.id),
-                "original_topic": self.original_topic,
-                "original_key": self.original_key,
-                "payload": self.payload,
-                "error": {
-                    "type": self.error_type,
-                    "message": self.error_message,
-                },
-                "source": self.source,
-                "run_id": str(self.run_id) if self.run_id else None,
-                "attempt_count": self.attempt_count,
-                "failed_at": self.failed_at.isoformat(),
-            }
-        ).encode()
+        return json.dumps({
+            "dlq_id": str(self.id),
+            "original_topic": self.original_topic,
+            "original_key": self.original_key,
+            "payload": self.payload,
+            "error": {
+                "type": self.error_type,
+                "message": self.error_message,
+            },
+            "source": self.source,
+            "run_id": str(self.run_id) if self.run_id else None,
+            "attempt_count": self.attempt_count,
+            "failed_at": self.failed_at.isoformat(),
+        }).encode()
 
 
 async def send_to_dlq(
@@ -130,12 +128,10 @@ async def get_dlq_entries(
             parsed["published_at"] = row.published_at.isoformat() if row.published_at else None
             entries.append(parsed)
         except (json.JSONDecodeError, UnicodeDecodeError):
-            entries.append(
-                {
-                    "outbox_id": row.id,
-                    "error": "Failed to parse DLQ payload",
-                    "raw_size": len(row.payload),
-                }
-            )
+            entries.append({
+                "outbox_id": row.id,
+                "error": "Failed to parse DLQ payload",
+                "raw_size": len(row.payload),
+            })
 
     return entries

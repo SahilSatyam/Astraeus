@@ -180,18 +180,22 @@ class TestFactorModelValidation:
     def test_nan_in_returns_raises(
         self, estimator: FactorModelEstimator, config: CovarianceConfig
     ) -> None:
-        returns = np.array(
-            [[1.0, 2.0, 3.0, 4.0, 5.0], [3.0, np.nan, 5.0, 6.0, 7.0], [5.0, 6.0, 7.0, 8.0, 9.0]]
-        )
+        returns = np.array([
+            [1.0, 2.0, 3.0, 4.0, 5.0],
+            [3.0, np.nan, 5.0, 6.0, 7.0],
+            [5.0, 6.0, 7.0, 8.0, 9.0],
+        ])
         with pytest.raises(ValueError, match="NaN"):
             estimator.estimate(returns, config)
 
     def test_inf_in_returns_raises(
         self, estimator: FactorModelEstimator, config: CovarianceConfig
     ) -> None:
-        returns = np.array(
-            [[1.0, 2.0, 3.0, 4.0, 5.0], [3.0, np.inf, 5.0, 6.0, 7.0], [5.0, 6.0, 7.0, 8.0, 9.0]]
-        )
+        returns = np.array([
+            [1.0, 2.0, 3.0, 4.0, 5.0],
+            [3.0, np.inf, 5.0, 6.0, 7.0],
+            [5.0, 6.0, 7.0, 8.0, 9.0],
+        ])
         with pytest.raises(ValueError, match="Inf"):
             estimator.estimate(returns, config)
 

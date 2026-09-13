@@ -66,7 +66,8 @@ class FactorBlend(Strategy):
 
         # Collect latest factor scores for universe
         panel = (
-            feature_panel.filter(pl.col("symbol").is_in(universe))
+            feature_panel
+            .filter(pl.col("symbol").is_in(universe))
             .group_by("symbol")
             .agg([pl.col(c).last().alias(c) for c in factor_columns if c in feature_panel.columns])
             .collect()

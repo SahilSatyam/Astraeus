@@ -101,15 +101,13 @@ class BaseAgent(ABC):
             call_messages = list(messages)
 
             if last_error and attempt > 0:
-                call_messages.append(
-                    {
-                        "role": "user",
-                        "content": (
-                            f"Your previous output failed validation: {last_error}\n"
-                            "Please fix the output to match the required schema."
-                        ),
-                    }
-                )
+                call_messages.append({
+                    "role": "user",
+                    "content": (
+                        f"Your previous output failed validation: {last_error}\n"
+                        "Please fix the output to match the required schema."
+                    ),
+                })
 
             response = await self._llm.complete(
                 messages=call_messages,

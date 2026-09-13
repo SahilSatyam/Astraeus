@@ -63,7 +63,8 @@ class PairsTrading(Strategy):
 
         # Collect price history for universe
         prices = (
-            feature_panel.filter(pl.col("symbol").is_in(universe))
+            feature_panel
+            .filter(pl.col("symbol").is_in(universe))
             .select(["symbol", "ts", "close"])
             .collect()
         )

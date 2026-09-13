@@ -80,7 +80,8 @@ class VectorizedEngine:
 
         # Get unique rebalance dates
         dates = (
-            prices.filter(
+            prices
+            .filter(
                 (
                     pl.col("ts")
                     >= datetime(config.start.year, config.start.month, config.start.day, tzinfo=UTC)
@@ -120,7 +121,8 @@ class VectorizedEngine:
             # Get universe for this date
             if universe_panel is not None:
                 universe = (
-                    universe_panel.filter(
+                    universe_panel
+                    .filter(
                         (pl.col("ts") == ts) & (pl.col("in_universe") == True)  # noqa: E712
                     )
                     .select("symbol")

@@ -799,47 +799,39 @@ class RiskParityOptimizer(Optimizer):
             else:
                 max_ratio = float("inf")
 
-            diagnostics.append(
-                {
-                    "constraint_name": "equal_risk_contribution",
-                    "satisfied": max_ratio <= self.rp_config.max_risk_contribution_ratio,
-                    "max_risk_contribution": max_rc,
-                    "min_risk_contribution": min_rc,
-                    "max_ratio": max_ratio,
-                    "target_ratio": 1.0,
-                    "tolerance": self.rp_config.max_risk_contribution_ratio,
-                }
-            )
+            diagnostics.append({
+                "constraint_name": "equal_risk_contribution",
+                "satisfied": max_ratio <= self.rp_config.max_risk_contribution_ratio,
+                "max_risk_contribution": max_rc,
+                "min_risk_contribution": min_rc,
+                "max_ratio": max_ratio,
+                "target_ratio": 1.0,
+                "tolerance": self.rp_config.max_risk_contribution_ratio,
+            })
 
         # Weight sum diagnostic
         weight_sum = float(np.sum(weights))
-        diagnostics.append(
-            {
-                "constraint_name": "weight_sum",
-                "satisfied": abs(weight_sum - 1.0) < 1e-6,
-                "weight_sum": weight_sum,
-                "target": 1.0,
-            }
-        )
+        diagnostics.append({
+            "constraint_name": "weight_sum",
+            "satisfied": abs(weight_sum - 1.0) < 1e-6,
+            "weight_sum": weight_sum,
+            "target": 1.0,
+        })
 
         # Individual constraint diagnostics
         for c in ctx.constraints:
             try:
                 diag = c.diagnostic(weights, ctx)
-                diagnostics.append(
-                    {
-                        "constraint_name": c.name,
-                        "satisfied": diag.get("satisfied", True),
-                        **diag,
-                    }
-                )
+                diagnostics.append({
+                    "constraint_name": c.name,
+                    "satisfied": diag.get("satisfied", True),
+                    **diag,
+                })
             except Exception:
-                diagnostics.append(
-                    {
-                        "constraint_name": getattr(c, "name", str(c)),
-                        "satisfied": None,
-                        "error": "diagnostic_failed",
-                    }
-                )
+                diagnostics.append({
+                    "constraint_name": getattr(c, "name", str(c)),
+                    "satisfied": None,
+                    "error": "diagnostic_failed",
+                })
 
         return diagnostics

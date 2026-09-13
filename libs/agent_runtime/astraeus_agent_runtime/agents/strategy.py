@@ -18,14 +18,12 @@ STRATEGY_SPEC = AgentSpec(
     name="strategy",
     prompt_key="strategy_agent.system",
     output_schema=StrategyOutput,
-    allowed_tools=frozenset(
-        {
-            "query_strategy_registry",
-            "get_strategy_signal",
-            "get_factor_exposure",
-            "get_backtest_metrics",
-        }
-    ),
+    allowed_tools=frozenset({
+        "query_strategy_registry",
+        "get_strategy_signal",
+        "get_factor_exposure",
+        "get_backtest_metrics",
+    }),
     model_tier="reasoning",
 )
 
