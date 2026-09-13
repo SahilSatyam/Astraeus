@@ -15,7 +15,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,6 +24,14 @@ class Environment(StrEnum):
     CI = "ci"
     STAGING = "staging"
     PROD = "prod"
+
+
+# Sentinel default values that are acceptable in local/ci dev only.
+# If any of these reach a staging/prod environment we fail fast at startup
+# rather than running with a known-weak credential.
+_DEFAULT_DB_PASSWORD = "astraeus"  # noqa: S105 — known dev sentinel, validated against
+_DEFAULT_MINIO_SECRET = "astraeus123"  # noqa: S105 — known dev sentinel
+_INSECURE_ENVS: frozenset[Environment] = frozenset({Environment.STAGING, Environment.PROD})
 
 
 def _config(prefix: str) -> SettingsConfigDict:
@@ -88,14 +96,6 @@ class RedisSettings(BaseSettings):
         return f"redis://{auth}{self.host}:{self.port}/{self.db}"
 
 
-class KafkaSettings(BaseSettings):
-    model_config = _config("ASTRAEUS_KAFKA_")
-
-    bootstrap_servers: str = "localhost:9092"
-    client_id: str = "astraeus"
-    schema_registry_url: str = "http://localhost:8081"
-
-
 class ObservabilitySettings(BaseSettings):
     model_config = _config("ASTRAEUS_OBS_")
 
@@ -141,10 +141,36 @@ class Settings(BaseSettings):
     app: AppSettings = Field(default_factory=AppSettings)
     db: DatabaseSettings = Field(default_factory=DatabaseSettings)
     redis: RedisSettings = Field(default_factory=RedisSettings)
-    kafka: KafkaSettings = Field(default_factory=KafkaSettings)
     observability: ObservabilitySettings = Field(default_factory=ObservabilitySettings)
     minio: MinIOSettings = Field(default_factory=MinIOSettings)
     marketdata: MarketDataSettings = Field(default_factory=MarketDataSettings)
+
+    @model_validator(mode="after")
+    def _reject_default_secrets_outside_local(self) -> Settings:
+        """Refuse to boot in staging/prod with known-weak development defaults.
+
+        These default values are convenient for `make dev`, but if they ever
+        reach a deployed environment that is a serious incident. Fail fast at
+        process start with a clear error.
+        """
+        if self.env not in _INSECURE_ENVS:
+            return self
+
+        offenders: list[str] = []
+        if self.db.password.get_secret_value() == _DEFAULT_DB_PASSWORD:
+            offenders.append("ASTRAEUS_DB_PASSWORD")
+        if self.minio.secret_key.get_secret_value() == _DEFAULT_MINIO_SECRET:
+            offenders.append("ASTRAEUS_MINIO_SECRET_KEY")
+
+        if offenders:
+            joined = ", ".join(offenders)
+            msg = (
+                f"Refusing to start in env={self.env.value!r} with default "
+                f"development secrets still in place: {joined}. "
+                "Set strong values via environment variables or your secret store."
+            )
+            raise ValueError(msg)
+        return self
 
     # Convenience properties for adapter construction
     @property

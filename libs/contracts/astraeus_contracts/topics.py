@@ -1,6 +1,6 @@
-"""Canonical topic name builders.
+"""Canonical stream name builders.
 
-Provides type-safe topic name construction following the naming policy:
+Provides type-safe stream name construction following the naming policy:
   md.{asset_class}.{resolution_or_type}.v{version}
 
 See TOPIC_NAMING.md for the full policy document.
