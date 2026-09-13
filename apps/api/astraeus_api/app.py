@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from astraeus_auth import AuthSettings
 from astraeus_config import Settings
 from astraeus_observability import configure_logging, configure_tracing
@@ -9,6 +11,7 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from prometheus_fastapi_instrumentator import Instrumentator
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from astraeus_api.errors import register_exception_handlers
 from astraeus_api.lifespan import lifespan
@@ -49,6 +52,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = settings
     app.state.auth_settings = AuthSettings()
+
+    # Trust X-Forwarded-For/-Proto from the reverse proxy so that
+    # request.client.host reflects the real client IP (used for rate-limit
+    # keys and audit logging). The trusted-hosts CIDR is configurable; default
+    # to "*" which matches uvicorn's CLI default and is appropriate when the
+    # process only listens on a private network behind Caddy.
+    # CORS is intentionally not configured here: the Next.js frontend is
+    # served same-origin via Caddy in prod. If a cross-origin client is added,
+    # wire CORSMiddleware with an explicit allow-list of origins.
+    forwarded_trusted = os.environ.get("ASTRAEUS_API_FORWARDED_ALLOW_IPS", "*").strip()
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=forwarded_trusted)
 
     app.add_middleware(RequestContextMiddleware)
     app.add_middleware(RateLimitMiddleware)

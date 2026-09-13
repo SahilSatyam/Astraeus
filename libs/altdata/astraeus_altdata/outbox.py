@@ -1,7 +1,7 @@
 """Alt-data outbox — mirrors the Phase 1 outbox pattern for document events.
 
 When a new document is ingested, an outbox entry is created in the same
-transaction. The relay publishes it to Redpanda, triggering the NLP pipeline.
+transaction. The relay publishes it to Redis Streams, triggering the NLP pipeline.
 """
 
 from __future__ import annotations

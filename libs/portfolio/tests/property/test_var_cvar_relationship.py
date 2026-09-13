@@ -85,7 +85,8 @@ class TestVaRCVaRRelationshipInvariant:
         report = compute_var_cvar(returns, config=config, seed=42)
 
         for result in report.results:
-            assert result.cvar_pct >= result.var_pct, (
+            # Allow for tiny floating point discrepancies
+            assert result.cvar_pct >= result.var_pct - 1e-8, (
                 f"CVaR ({result.cvar_pct:.6f}%) < VaR ({result.var_pct:.6f}%) "
                 f"for method={result.method}, confidence={result.confidence_level}"
             )
