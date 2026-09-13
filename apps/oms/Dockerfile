@@ -40,7 +40,6 @@ WORKDIR /app
 
 # Copy installed packages and app from build stage
 COPY --from=base /app /app
-COPY --from=base /usr/local/lib/python3.12 /usr/local/lib/python3.12
 COPY --from=base /usr/local/bin /usr/local/bin
 
 USER astraeus
