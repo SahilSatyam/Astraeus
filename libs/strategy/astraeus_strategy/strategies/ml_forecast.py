@@ -101,9 +101,9 @@ class MLForecast(Strategy):
             return {}
 
         # Get latest features for prediction
-        latest = panel.group_by("symbol").agg([
-            pl.col(c).last().alias(c) for c in feature_cols if c in panel.columns
-        ])
+        latest = panel.group_by("symbol").agg(
+            [pl.col(c).last().alias(c) for c in feature_cols if c in panel.columns]
+        )
 
         available_cols = [c for c in feature_cols if c in latest.columns]
         if not available_cols:

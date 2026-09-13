@@ -129,22 +129,24 @@ class StreamingWorker:
             # Take first of duplicates within the batch
             if key not in bar_by_key:
                 bar_by_key[key] = bar
-                insert_values.append({
-                    "symbol": bar.symbol,
-                    "ts": bar.ts,
-                    "resolution": bar.resolution,
-                    "source": source,
-                    "open": bar.open,
-                    "high": bar.high,
-                    "low": bar.low,
-                    "close": bar.close,
-                    "volume": bar.volume,
-                    "vwap": bar.vwap,
-                    "trades": bar.trades,
-                    "schema_version": 1,
-                    "ingest_run_id": run_id,
-                    "payload_hash": compute_payload_hash(bar, source),
-                })
+                insert_values.append(
+                    {
+                        "symbol": bar.symbol,
+                        "ts": bar.ts,
+                        "resolution": bar.resolution,
+                        "source": source,
+                        "open": bar.open,
+                        "high": bar.high,
+                        "low": bar.low,
+                        "close": bar.close,
+                        "volume": bar.volume,
+                        "vwap": bar.vwap,
+                        "trades": bar.trades,
+                        "schema_version": 1,
+                        "ingest_run_id": run_id,
+                        "payload_hash": compute_payload_hash(bar, source),
+                    }
+                )
 
         stmt = (
             insert(MarketBarRaw)
@@ -164,18 +166,20 @@ class StreamingWorker:
                     bar = bar_by_key[key]
 
                     # Outbox entry
-                    outbox_payload = json.dumps({
-                        "symbol": bar.symbol,
-                        "ts": bar.ts.isoformat(),
-                        "resolution": bar.resolution,
-                        "open": str(bar.open),
-                        "high": str(bar.high),
-                        "low": str(bar.low),
-                        "close": str(bar.close),
-                        "volume": bar.volume,
-                        "source": source,
-                        "run_id": str(run_id),
-                    }).encode()
+                    outbox_payload = json.dumps(
+                        {
+                            "symbol": bar.symbol,
+                            "ts": bar.ts.isoformat(),
+                            "resolution": bar.resolution,
+                            "open": str(bar.open),
+                            "high": str(bar.high),
+                            "low": str(bar.low),
+                            "close": str(bar.close),
+                            "volume": bar.volume,
+                            "source": source,
+                            "run_id": str(run_id),
+                        }
+                    ).encode()
 
                     outboxes.append(
                         Outbox(

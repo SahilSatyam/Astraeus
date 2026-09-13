@@ -28,14 +28,9 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger("astraeus.features.parquet_writer")
 
-REQUIRED_COLUMNS = frozenset({
-    "symbol",
-    "event_ts",
-    "knowledge_ts",
-    "value",
-    "value_version",
-    "source_hash",
-})
+REQUIRED_COLUMNS = frozenset(
+    {"symbol", "event_ts", "knowledge_ts", "value", "value_version", "source_hash"}
+)
 NUM_SYMBOL_BUCKETS = 16
 ROW_GROUP_SIZE = 128 * 1024 * 1024  # 128 MB
 
@@ -50,8 +45,7 @@ def _add_partition_columns(df: pl.DataFrame) -> pl.DataFrame:
     """Add dt and symbol_bucket columns for partitioning."""
     return df.with_columns(
         pl.col("event_ts").dt.date().cast(pl.Utf8).alias("dt"),
-        pl
-        .col("symbol")
+        pl.col("symbol")
         .map_elements(lambda s: _symbol_bucket(s), return_dtype=pl.Int32)
         .alias("symbol_bucket"),
     )
@@ -122,12 +116,14 @@ def write_local(
 
         row_count = len(write_df)
         total_rows += row_count
-        partitions.append({
-            "dt": str(dt),
-            "symbol_bucket": int(bucket),  # type: ignore[arg-type]
-            "row_count": row_count,
-            "path": str(out_path.relative_to(base_path)),
-        })
+        partitions.append(
+            {
+                "dt": str(dt),
+                "symbol_bucket": int(bucket),  # type: ignore[arg-type]
+                "row_count": row_count,
+                "path": str(out_path.relative_to(base_path)),
+            }
+        )
 
     # Write manifest
     manifest = _build_manifest(partitions, definition_hash, total_rows)
@@ -208,12 +204,14 @@ def write_minio(
 
         row_count = len(write_df)
         total_rows += row_count
-        partitions.append({
-            "dt": str(dt),
-            "symbol_bucket": int(symbol_bucket),  # type: ignore[arg-type]
-            "row_count": row_count,
-            "path": f"s3://{bucket}/{object_key}",
-        })
+        partitions.append(
+            {
+                "dt": str(dt),
+                "symbol_bucket": int(symbol_bucket),  # type: ignore[arg-type]
+                "row_count": row_count,
+                "path": f"s3://{bucket}/{object_key}",
+            }
+        )
 
     # Write manifest
     manifest = _build_manifest(partitions, definition_hash, total_rows)

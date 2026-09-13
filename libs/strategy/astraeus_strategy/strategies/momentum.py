@@ -61,8 +61,7 @@ class Momentum12_1(Strategy):
         # Get momentum scores for universe members at as_of_ts
         # The feature panel is already PIT-filtered (ts <= as_of_ts)
         scores = (
-            feature_panel
-            .filter(pl.col("symbol").is_in(universe))
+            feature_panel.filter(pl.col("symbol").is_in(universe))
             .group_by("symbol")
             .agg(pl.col("close").last().alias("last_close"))
             .collect()

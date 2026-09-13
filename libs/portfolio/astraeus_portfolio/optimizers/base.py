@@ -399,17 +399,21 @@ class Optimizer(ABC):
         for c in ctx.constraints:
             try:
                 diag = c.diagnostic(weights, ctx)
-                diagnostics.append({
-                    "constraint_name": c.name,
-                    "satisfied": diag.get("satisfied", True),
-                    **diag,
-                })
+                diagnostics.append(
+                    {
+                        "constraint_name": c.name,
+                        "satisfied": diag.get("satisfied", True),
+                        **diag,
+                    }
+                )
             except Exception:
-                diagnostics.append({
-                    "constraint_name": getattr(c, "name", str(c)),
-                    "satisfied": None,
-                    "error": "diagnostic_failed",
-                })
+                diagnostics.append(
+                    {
+                        "constraint_name": getattr(c, "name", str(c)),
+                        "satisfied": None,
+                        "error": "diagnostic_failed",
+                    }
+                )
 
         return OptResult(
             weights=weights,

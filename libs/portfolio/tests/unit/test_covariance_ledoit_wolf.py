@@ -142,13 +142,15 @@ class TestLedoitWolfShrinkage:
         n = 5
         # Use correlated returns so the target differs from sample cov
         # Same DGP (same seed, same correlation structure) but different T
-        cov_true = np.array([
-            [1.0, 0.5, 0.3, 0.2, 0.1],
-            [0.5, 1.0, 0.4, 0.3, 0.2],
-            [0.3, 0.4, 1.0, 0.5, 0.3],
-            [0.2, 0.3, 0.5, 1.0, 0.4],
-            [0.1, 0.2, 0.3, 0.4, 1.0],
-        ])
+        cov_true = np.array(
+            [
+                [1.0, 0.5, 0.3, 0.2, 0.1],
+                [0.5, 1.0, 0.4, 0.3, 0.2],
+                [0.3, 0.4, 1.0, 0.5, 0.3],
+                [0.2, 0.3, 0.5, 1.0, 0.4],
+                [0.1, 0.2, 0.3, 0.4, 1.0],
+            ]
+        )
         L = np.linalg.cholesky(cov_true)
 
         rng_small = np.random.default_rng(55)

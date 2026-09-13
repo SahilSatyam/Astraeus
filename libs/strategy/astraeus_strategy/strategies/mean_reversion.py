@@ -59,13 +59,14 @@ class MeanReversion5d(Strategy):
 
         # Get latest 5-day returns for universe
         panel = (
-            feature_panel
-            .filter(pl.col("symbol").is_in(universe))
+            feature_panel.filter(pl.col("symbol").is_in(universe))
             .group_by("symbol")
-            .agg([
-                pl.col("close").last().alias("last_close"),
-                pl.col("close").shift(5).last().alias("close_5d_ago"),
-            ])
+            .agg(
+                [
+                    pl.col("close").last().alias("last_close"),
+                    pl.col("close").shift(5).last().alias("close_5d_ago"),
+                ]
+            )
             .collect()
         )
 

@@ -215,18 +215,20 @@ async def _persist_result(
             session.add(bar_row)
 
             # Outbox entry (same transaction)
-            outbox_payload = json.dumps({
-                "symbol": bar.symbol,
-                "ts": bar.ts.isoformat(),
-                "resolution": bar.resolution,
-                "open": str(bar.open),
-                "high": str(bar.high),
-                "low": str(bar.low),
-                "close": str(bar.close),
-                "volume": bar.volume,
-                "source": result.source,
-                "run_id": str(run.run_id),
-            }).encode()
+            outbox_payload = json.dumps(
+                {
+                    "symbol": bar.symbol,
+                    "ts": bar.ts.isoformat(),
+                    "resolution": bar.resolution,
+                    "open": str(bar.open),
+                    "high": str(bar.high),
+                    "low": str(bar.low),
+                    "close": str(bar.close),
+                    "volume": bar.volume,
+                    "source": result.source,
+                    "run_id": str(run.run_id),
+                }
+            ).encode()
 
             outbox_row = Outbox(
                 topic=topic,

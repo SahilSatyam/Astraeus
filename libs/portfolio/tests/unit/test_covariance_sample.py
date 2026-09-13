@@ -198,11 +198,13 @@ class TestSampleCovarianceEdgeCases:
     def test_known_covariance(self, estimator: SampleCovarianceEstimator) -> None:
         """Verify against a known covariance for a simple case."""
         # Two perfectly correlated assets
-        returns = np.array([
-            [0.01, 0.02],
-            [0.02, 0.04],
-            [-0.01, -0.02],
-        ])
+        returns = np.array(
+            [
+                [0.01, 0.02],
+                [0.02, 0.04],
+                [-0.01, -0.02],
+            ]
+        )
         config = CovarianceConfig(eigenvalue_floor=1e-10)
         result = estimator.estimate(returns, config)
 

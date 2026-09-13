@@ -18,12 +18,14 @@ PORTFOLIO_SPEC = AgentSpec(
     name="portfolio",
     prompt_key="portfolio_agent.system",
     output_schema=PortfolioCommentary,
-    allowed_tools=frozenset({
-        "get_portfolio_state",
-        "get_exposure_breakdown",
-        "get_factor_attribution",
-        "get_optimizer_suggestion",
-    }),
+    allowed_tools=frozenset(
+        {
+            "get_portfolio_state",
+            "get_exposure_breakdown",
+            "get_factor_attribution",
+            "get_optimizer_suggestion",
+        }
+    ),
     model_tier="synthesis",
 )
 

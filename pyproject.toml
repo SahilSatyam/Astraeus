@@ -64,9 +64,22 @@ ignore = [
     "S101",    # asserts ok in tests
     "PLR0913", # don't nit on argument count
     "PLR0917", # don't nit on positional argument count
-    "PLW0717", # allow big try blocks
-    "PLR6201", # allow list membership test
-    "PLR6301", # allow class methods that dont use self
+    "PLR6301", # allow methods that dont use self
+    "PLR0914", # too many local variables
+    "RUF069", # allow float comparison in tests
+    "PLC2701", # allow private imports in tests
+    "B903", # allow regular classes instead of dataclasses
+    "PLR6104", # allow standard assignment instead of augmented
+    "RUF052", # allow local dummy variables
+    "PLR6201", # allow set membership over list
+    "PLW0717", # allow exception blocks with more statements
+    "RUF029", # allow async functions without await
+    "RUF031", # allow parens around tuple subscripts
+    "RUF067", # allow code in __init__.py
+    "S404", # allow subprocess
+    "PLC1901", # allow == "" string checks
+    "RUF075",
+    "PLR1702",
     "PLR2004", # magic numbers occasionally fine
     "B008",    # FastAPI Query/Depends in defaults is standard pattern
     "PLC0415", # import outside top-level — intentional lazy loading for heavy ML models

@@ -125,12 +125,14 @@ class WorkflowOrchestrator:
                 step_duration = (time.perf_counter() - step_start) * 1000
 
                 # Record step
-                state["steps"].append({
-                    "step_id": str(step_id),
-                    "agent_name": step_name,
-                    "status": "error" if "error" in step_output else "completed",
-                    "duration_ms": round(step_duration, 1),
-                })
+                state["steps"].append(
+                    {
+                        "step_id": str(step_id),
+                        "agent_name": step_name,
+                        "status": "error" if "error" in step_output else "completed",
+                        "duration_ms": round(step_duration, 1),
+                    }
+                )
 
                 # Store output in state
                 state[f"{step_name}_output"] = step_output  # type: ignore[literal-required]

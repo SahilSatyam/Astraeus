@@ -137,9 +137,9 @@ def run_experiment(
                     str(sorted(feature_hash_map.items())).encode()
                 ).hexdigest()
                 mlflow.set_tag("data_lineage_hash", lineage_hash)
-                mlflow.log_params({
-                    f"feature_hash.{k}": v[:12] for k, v in feature_hash_map.items()
-                })
+                mlflow.log_params(
+                    {f"feature_hash.{k}": v[:12] for k, v in feature_hash_map.items()}
+                )
 
             if universe_members:
                 universe_hash = _compute_universe_hash(universe_members)

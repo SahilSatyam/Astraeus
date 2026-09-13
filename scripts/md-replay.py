@@ -192,19 +192,21 @@ async def _replay_to_outbox(
             for row in rows:
                 rows_processed += 1
 
-                outbox_payload = json.dumps({
-                    "symbol": row.symbol,
-                    "ts": row.ts.isoformat(),
-                    "resolution": row.resolution,
-                    "open": str(row.open),
-                    "high": str(row.high),
-                    "low": str(row.low),
-                    "close": str(row.close),
-                    "volume": row.volume,
-                    "source": row.source,
-                    "run_id": str(row.ingest_run_id),
-                    "replay": True,
-                }).encode()
+                outbox_payload = json.dumps(
+                    {
+                        "symbol": row.symbol,
+                        "ts": row.ts.isoformat(),
+                        "resolution": row.resolution,
+                        "open": str(row.open),
+                        "high": str(row.high),
+                        "low": str(row.low),
+                        "close": str(row.close),
+                        "volume": row.volume,
+                        "source": row.source,
+                        "run_id": str(row.ingest_run_id),
+                        "replay": True,
+                    }
+                ).encode()
 
                 if not dry_run:
                     session.add(

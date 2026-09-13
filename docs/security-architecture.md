@@ -94,7 +94,8 @@ graph TD
 @router.post("/oms/orders")
 async def submit_order(
     user: Annotated[Principal, Depends(require_trading_permission)],
-): ...
+):
+    ...
 ```
 
 ---

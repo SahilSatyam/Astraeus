@@ -90,13 +90,15 @@ class DailyReportRenderer:
         for pw in portfolio.weights:
             prior = prior_weight_map.get(pw.symbol)
             delta = float(pw.weight) - float(prior) if prior is not None else None
-            positions.append({
-                "symbol": pw.symbol,
-                "sector": pw.sector,
-                "weight": float(pw.weight),
-                "prior_weight": float(prior) if prior is not None else None,
-                "delta": delta,
-            })
+            positions.append(
+                {
+                    "symbol": pw.symbol,
+                    "sector": pw.sector,
+                    "weight": float(pw.weight),
+                    "prior_weight": float(prior) if prior is not None else None,
+                    "delta": delta,
+                }
+            )
 
         # Sort by absolute weight descending
         positions.sort(key=lambda p: abs(p["weight"]), reverse=True)

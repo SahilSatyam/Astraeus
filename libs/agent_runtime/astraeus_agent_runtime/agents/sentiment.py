@@ -19,12 +19,14 @@ SENTIMENT_SPEC = AgentSpec(
     name="sentiment",
     prompt_key="sentiment_agent.system",
     output_schema=SentimentNarrative,
-    allowed_tools=frozenset({
-        "get_sentiment_features",
-        "search_news",
-        "search_social_posts",
-        "get_event_study",
-    }),
+    allowed_tools=frozenset(
+        {
+            "get_sentiment_features",
+            "search_news",
+            "search_social_posts",
+            "get_event_study",
+        }
+    ),
     model_tier="synthesis",
 )
 

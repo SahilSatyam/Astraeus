@@ -41,11 +41,13 @@ def configure_tracing(
     if isinstance(existing, TracerProvider):
         return existing
 
-    resource = Resource.create({
-        ResourceAttributes.SERVICE_NAME: service_name,
-        ResourceAttributes.SERVICE_VERSION: service_version,
-        ResourceAttributes.DEPLOYMENT_ENVIRONMENT: environment,
-    })
+    resource = Resource.create(
+        {
+            ResourceAttributes.SERVICE_NAME: service_name,
+            ResourceAttributes.SERVICE_VERSION: service_version,
+            ResourceAttributes.DEPLOYMENT_ENVIRONMENT: environment,
+        }
+    )
     provider = TracerProvider(
         resource=resource,
         sampler=ParentBased(TraceIdRatioBased(settings.sample_rate)),

@@ -478,11 +478,13 @@ class TestBetaEstimation:
         n_assets = 3
 
         factor_returns = rng.standard_normal((T, 6)) * 0.01
-        true_betas = np.array([
-            [1.0, 0.5, -0.3, 0.2, 0.1, -0.4],
-            [0.8, -0.2, 0.6, -0.1, 0.3, 0.2],
-            [1.2, 0.3, 0.1, 0.5, -0.2, 0.7],
-        ])
+        true_betas = np.array(
+            [
+                [1.0, 0.5, -0.3, 0.2, 0.1, -0.4],
+                [0.8, -0.2, 0.6, -0.1, 0.3, 0.2],
+                [1.2, 0.3, 0.1, 0.5, -0.2, 0.7],
+            ]
+        )
 
         # Generate asset returns from factor model (no noise for exact recovery)
         asset_returns = factor_returns @ true_betas.T
