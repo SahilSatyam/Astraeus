@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 from astraeus_entities.aliases import extract_cashtags, normalize_company_name
-from astraeus_entities.ticker_dict import build_default_dictionary
+from astraeus_entities.ticker_dict import TickerDictionary, TickerEntry, build_default_dictionary
 
 
 @pytest.mark.unit
@@ -35,6 +35,18 @@ class TestTickerDictionary:
         entries = d.lookup_alias("iPhone-maker")
         assert len(entries) == 1
         assert entries[0].symbol == "AAPL"
+
+    def test_lookup_alias_multiple_matches(self) -> None:
+        d = TickerDictionary()
+        entry1 = TickerEntry(symbol="TEST1", company_name="Test 1", aliases=("overlapping",))
+        entry2 = TickerEntry(symbol="TEST2", company_name="Test 2", aliases=("overlapping",))
+        d.add(entry1)
+        d.add(entry2)
+
+        entries = d.lookup_alias("overlapping")
+        assert len(entries) == 2
+        assert entry1 in entries
+        assert entry2 in entries
 
     def test_resolve_symbol(self) -> None:
         d = build_default_dictionary()
