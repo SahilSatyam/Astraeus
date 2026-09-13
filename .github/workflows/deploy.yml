@@ -47,11 +47,25 @@ jobs:
           cache-from: type=gha,scope=astraeus-${{ matrix.app }}
           cache-to: type=gha,mode=max,scope=astraeus-${{ matrix.app }}
 
+  check-secrets:
+    name: Check deployment secrets
+    runs-on: ubuntu-latest
+    outputs:
+      has-secrets: ${{ steps.check.outputs.has-secrets }}
+    steps:
+      - id: check
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          if [ -n "$VPS_HOST" ]; then
+            echo "has-secrets=true" >> "$GITHUB_OUTPUT"
+          fi
+
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs: [build]
+    if: github.ref == 'refs/heads/main' && needs.check-secrets.outputs.has-secrets == 'true'
+    needs: [build, check-secrets]
     environment: production
     steps:
       - name: Deploy via SSH
