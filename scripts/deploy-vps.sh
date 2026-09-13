@@ -9,8 +9,8 @@ VPS_USER="${VPS_USER:-deploy}"
 echo "==> Deploying to ${VPS_HOST}..."
 ssh "${VPS_USER}@${VPS_HOST}" << 'EOF'
   cd /opt/astraeus
-  docker compose -f compose.prod.yml pull
-  docker compose -f compose.prod.yml up -d --remove-orphans
+  docker compose -f infra/docker/compose.prod.yml pull
+  docker compose -f infra/docker/compose.prod.yml up -d --remove-orphans
   docker image prune -f
   echo "==> Deploy complete"
 EOF

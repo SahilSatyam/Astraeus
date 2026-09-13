@@ -63,6 +63,7 @@ select = [
 ignore = [
     "S101",    # asserts ok in tests
     "PLR0913", # don't nit on argument count
+    "PLR0917", # don't nit on positional argument count
     "PLR2004", # magic numbers occasionally fine
     "B008",    # FastAPI Query/Depends in defaults is standard pattern
     "PLC0415", # import outside top-level — intentional lazy loading for heavy ML models
