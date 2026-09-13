@@ -313,13 +313,8 @@ def task_estimate_betas(
             betas = np.ones(n_assets)
         else:
             market_demean = recent_market - np.mean(recent_market)
-            betas = np.array(
-                [
-                    np.sum((recent_assets[:, i] - np.mean(recent_assets[:, i])) * market_demean)
-                    / ((T - 1) * market_var)
-                    for i in range(n_assets)
-                ]
-            )
+            assets_demean = recent_assets - np.mean(recent_assets, axis=0)
+            betas = (assets_demean.T @ market_demean) / ((T - 1) * market_var)
 
         elapsed = (time.perf_counter() - start) * 1000
         return TaskResult(
