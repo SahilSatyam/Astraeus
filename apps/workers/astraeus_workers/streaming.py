@@ -17,7 +17,7 @@ import structlog
 from astraeus_marketdata.adapters.alpaca_ws import AlpacaStreamClient, StreamFeed
 from astraeus_marketdata.adapters.base import BarRecord, compute_payload_hash
 from astraeus_marketdata.models import MarketBarRaw, Outbox
-from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -116,68 +116,82 @@ class StreamingWorker:
 
     async def _flush_batch(self, bars: list[BarRecord]) -> None:
         """Persist a batch of bars to the database."""
+        if not bars:
+            return
+
         run_id = uuid.uuid4()
+        source = "alpaca"
 
-        async with self._session_factory() as session:
-            for bar in bars:
-                payload_hash = compute_payload_hash(bar, "alpaca")
-
-                # Idempotency check
-                existing = await session.execute(
-                    select(MarketBarRaw.symbol).where(
-                        MarketBarRaw.symbol == bar.symbol,
-                        MarketBarRaw.ts == bar.ts,
-                        MarketBarRaw.resolution == bar.resolution,
-                        MarketBarRaw.source == "alpaca",
-                    )
-                )
-                if existing.scalar_one_or_none() is not None:
-                    continue
-
-                bar_row = MarketBarRaw(
-                    symbol=bar.symbol,
-                    ts=bar.ts,
-                    resolution=bar.resolution,
-                    open=bar.open,
-                    high=bar.high,
-                    low=bar.low,
-                    close=bar.close,
-                    volume=bar.volume,
-                    vwap=bar.vwap,
-                    trades=bar.trades,
-                    source="alpaca",
-                    schema_version=1,
-                    ingest_run_id=run_id,
-                    payload_hash=payload_hash,
-                )
-                session.add(bar_row)
-
-                # Outbox entry
-                outbox_payload = json.dumps(
+        insert_values = []
+        bar_by_key = {}
+        for bar in bars:
+            key = (bar.symbol, bar.ts, bar.resolution, source)
+            # Take first of duplicates within the batch
+            if key not in bar_by_key:
+                bar_by_key[key] = bar
+                insert_values.append(
                     {
                         "symbol": bar.symbol,
-                        "ts": bar.ts.isoformat(),
+                        "ts": bar.ts,
                         "resolution": bar.resolution,
-                        "open": str(bar.open),
-                        "high": str(bar.high),
-                        "low": str(bar.low),
-                        "close": str(bar.close),
+                        "source": source,
+                        "open": bar.open,
+                        "high": bar.high,
+                        "low": bar.low,
+                        "close": bar.close,
                         "volume": bar.volume,
-                        "source": "alpaca",
-                        "run_id": str(run_id),
+                        "vwap": bar.vwap,
+                        "trades": bar.trades,
+                        "schema_version": 1,
+                        "ingest_run_id": run_id,
+                        "payload_hash": compute_payload_hash(bar, source),
                     }
-                ).encode()
-
-                session.add(
-                    Outbox(
-                        topic=_TOPIC,
-                        key=bar.symbol.encode(),
-                        payload=outbox_payload,
-                        headers={"source": "alpaca", "run_id": str(run_id)},
-                    )
                 )
 
-                self._bars_persisted += 1
+        stmt = (
+            insert(MarketBarRaw)
+            .values(insert_values)
+            .on_conflict_do_nothing(index_elements=["symbol", "ts", "resolution", "source"])
+            .returning(MarketBarRaw.symbol, MarketBarRaw.ts, MarketBarRaw.resolution)
+        )
+
+        async with self._session_factory() as session:
+            result = await session.execute(stmt)
+            inserted_rows = result.all()
+
+            if inserted_rows:
+                outboxes = []
+                for row in inserted_rows:
+                    key = (row.symbol, row.ts, row.resolution, source)
+                    bar = bar_by_key[key]
+
+                    # Outbox entry
+                    outbox_payload = json.dumps(
+                        {
+                            "symbol": bar.symbol,
+                            "ts": bar.ts.isoformat(),
+                            "resolution": bar.resolution,
+                            "open": str(bar.open),
+                            "high": str(bar.high),
+                            "low": str(bar.low),
+                            "close": str(bar.close),
+                            "volume": bar.volume,
+                            "source": source,
+                            "run_id": str(run_id),
+                        }
+                    ).encode()
+
+                    outboxes.append(
+                        Outbox(
+                            topic=_TOPIC,
+                            key=bar.symbol.encode(),
+                            payload=outbox_payload,
+                            headers={"source": source, "run_id": str(run_id)},
+                        )
+                    )
+
+                session.add_all(outboxes)
+                self._bars_persisted += len(outboxes)
 
             await session.commit()
 
