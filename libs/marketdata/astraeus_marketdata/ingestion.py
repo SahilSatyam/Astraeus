@@ -116,6 +116,11 @@ async def run_ingestion(
     try:
         results = await adapter.fetch_bars(symbols, start, end, resolution)
 
+        # Map result -> archive_uri instead of mutating a private attribute
+        # on the third-party result type. Identity-keyed because AdapterResult
+        # may not be hashable.
+        archive_uris: dict[int, str] = {}
+
         for result in results:
             run.rows_fetched += len(result.bars)
 
@@ -132,8 +137,7 @@ async def run_ingestion(
                         symbol=primary_symbol,
                         metadata={"resolution": resolution},
                     )
-                    # Store URI for lineage records
-                    result._archive_uri = uri  # type: ignore[attr-defined]
+                    archive_uris[id(result)] = uri
                 except Exception as archive_exc:
                     # Archival failure is non-fatal — log and continue
                     logger.warning(
@@ -142,7 +146,7 @@ async def run_ingestion(
                         error=str(archive_exc),
                     )
 
-            await _persist_result(session, result, run, topic)
+            await _persist_result(session, result, run, topic, archive_uris.get(id(result)))
 
         run.completed_at = datetime.now(tz=UTC)
 
@@ -171,10 +175,9 @@ async def _persist_result(
     result: AdapterResult,
     run: IngestionRun,
     topic: str,
+    archive_uri: str | None = None,
 ) -> None:
     """Persist bars from a single adapter result with deduplication."""
-    archive_uri = getattr(result, "_archive_uri", None)
-
     for bar in result.bars:
         try:
             payload_hash = compute_payload_hash(bar, result.source)

@@ -3,8 +3,9 @@ SHELL := /bin/bash
 COMPOSE := docker compose -f infra/docker/compose.yml -f infra/docker/compose.override.yml
 
 .PHONY: help bootstrap dev down stop clean logs ps fmt lint typecheck test test-int \
-        migrate downgrade revision build smoke env-lint precommit-install \
-        dev-k8s k8s-down k8s-clean helm-lint tf-validate tf-plan \
+        migrate downgrade revision build smoke env-lint precommit-install backup \
+        prod prod-logs prod-down backfill backfill-universe replay \
+        dev-k8s k8s-down k8s-clean helm-lint helm-template tf-validate tf-plan \
         load-test generate-client
 
 help:  ## Show this help.
@@ -91,6 +92,18 @@ replay:  ## Replay market data: make replay SOURCE=yahoo START=2024-01-01 END=20
 
 precommit-install:  ## Install git hooks via pre-commit.
 	uv run pre-commit install
+
+backup:  ## Run database backup.
+	./scripts/backup-db.sh
+
+prod:  ## Deploy production stack (requires .env.prod).
+	docker compose -f infra/docker/compose.prod.yml up -d --remove-orphans
+
+prod-logs:  ## Tail production logs.
+	docker compose -f infra/docker/compose.prod.yml logs -f --tail=100
+
+prod-down:  ## Stop production stack.
+	docker compose -f infra/docker/compose.prod.yml down
 
 # ─── Phase 10: Kubernetes / Production Hardening ─────────────────────────────
 
