@@ -11,6 +11,30 @@ from astraeus_entities.ticker_dict import TickerDictionary, TickerEntry, build_d
 class TestTickerDictionary:
     """Tests for TickerDictionary lookups."""
 
+    def test_add(self) -> None:
+        d = TickerDictionary()
+        entry = TickerEntry(
+            symbol="TEST",
+            company_name="Test Company",
+            aliases=("Tester", "Testing"),
+            sector="Technology",
+        )
+        d.add(entry)
+
+        # Check by symbol
+        assert "TEST" in d._by_symbol
+        assert d._by_symbol["TEST"] == entry
+
+        # Check by name
+        assert "test company" in d._by_name
+        assert d._by_name["test company"] == entry
+
+        # Check by aliases
+        assert "tester" in d._by_alias
+        assert entry in d._by_alias["tester"]
+        assert "testing" in d._by_alias
+        assert entry in d._by_alias["testing"]
+
     def test_lookup_symbol_exact(self) -> None:
         d = build_default_dictionary()
         entry = d.lookup_symbol("AAPL")
