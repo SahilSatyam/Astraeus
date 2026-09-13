@@ -54,6 +54,14 @@ class TestTickerDictionary:
         assert entry is not None
         assert entry.symbol == "AAPL"
 
+    def test_lookup_name_case_insensitive(self) -> None:
+        d = TickerDictionary()
+        d.add(TickerEntry("TEST", "Test Company Corp.", (), "Technology"))
+
+        entry = d.lookup_name("test COMPANY corp.")
+        assert entry is not None
+        assert entry.symbol == "TEST"
+
     def test_lookup_alias(self) -> None:
         d = build_default_dictionary()
         entries = d.lookup_alias("iPhone-maker")
