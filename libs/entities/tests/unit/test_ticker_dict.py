@@ -98,6 +98,11 @@ class TestTickerDictionary:
         d = build_default_dictionary()
         assert d.size >= 10  # At least the defaults
 
+    def test_build_default_dictionary(self) -> None:
+        d = build_default_dictionary()
+        assert isinstance(d, TickerDictionary)
+        assert d.size == 14
+
 
 @pytest.mark.unit
 class TestAliases:
