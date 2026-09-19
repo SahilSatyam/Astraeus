@@ -1,0 +1,27 @@
+# Cloud Agent override: Docker Hub blocks minio/* in some environments.
+# quay.io mirrors are used instead. timescaledb-ha includes pgvector.
+name: astraeus
+
+services:
+  postgres:
+    image: astraeus/postgres-cloud:v2
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres-cloud
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+
+  minio-init:
+    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+
+  jupyterlab:
+    image: jupyter/scipy-notebook:latest
+
+  # Run API and workers on the host via uv; container images symlink to
+  # uv-managed Python paths that are not present in the runtime layer.
+  api:
+    profiles: ["containerized-app"]
+
+  workers:
+    profiles: ["containerized-app"]
