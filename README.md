@@ -382,32 +382,134 @@ flowchart TD
 | **Observability data freshness** | Metrics scraped every 15s; traces batched every 5s | Jaeger UI latency ~2s; Grafana dashboard refresh every 10s |
 | **Frontend Time-to-Interactive** | ~2.1s (on localhost:3001) | Measured on MacBook Pro M1 Pro, 16GB; production behind Caddy TLS adds ~150ms per request |
 
-> **Honest assumptions:** All benchmarks run on a single macOS M1 Pro with 16GB RAM, Docker Desktop, no external API keys (market data from Yahoo Finance, LLM disabled). Production YMMV — your mileage depends on cloud provider, RAM/CPU allocation, and whether API keys are provided for live market data/LLM copilot.
+> **Honest assumptions:** All benchmarks run on a single macOS M1 Pro with 16GB RAM, a local Docker engine (Docker Desktop or Colima), no external API keys (market data from Yahoo Finance, LLM disabled). Production YMMV — your mileage depends on cloud provider, RAM/CPU allocation, and whether API keys are provided for live market data/LLM copilot.
 
 ---
 
-## Setup (10 Lines)
+## Setup
+
+Python **3.14.7** (`.python-version`), Docker Compose v2, and Node.js 20+ (web UI only). Use a current **uv** (CI uses 0.12.17). uv 0.6.x can install CPython **3.14.0a5**, which segfaults pydantic.
+
+| Service | URL |
+|---------|-----|
+| API | http://localhost:8000 |
+| Swagger | http://localhost:8000/docs |
+| Web UI | http://localhost:3001 — login **operator** / **astraeus** |
+| Grafana | http://localhost:3000 — admin / `astraeus` |
+| Jaeger | http://localhost:16686 |
+| Prometheus | http://localhost:9090 |
+| MinIO console | http://localhost:9001 — `astraeus` / `astraeus123` |
+
+Create `apps/web/.env.local` (gitignored). `NEXTAUTH_SECRET` must match `ASTRAEUS_AUTH_JWT_SECRET` in the repo `.env` (default `change-me-in-production`):
+
+```
+NEXTAUTH_SECRET=change-me-in-production
+NEXTAUTH_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws
+AUTH_USERNAME=operator
+AUTH_PASSWORD=astraeus
+```
+
+### macOS
+
+Colima + the Homebrew Docker CLI is enough and does **not** add a Docker app in Finder. Docker Desktop is optional if you want Docker.app.
 
 ```bash
-# 1. Install tools
-which git docker uv || (curl -LsSf https://astral.sh/uv/install.sh | sh)
+brew install git uv node colima docker docker-compose
+mkdir -p ~/.docker/cli-plugins
+ln -sfn "$(brew --prefix)/opt/docker-compose/libexec/docker/cli-plugins/docker-compose" \
+  ~/.docker/cli-plugins/docker-compose
+colima start --cpu 4 --memory 8 --disk 60
+docker compose version
+```
 
-# 2. Clone + bootstrap
+Optional: install [Docker Desktop](https://www.docker.com/products/docker-desktop/) instead of Colima, then `brew install uv node`.
+
+```bash
 git clone https://github.com/SahilSatyam/Astraeus.git
 cd Astraeus
-./scripts/bootstrap.sh   # Installs Python 3.14, syncs packages, sets up hooks
-
-# 3. Start the stack
-make dev                 # Builds images, starts Postgres/Redis/MinIO/API/Workers
-
-# 4. Verify
-curl http://localhost:8000/healthz   # {"status":"ok","service":"api","version":"0.1.0-dev"}
-
-# 5. (Optional) Start web UI
-cd apps/web && npm install && npm run dev -- -p 3001
-
-# 6. Explore docs at http://localhost:8000/docs, Grafana at :3000, Jaeger at :16686
+./scripts/bootstrap.sh
+make dev
+curl http://localhost:8000/healthz
 ```
+
+If image builds fail, run the data plane in Docker and the API on the host:
+
+```bash
+docker compose -f infra/docker/compose.yml -f infra/docker/compose.override.yml \
+  up -d --wait postgres redis minio jaeger prometheus grafana
+docker compose -f infra/docker/compose.yml -f infra/docker/compose.override.yml \
+  --profile init run --rm minio-init
+cd libs/db && uv run alembic upgrade head && cd ../..
+uv run uvicorn astraeus_api.main:app --host 0.0.0.0 --port 8000
+```
+
+Web UI (Grafana already uses port 3000):
+
+```bash
+cd apps/web
+npm install
+npm run dev -- -p 3001
+```
+
+Stop:
+
+```bash
+make down          # containers only
+make clean         # containers + named volumes
+colima stop        # if you used Colima; otherwise quit Docker Desktop
+```
+
+### Windows
+
+Use **WSL2 (Ubuntu)** plus **Docker Desktop**. Colima is not a Windows native runtime. `Makefile` and `bootstrap.sh` are Unix scripts — run them in WSL, not PowerShell.
+
+1. Install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/) and enable **WSL2 integration** for your distro (Settings → Resources → WSL integration). That is the Docker app in the Start menu.
+2. Install WSL and Ubuntu if needed:
+
+```powershell
+wsl --install -d Ubuntu
+```
+
+3. In the Ubuntu shell:
+
+```bash
+sudo apt update && sudo apt install -y git make curl ca-certificates
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# Node 20+: nvm (https://github.com/nvm-sh/nvm) or https://nodejs.org
+source "$HOME/.local/bin/env"   # uv on PATH for this shell
+docker compose version          # must work via Docker Desktop's WSL backend
+```
+
+```bash
+git clone https://github.com/SahilSatyam/Astraeus.git
+cd Astraeus
+./scripts/bootstrap.sh
+make dev
+curl http://localhost:8000/healthz
+```
+
+If image builds fail:
+
+```bash
+docker compose -f infra/docker/compose.yml -f infra/docker/compose.override.yml \
+  up -d --wait postgres redis minio jaeger prometheus grafana
+docker compose -f infra/docker/compose.yml -f infra/docker/compose.override.yml \
+  --profile init run --rm minio-init
+cd libs/db && uv run alembic upgrade head && cd ../..
+uv run uvicorn astraeus_api.main:app --host 0.0.0.0 --port 8000
+```
+
+Web UI (same `.env.local` as above):
+
+```bash
+cd apps/web
+npm install
+npm run dev -- -p 3001
+```
+
+With Docker Desktop WSL integration, ports are also on Windows `localhost`. Stop in WSL with `make down` / `make clean`, then quit Docker Desktop from the system tray if you are shutting the machine down.
 
 ---
 
