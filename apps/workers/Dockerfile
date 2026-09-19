@@ -5,7 +5,9 @@ FROM python:3.14-slim AS builder
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     UV_LINK_MODE=copy \
-    UV_COMPILE_BYTECODE=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON=python3 \
+    UV_PYTHON_DOWNLOADS=never
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates build-essential \

@@ -11,20 +11,16 @@ Endpoints:
 from __future__ import annotations
 
 from datetime import date
-from typing import TYPE_CHECKING, Annotated
 
 from astraeus_domain.exceptions import NotFoundError
 from astraeus_features.dsl import FeatureDefinition
 from astraeus_features.models import MaterializationRun
 from astraeus_features.registry import get_definition, list_features, register
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from astraeus_api.deps import get_db_session
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
+from astraeus_api.deps import DbSession
 
 router = APIRouter(prefix="/features", tags=["features"])
 
@@ -129,7 +125,7 @@ class BackfillResponse(BaseModel):
 
 @router.get("", response_model=list[FeatureListItem], summary="List registered features")
 async def list_features_route(
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
     group: str | None = Query(default=None, description="Filter by feature group"),
     owner: str | None = Query(default=None, description="Filter by owner"),
 ) -> list[FeatureListItem]:
@@ -157,7 +153,7 @@ async def list_features_route(
 @router.get("/{name}", response_model=FeatureDetail, summary="Get feature details")
 async def get_feature_route(
     name: str,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
 ) -> FeatureDetail:
     """Get full details of a registered feature definition."""
     feature = await get_definition(session, name)
@@ -191,7 +187,7 @@ async def get_feature_route(
 @router.post("/register", response_model=RegisterFeatureResponse, summary="Register a feature")
 async def register_feature_route(
     request: RegisterFeatureRequest,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
 ) -> RegisterFeatureResponse:
     """Register a new feature definition (or update if hash changed)."""
     from datetime import timedelta
@@ -231,7 +227,7 @@ async def register_feature_route(
 )
 async def list_runs_route(
     name: str,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
     status: str | None = Query(default=None, description="Filter by status"),
     limit: int = Query(default=20, le=100),
 ) -> list[MaterializationRunResponse]:
@@ -271,7 +267,7 @@ async def list_runs_route(
 async def trigger_backfill_route(
     name: str,
     request: BackfillRequest,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
 ) -> BackfillResponse:
     """Trigger a backfill for the specified feature.
 

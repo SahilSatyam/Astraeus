@@ -2,7 +2,7 @@
 name = "astraeus-recommender"
 version = "0.1.0"
 description = "Daily recommendation engine — 8-stage pipeline with regime-conditional ensemble."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "pydantic>=2.6",
     "structlog>=24.1",

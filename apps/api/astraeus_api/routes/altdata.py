@@ -10,16 +10,12 @@ Endpoints:
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 
-from astraeus_api.deps import get_db_session
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
+from astraeus_api.deps import DbSession
 
 router = APIRouter(prefix="/altdata", tags=["altdata"])
 
@@ -81,7 +77,7 @@ class IngestManualResponse(BaseModel):
 
 @router.get("/documents", response_model=list[DocumentItem], summary="List documents")
 async def list_documents(
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
     ticker: str | None = Query(default=None, description="Filter by ticker (via entity mentions)"),
     source: str | None = Query(default=None, description="Filter by source"),
     from_ts: datetime | None = Query(default=None, alias="from", description="From timestamp"),
@@ -142,7 +138,7 @@ async def list_documents(
 
 @router.get("/sentiment", response_model=list[SentimentItem], summary="Get sentiment scores")
 async def get_sentiment(
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
     ticker: str = Query(..., description="Ticker symbol"),
     model: str = Query(default="finbert_v1.0", description="Sentiment model"),
     from_ts: datetime | None = Query(default=None, alias="from", description="From timestamp"),
@@ -212,7 +208,7 @@ async def trigger_manual_ingest(
 
 @router.get("/topics", response_model=list[TopicItem], summary="Get topic assignments")
 async def get_topics(
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
     model_run: str | None = Query(default=None, description="Filter by model_run_id"),
     ticker: str | None = Query(default=None, description="Filter by ticker (via entity mentions)"),
     limit: int = Query(default=100, le=500, description="Max results"),

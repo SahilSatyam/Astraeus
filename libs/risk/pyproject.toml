@@ -2,7 +2,7 @@
 name = "astraeus-risk"
 version = "0.1.0"
 description = "Pre-trade risk gateway and circuit breakers for Astraeus."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "pydantic>=2.7",
     "astraeus-domain",

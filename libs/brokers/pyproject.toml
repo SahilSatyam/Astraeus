@@ -2,7 +2,7 @@
 name = "astraeus-brokers"
 version = "0.1.0"
 description = "Broker adapters (Alpaca, IBKR, Binance) for Astraeus EMS."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "pydantic>=2.7",
     "alpaca-py>=0.30",

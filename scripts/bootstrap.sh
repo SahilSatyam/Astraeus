@@ -3,7 +3,7 @@
 #
 # - Copies .env.example -> .env if missing.
 # - Verifies uv is installed (fails with a friendly hint if not).
-# - Pins Python 3.12 via uv and syncs the workspace.
+# - Pins Python 3.14 via uv and syncs the workspace.
 # - Optionally installs pre-commit hooks.
 
 set -euo pipefail
@@ -25,7 +25,7 @@ if [[ ! -f .env ]]; then
     echo "Copied .env.example -> .env"
 fi
 
-uv python install 3.12 >/dev/null
+uv python install 3.14 >/dev/null
 uv sync --all-packages
 
 if command -v pre-commit >/dev/null 2>&1; then

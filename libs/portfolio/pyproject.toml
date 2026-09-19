@@ -2,7 +2,7 @@
 name = "astraeus-portfolio"
 version = "0.1.0"
 description = "Portfolio construction, risk management, and attribution engine."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "numpy>=1.26",
     "cvxpy>=1.5",

@@ -105,7 +105,7 @@ services:
       - "5000:5000"
 
   jupyterlab:
-    image: jupyter/scipy-notebook:python-3.12
+    image: jupyter/scipy-notebook:python-3.14
     command: start-notebook.py --NotebookApp.token='' --NotebookApp.password=''
     environment:
       JUPYTER_ENABLE_LAB: "yes"

@@ -10,7 +10,7 @@
 
 | Layer | Technology |
 |-------|-----------|
-| Language (Backend) | Python 3.12 |
+| Language (Backend) | Python 3.14 |
 | Language (Frontend) | TypeScript 5 |
 | API Framework | FastAPI + Uvicorn |
 | Frontend Framework | Next.js 16 (React 19) |

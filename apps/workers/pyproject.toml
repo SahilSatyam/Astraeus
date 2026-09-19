@@ -2,7 +2,7 @@
 name = "astraeus-workers"
 version = "0.1.0"
 description = "Astraeus background workers: outbox relay, streaming, nightly jobs."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "astraeus-config",
     "astraeus-db",

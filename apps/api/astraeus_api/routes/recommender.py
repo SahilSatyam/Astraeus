@@ -14,10 +14,10 @@ from __future__ import annotations
 from datetime import UTC
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from astraeus_api.deps import get_db_session
+from astraeus_api.deps import DbSession
 
 router = APIRouter(prefix="/reco", tags=["recommender"])
 
@@ -99,8 +99,8 @@ class ReplayResponse(BaseModel):
 
 @router.get("/runs", response_model=list[RunSummary], summary="List runs for a date")
 async def list_runs(
+    session: DbSession,
     date: str = Query(..., description="YYYY-MM-DD"),
-    session: Any = Depends(get_db_session),
 ) -> list[RunSummary]:
     """List all pipeline runs for a given date."""
     from sqlalchemy import text
@@ -133,7 +133,7 @@ async def list_runs(
 @router.get("/run/{run_id}", response_model=RunDetail, summary="Get run details")
 async def get_run(
     run_id: str,
-    session: Any = Depends(get_db_session),
+    session: DbSession,
 ) -> RunDetail:
     """Get detailed status and stage timings for a pipeline run."""
     from sqlalchemy import text
@@ -168,9 +168,9 @@ async def get_run(
     "/recommendations", response_model=list[RecommendationResponse], summary="List recommendations"
 )
 async def list_recommendations(
+    session: DbSession,
     run_id: str = Query(..., description="Filter by run_id"),
     state: str | None = Query(default=None, description="Filter by state"),
-    session: Any = Depends(get_db_session),
 ) -> list[RecommendationResponse]:
     """List recommendations for a run, optionally filtered by state."""
     from sqlalchemy import text
@@ -220,7 +220,7 @@ async def list_recommendations(
 async def decide_recommendation(
     rec_id: str,
     request: DecideRequest,
-    session: Any = Depends(get_db_session),
+    session: DbSession,
 ) -> DecideResponse:
     """Approve, reject, or override a recommendation."""
     from datetime import datetime
@@ -292,8 +292,8 @@ async def decide_recommendation(
 
 @router.get("/regime", response_model=RegimeResponse | None, summary="Get regime for a date")
 async def get_regime(
+    session: DbSession,
     date: str = Query(..., description="YYYY-MM-DD"),
-    session: Any = Depends(get_db_session),
 ) -> RegimeResponse | None:
     """Get the detected regime state for a given date."""
     from sqlalchemy import text
@@ -327,7 +327,7 @@ async def get_regime(
 )
 async def trigger_replay(
     request: ReplayRequest,
-    session: Any = Depends(get_db_session),
+    session: DbSession,
 ) -> ReplayResponse:
     """Trigger a pipeline replay for a historical date.
 

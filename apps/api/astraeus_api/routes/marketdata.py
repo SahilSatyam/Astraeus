@@ -11,7 +11,7 @@ Endpoints:
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING
 
 from astraeus_domain import AstraeusError
 from astraeus_domain.exceptions import NotFoundError
@@ -23,16 +23,14 @@ from astraeus_marketdata.adapters.yahoo import YahooAdapter
 from astraeus_marketdata.dlq import get_dlq_entries
 from astraeus_marketdata.ingestion import IngestionRun, run_ingestion
 from astraeus_marketdata.models import DataGap, DataLineage, IngestionRunRecord, MarketBarRaw
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from astraeus_api.deps import get_db_session, get_settings
+from astraeus_api.deps import DbSession, SettingsDep
 
 if TYPE_CHECKING:
-    from astraeus_config import Settings
     from astraeus_marketdata.adapters.base import BaseAdapter
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/md", tags=["market-data"])
 
@@ -103,8 +101,8 @@ _runs: dict[str, IngestionRun] = {}
 @router.post("/backfill", response_model=BackfillResponse, summary="Trigger a backfill run")
 async def backfill(
     request: BackfillRequest,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
-    settings: Annotated[Settings, Depends(get_settings)],
+    session: DbSession,
+    settings: SettingsDep,
 ) -> BackfillResponse:
     """Start a market data backfill for the given symbols and date range."""
     # Select adapter based on source
@@ -176,7 +174,7 @@ async def backfill(
 @router.get("/runs/{run_id}", response_model=BackfillResponse, summary="Get run status")
 async def get_run(
     run_id: str,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
 ) -> BackfillResponse:
     """Get the status of a previous ingestion run."""
     # Check in-memory cache first (for active runs)
@@ -218,7 +216,7 @@ async def get_run(
 
 @router.get("/lineage", response_model=list[LineageEntry], summary="Query data lineage")
 async def get_lineage(
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
     table: str = Query(default="market_bars_raw", description="Target table"),
     symbol: str | None = Query(default=None, description="Filter by symbol"),
     limit: int = Query(default=50, le=500),
@@ -251,7 +249,7 @@ async def get_lineage(
 
 @router.get("/gaps", response_model=list[GapEntry], summary="List data gaps")
 async def get_gaps(
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
     symbol: str | None = Query(default=None),
     resolved: bool = Query(default=False, description="Include resolved gaps"),
     limit: int = Query(default=100, le=1000),
@@ -282,7 +280,7 @@ async def get_gaps(
 
 @router.get("/bars", response_model=list[BarEntry], summary="Query stored bars")
 async def get_bars(
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
     symbol: str = Query(..., description="Ticker symbol"),
     start: date | None = Query(default=None),
     end: date | None = Query(default=None),
@@ -346,7 +344,7 @@ class DLQEntryResponse(BaseModel):
 
 @router.get("/dlq", response_model=list[DLQEntryResponse], summary="List DLQ entries")
 async def get_dlq(
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
     source: str | None = Query(default=None, description="Filter by source"),
     limit: int = Query(default=50, le=500),
 ) -> list[DLQEntryResponse]:
@@ -398,7 +396,7 @@ class ReplayResponse(BaseModel):
 @router.post("/replay", response_model=ReplayResponse, summary="Replay data from outbox")
 async def replay(
     request: ReplayRequest,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
 ) -> ReplayResponse:
     """Re-emit raw rows into the outbox for a given source and date window.
 
@@ -496,7 +494,7 @@ async def replay(
 
 @router.get("/runs", response_model=list[BackfillResponse], summary="List recent runs")
 async def list_runs(
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
     source: str | None = Query(default=None, description="Filter by source"),
     status: str | None = Query(default=None, description="Filter by status"),
     limit: int = Query(default=20, le=100),
