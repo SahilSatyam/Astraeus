@@ -129,7 +129,7 @@ def get_relaxation_order(constraints: list[Constraint]) -> list[Constraint]:
 
 def relax_constraints(
     constraints: list[Constraint],
-) -> Generator[tuple[list[Constraint], RelaxationEvent], None, None]:
+) -> Generator[tuple[list[Constraint], RelaxationEvent]]:
     """Yield (remaining_constraints, event) tuples as constraints are dropped.
 
     Drops relaxable constraints one at a time in descending priority order

@@ -49,7 +49,7 @@ class TokenCounter:
             import tiktoken
 
             self._encoder = tiktoken.get_encoding(model)
-        except (ImportError, Exception):
+        except ImportError, Exception:
             logger.warning("tiktoken_unavailable", msg="Falling back to word-based counting")
 
     def count(self, text: str) -> int:

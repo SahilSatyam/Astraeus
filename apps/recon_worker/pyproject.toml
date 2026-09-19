@@ -2,7 +2,7 @@
 name = "astraeus-recon-worker"
 version = "0.1.0"
 description = "5-second reconciliation worker — compares local state vs broker."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "astraeus-domain",
     "astraeus-config",

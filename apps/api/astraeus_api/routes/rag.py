@@ -8,15 +8,11 @@ Endpoints:
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from astraeus_api.deps import get_db_session
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
+from astraeus_api.deps import DbSession
 
 router = APIRouter(prefix="/rag", tags=["rag"])
 
@@ -74,7 +70,7 @@ class ChunkDetail(BaseModel):
 @router.post("/retrieve", response_model=RetrieveResponse, summary="Hybrid RAG retrieval")
 async def retrieve(
     request: RetrieveRequest,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
 ) -> RetrieveResponse:
     """Execute a hybrid BM25 + vector retrieval with RRF fusion.
 
@@ -121,7 +117,7 @@ async def retrieve(
 @router.get("/chunks/{chunk_id}", response_model=ChunkDetail, summary="Get chunk by ID")
 async def get_chunk(
     chunk_id: str,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
 ) -> ChunkDetail:
     """Retrieve a single document chunk by its ID."""
     import uuid as uuid_mod

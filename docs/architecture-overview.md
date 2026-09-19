@@ -90,10 +90,10 @@ C4Container
     }
 
     Container_Boundary(backend, "Backend Services") {
-        Container(api, "API Service", "FastAPI, Python 3.12", "Main CRUD, AI copilot, recommendations")
-        Container(oms, "OMS Service", "FastAPI, Python 3.12", "Order management, risk checks, kill switch")
-        Container(workers, "Workers", "Python 3.12, asyncio", "Streaming, outbox relay, nightly batch")
-        Container(recon, "Recon Worker", "Python 3.12", "5-second reconciliation loop")
+        Container(api, "API Service", "FastAPI, Python 3.14", "Main CRUD, AI copilot, recommendations")
+        Container(oms, "OMS Service", "FastAPI, Python 3.14", "Order management, risk checks, kill switch")
+        Container(workers, "Workers", "Python 3.14, asyncio", "Streaming, outbox relay, nightly batch")
+        Container(recon, "Recon Worker", "Python 3.14", "5-second reconciliation loop")
     }
 
     Container_Boundary(data, "Data Layer") {

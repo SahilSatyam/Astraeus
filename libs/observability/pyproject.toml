@@ -2,7 +2,7 @@
 name = "astraeus-observability"
 version = "0.1.0"
 description = "Structured logging, OTel tracing, and Prometheus metrics for Astraeus services."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "structlog>=24.1",
     "opentelemetry-api>=1.25",

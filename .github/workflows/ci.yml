@@ -15,7 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  UV_VERSION: "0.6.0"
+  # 0.6.0 only knew CPython 3.14.0a5 and segfaulted pydantic on Linux CI.
+  UV_VERSION: "0.12.17"
   # Coverage floor for the unit suite. Set deliberately low for the first
   # green build; raise it ratchet-style as coverage improves. CI will fail
   # if coverage drops below this number, which is the whole point.
@@ -30,7 +31,7 @@ jobs:
       - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
-      - run: uv python install 3.12
+      - run: uv python install 3.14.7
       - run: uv sync --all-packages --frozen
       - run: uv run ruff check .
       - run: uv run ruff format --check .
@@ -43,7 +44,7 @@ jobs:
       - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
-      - run: uv python install 3.12
+      - run: uv python install 3.14.7
       - run: uv sync --all-packages --frozen
       - run: uv run mypy apps libs
 
@@ -55,7 +56,7 @@ jobs:
       - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
-      - run: uv python install 3.12
+      - run: uv python install 3.14.7
       - run: uv sync --all-packages --frozen
       - run: >
           uv run pytest -m unit
@@ -99,7 +100,7 @@ jobs:
       - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
-      - run: uv python install 3.12
+      - run: uv python install 3.14.7
       - run: uv sync --all-packages --frozen
       - run: cd libs/db && uv run alembic upgrade head
       - run: cd libs/db && uv run alembic downgrade -1
@@ -114,7 +115,7 @@ jobs:
       - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
-      - run: uv python install 3.12
+      - run: uv python install 3.14.7
       - run: uv run python scripts/import_audit.py
 
   env-lint:
@@ -125,6 +126,6 @@ jobs:
       - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
         with:
           version: ${{ env.UV_VERSION }}
-      - run: uv python install 3.12
+      - run: uv python install 3.14.7
       - run: uv sync --all-packages --frozen
       - run: uv run python scripts/env-lint.py

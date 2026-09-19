@@ -2,7 +2,7 @@
 name = "astraeus-strategy"
 version = "0.1.0"
 description = "Strategy research engine: protocol, backtesting engines, cost model, metrics, and registry."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "astraeus-config",
     "astraeus-db",

@@ -8,7 +8,7 @@ Astraeus is an AI-powered quantitative trading platform. This guide will get you
 
 **What it does:** Ingests market data, runs NLP on alternative data, optimizes portfolios, manages orders, and provides an AI research copilot.
 
-**How it's built:** Python 3.12 monorepo (22 libraries + 5 apps) with a Next.js frontend. Runs on Docker Compose locally and on a single VPS in production.
+**How it's built:** Python 3.14 monorepo (22 libraries + 5 apps) with a Next.js frontend. Runs on Docker Compose locally and on a single VPS in production.
 
 **Key architectural choices:**
 - Event-sourced order management
@@ -165,7 +165,7 @@ make test-int     # Integration tests (needs running stack)
 - **Formatter:** ruff format (line length 100)
 - **Linter:** ruff check (extensive rule set, see pyproject.toml)
 - **Type checker:** mypy strict mode
-- **Target:** Python 3.12
+- **Target:** Python 3.14
 - **Style:** Use `from __future__ import annotations` in all files
 
 ### TypeScript

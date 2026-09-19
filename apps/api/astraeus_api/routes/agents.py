@@ -9,15 +9,12 @@ Endpoints:
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from astraeus_api.deps import get_db_session
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
+from astraeus_api.deps import DbSession
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -79,7 +76,7 @@ class RunTrace(BaseModel):
 )
 async def start_run(
     request: StartRunRequest,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
 ) -> StartRunResponse:
     """Start an agent workflow run.
 
@@ -114,7 +111,7 @@ async def start_run(
 @router.get("/runs/{run_id}", response_model=RunStatus, summary="Get run status")
 async def get_run_status(
     run_id: str,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
 ) -> RunStatus:
     """Get the status and output of a workflow run."""
     try:
@@ -143,7 +140,7 @@ async def get_run_status(
 @router.get("/runs/{run_id}/trace", response_model=RunTrace, summary="Get run trace")
 async def get_run_trace(
     run_id: str,
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    session: DbSession,
 ) -> RunTrace:
     """Get the detailed trace of a workflow run (steps + calls)."""
     try:

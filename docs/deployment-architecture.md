@@ -101,8 +101,8 @@ graph TD
 
 | Image | Base | Build Context | Registry |
 |-------|------|---------------|----------|
-| `astraeus-api` | `python:3.12-slim` | `apps/api/Dockerfile` | `ghcr.io/{owner}/astraeus-api` |
-| `astraeus-workers` | `python:3.12-slim` | `apps/workers/Dockerfile` | `ghcr.io/{owner}/astraeus-workers` |
+| `astraeus-api` | `python:3.14-slim` | `apps/api/Dockerfile` | `ghcr.io/{owner}/astraeus-api` |
+| `astraeus-workers` | `python:3.14-slim` | `apps/workers/Dockerfile` | `ghcr.io/{owner}/astraeus-workers` |
 | `astraeus-web` | Node.js | `apps/web/Dockerfile` | `ghcr.io/{owner}/astraeus-web` |
 | `astraeus-oms` | Shares `astraeus-api` image | Same as API | Same as API |
 
@@ -112,7 +112,7 @@ graph TD
 
 **Security Hardening:**
 - Non-root user (`astraeus:astraeus`)
-- Minimal base image (`python:3.12-slim`)
+- Minimal base image (`python:3.14-slim`)
 - No dev dependencies in production
 - Built-in healthcheck via Python urllib
 

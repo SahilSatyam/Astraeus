@@ -2,7 +2,7 @@
 name = "astraeus-regime"
 version = "0.1.0"
 description = "Market regime detection via HMM and GMM with stability filtering."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "pydantic>=2.6",
     "structlog>=24.1",

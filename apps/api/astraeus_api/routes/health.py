@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Annotated
-
-from astraeus_config import Settings
 from astraeus_contracts import (
     HealthResponse,
     ReadinessCheck,
@@ -12,11 +9,10 @@ from astraeus_contracts import (
     VersionResponse,
 )
 from astraeus_domain import AstraeusError
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from astraeus_api.deps import get_db_session, get_settings
+from astraeus_api.deps import DbSession, SettingsDep
 
 router = APIRouter(tags=["health"])
 
@@ -33,7 +29,7 @@ router = APIRouter(tags=["health"])
     },
 )
 async def healthz(
-    settings: Annotated[Settings, Depends(get_settings)],
+    settings: SettingsDep,
 ) -> HealthResponse:
     return HealthResponse(service=settings.app.name, version=settings.app.version)
 
@@ -51,8 +47,8 @@ async def healthz(
     },
 )
 async def readyz(
-    settings: Annotated[Settings, Depends(get_settings)],
-    session: Annotated[AsyncSession, Depends(get_db_session)],
+    settings: SettingsDep,
+    session: DbSession,
 ) -> ReadinessResponse:
     checks: list[ReadinessCheck] = []
     db_ok = True
@@ -81,7 +77,7 @@ async def readyz(
 
 @router.get("/version", response_model=VersionResponse, summary="Service version metadata")
 async def version(
-    settings: Annotated[Settings, Depends(get_settings)],
+    settings: SettingsDep,
 ) -> VersionResponse:
     return VersionResponse(
         service=settings.app.name,

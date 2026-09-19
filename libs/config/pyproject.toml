@@ -2,7 +2,7 @@
 name = "astraeus-config"
 version = "0.1.0"
 description = "Shared pydantic-settings models for every Astraeus service."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "pydantic>=2.7",
     "pydantic-settings>=2.3",

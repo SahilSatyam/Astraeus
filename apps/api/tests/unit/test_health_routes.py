@@ -71,3 +71,11 @@ def test_create_app_factory_smoke(app: FastAPI) -> None:
     assert "/healthz" in routes
     assert "/readyz" in routes
     assert "/version" in routes
+
+
+@pytest.mark.unit
+def test_openapi_schema_builds(app: FastAPI) -> None:
+    """Deferred AsyncSession annotations must not break /openapi.json."""
+    schema = app.openapi()
+    assert schema["info"]["title"] == "Astraeus API"
+    assert "/healthz" in schema["paths"]

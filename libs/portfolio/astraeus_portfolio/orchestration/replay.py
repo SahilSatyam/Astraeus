@@ -326,7 +326,7 @@ class ReplayEngine:
                 default=str,
             )
             return hashlib.sha256(serialized.encode()).hexdigest()[:16]
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return hashlib.sha256(repr(result).encode()).hexdigest()[:16]
 
 

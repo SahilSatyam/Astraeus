@@ -28,16 +28,14 @@ depends_on: str | None = None
 
 
 def upgrade() -> None:
-    # Enable pgvector extension (requires pgvector installed on the system)
-    # Gracefully skip if not available — vector columns will be NULL-only
+    # Enable pgvector when the image provides it. Do not ROLLBACK on failure:
+    # that would abort Alembic's transaction and drop alembic_version.
     conn = op.get_bind()
-    try:
+    _has_vector = conn.execute(
+        sa.text("SELECT 1 FROM pg_available_extensions WHERE name = 'vector'")
+    ).scalar() is not None
+    if _has_vector:
         conn.execute(sa.text("CREATE EXTENSION IF NOT EXISTS vector"))
-        _has_vector = True
-    except Exception:
-        conn.execute(sa.text("ROLLBACK"))
-        conn.execute(sa.text("BEGIN"))
-        _has_vector = False
 
     # --- raw_document ---
     op.create_table(

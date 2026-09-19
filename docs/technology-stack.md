@@ -4,7 +4,7 @@
 
 | Language | Version | Usage |
 |----------|---------|-------|
-| Python | 3.12 | Backend services, ML/NLP pipelines, scripts |
+| Python | 3.14 | Backend services, ML/NLP pipelines, scripts |
 | TypeScript | 5.x | Frontend (Next.js), API client generation |
 | SQL | PostgreSQL 16 dialect | Migrations, queries, stored functions |
 | Shell (Bash) | — | Scripts, CI/CD, Docker entrypoints |
@@ -150,7 +150,7 @@
 | Prometheus | 2.53.0 | Metrics collection |
 | Grafana | 11.1.0 | Dashboards and alerting |
 | MLflow | 2.14.0 | Experiment tracking (dev) |
-| JupyterLab | python-3.12 | Research notebooks (dev) |
+| JupyterLab | python-3.14 | Research notebooks (dev) |
 
 ## CI/CD
 

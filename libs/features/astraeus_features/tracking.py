@@ -38,7 +38,7 @@ def _get_git_commit() -> str | None:
             timeout=5,
         )
         return result.stdout.strip() if result.returncode == 0 else None
-    except (FileNotFoundError, subprocess.TimeoutExpired):
+    except FileNotFoundError, subprocess.TimeoutExpired:
         return None
 
 
@@ -97,7 +97,7 @@ def run_experiment(
     feature_hash_map: dict[str, str] | None = None,
     universe_members: list[str] | None = None,
     tags: dict[str, str] | None = None,
-) -> Generator[ExperimentRun, None, None]:
+) -> Generator[ExperimentRun]:
     """Context manager for a tracked experiment run.
 
     Automatically attaches:

@@ -2,7 +2,7 @@
 name = "astraeus-features"
 version = "0.1.0"
 description = "Feature store: PIT-correct retrieval, DSL, registry, and backfill engine."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "astraeus-config",
     "astraeus-db",
