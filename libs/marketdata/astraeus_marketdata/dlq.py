@@ -129,7 +129,7 @@ async def get_dlq_entries(
             parsed["outbox_id"] = row.id
             parsed["published_at"] = row.published_at.isoformat() if row.published_at else None
             entries.append(parsed)
-        except (json.JSONDecodeError, UnicodeDecodeError):
+        except json.JSONDecodeError, UnicodeDecodeError:
             entries.append(
                 {
                     "outbox_id": row.id,

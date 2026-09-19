@@ -89,7 +89,7 @@ def _compute_hash(data: Any) -> str:
     try:
         serialized = json.dumps(data, sort_keys=True, default=str)
         return hashlib.sha256(serialized.encode()).hexdigest()[:16]
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return hashlib.sha256(repr(data).encode()).hexdigest()[:16]
 
 

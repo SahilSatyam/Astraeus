@@ -130,7 +130,7 @@ class BaseAgent(ABC):
 
                 try:
                     output = json.loads(response.content)
-                except (json.JSONDecodeError, ValueError):
+                except json.JSONDecodeError, ValueError:
                     last_error = "Response is not valid JSON"
                     continue
 

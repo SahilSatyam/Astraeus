@@ -38,7 +38,7 @@ def _get_git_commit() -> str | None:
             timeout=5,
         )
         return result.stdout.strip() if result.returncode == 0 else None
-    except (FileNotFoundError, subprocess.TimeoutExpired):
+    except FileNotFoundError, subprocess.TimeoutExpired:
         return None
 
 

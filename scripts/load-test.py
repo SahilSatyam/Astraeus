@@ -95,7 +95,7 @@ def make_request(base_url: str, method: str, path: str) -> tuple[float, int]:
     except HTTPError as e:
         elapsed = (time.perf_counter() - start) * 1000
         return elapsed, e.code
-    except (URLError, TimeoutError):
+    except URLError, TimeoutError:
         elapsed = (time.perf_counter() - start) * 1000
         return elapsed, 0
 

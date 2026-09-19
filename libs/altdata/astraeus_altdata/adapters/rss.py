@@ -128,12 +128,12 @@ class RSSAdapter(BaseDocumentAdapter):
                 import time
 
                 publish_ts = datetime.fromtimestamp(time.mktime(entry.published_parsed), tz=UTC)
-            except (TypeError, ValueError, OverflowError):
+            except TypeError, ValueError, OverflowError:
                 pass
         elif hasattr(entry, "published") and entry.published:
             try:
                 publish_ts = parsedate_to_datetime(entry.published).astimezone(UTC)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 pass
 
         # Generate stable source_doc_id

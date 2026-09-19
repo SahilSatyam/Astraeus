@@ -141,7 +141,7 @@ class KillSwitchManager:
                         "Kill switch event received",
                         extra={"scope": scope, "action": action},
                     )
-                except (json.JSONDecodeError, KeyError):
+                except json.JSONDecodeError, KeyError:
                     logger.warning("Invalid kill switch message", extra={"raw": message})
         except asyncio.CancelledError:
             pass

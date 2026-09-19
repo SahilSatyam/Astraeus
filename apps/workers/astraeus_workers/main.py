@@ -136,7 +136,7 @@ async def _streaming_task(
                 task.cancel()
                 try:
                     await task
-                except (asyncio.CancelledError, Exception):
+                except asyncio.CancelledError, Exception:
                     pass
 
             if stop_event.is_set():
