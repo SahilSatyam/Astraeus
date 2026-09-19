@@ -1,0 +1,18 @@
+FROM timescale/timescaledb:2.15.0-pg16
+
+ARG CACHEBUST=2
+
+# Build pgvector into the stock Timescale image for Cloud Agent environments.
+USER root
+RUN apk add --no-cache build-base git \
+    && git clone --branch v0.8.0 --depth 1 https://github.com/pgvector/pgvector.git /tmp/pgvector \
+    && cd /tmp/pgvector \
+    && make OPTFLAGS="" vector.so || true \
+    && test -f vector.so \
+    && cp vector.so /usr/local/lib/postgresql/ \
+    && cp sql/vector.sql /usr/local/share/postgresql/extension/vector--0.8.0.sql \
+    && cp sql/vector.sql /usr/local/share/postgresql/extension/vector.sql \
+    && cp vector.control /usr/local/share/postgresql/extension/ \
+    && rm -rf /tmp/pgvector \
+    && apk del build-base git
+USER postgres
