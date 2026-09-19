@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 
 @pytest.fixture(autouse=True)
-async def _cleanup() -> AsyncGenerator[None, None]:
+async def _cleanup() -> AsyncGenerator[None]:
     yield
     await dispose_engines()
 

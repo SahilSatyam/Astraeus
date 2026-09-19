@@ -97,7 +97,7 @@ def run_experiment(
     feature_hash_map: dict[str, str] | None = None,
     universe_members: list[str] | None = None,
     tags: dict[str, str] | None = None,
-) -> Generator[ExperimentRun, None, None]:
+) -> Generator[ExperimentRun]:
     """Context manager for a tracked experiment run.
 
     Automatically attaches:

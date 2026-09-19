@@ -25,7 +25,7 @@ if [[ ! -f .env ]]; then
     echo "Copied .env.example -> .env"
 fi
 
-uv python install 3.14 >/dev/null
+uv python install 3.14.7 >/dev/null
 uv sync --all-packages
 
 if command -v pre-commit >/dev/null 2>&1; then
