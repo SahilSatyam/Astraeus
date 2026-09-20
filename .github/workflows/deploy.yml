@@ -37,7 +37,7 @@ jobs:
             type=ref,event=branch
             type=ref,event=tag
             type=sha,format=short
-      - uses: docker/build-push-action@ee4ca427a2f43b6a16632044ca514c076267da23 # v6.19.0
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: apps/${{ matrix.app }}/Dockerfile
