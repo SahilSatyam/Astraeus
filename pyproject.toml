@@ -8,12 +8,12 @@ license = { text = "MIT" }
 
 [dependency-groups]
 dev = [
-    "ruff>=0.16.3",
-    "mypy>=2.3.0",
-    "pytest>=9.1.1",
-    "pytest-asyncio>=1.4.0",
+    "ruff>=0.17.3",
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1",
     "pytest-cov>=7.1.0",
-    "hypothesis>=6.165.7",
+    "hypothesis>=6.170.14",
     "pyyaml>=6.0",
     "types-pyyaml>=6.0.12.20260906",
 ]
